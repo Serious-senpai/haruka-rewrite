@@ -9,6 +9,7 @@ from core import bot
 
 
 BOMP_PING_CACHE: List[int] = []
+PINGED: List[int] = []
 
 
 @bot.command(
@@ -31,7 +32,11 @@ async def _ping_cmd(ctx: commands.Context, user: discord.User = None):
     elif user.id == bot.user.id:
         await ctx.send("DON'T PING ME! 💣💥💥")
 
+    elif user.id in PINGED:
+        await ctx.send("This user is currently being pinged somewhere.")
+
     else:
+        PINGED.append(user.id)
         await ctx.message.add_reaction("🏓")
         start: float = time.perf_counter()
 
@@ -45,3 +50,7 @@ async def _ping_cmd(ctx: commands.Context, user: discord.User = None):
         else:
             end: float = time.perf_counter()
             await ctx.message.reply(f"🏓 Pong! <@!{user.id}> responded in " + "{:.2f} seconds".format(end - start))
+        finally:
+            for index, id in enumerate(PINGED):
+                if id == user.id:
+                    PINGED.pop(index)
