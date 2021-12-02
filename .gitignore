@@ -1,0 +1,12 @@
+**/__pycache__
+
+/log.txt
+/run.bat
+/ssh.txt
+/thread.txt
+/eval.txt
+
+/.idea
+/server
+/tracks
+/venv
