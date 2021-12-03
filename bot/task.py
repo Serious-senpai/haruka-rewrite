@@ -22,6 +22,7 @@ class Task:
     task: :class:`asyncio.Task`
         The underlying task for this object
     """
+
     def __init__(self, manager: TaskManager) -> None:
         self.bot: haruka.Haruka = manager.bot
         self.conn: asyncpg.Pool = manager.conn
@@ -50,32 +51,32 @@ class ReminderTask(Task):
         if not row:
             await asyncio.sleep(3600)
             return
-        
+
         await discord.utils.sleep_until(row["time"])
         await self.delete(row)
 
         try:
-            user: discord.User = await self.bot.fetch_user(row["id"]) # Union[str, int]
-        except:
+            user: discord.User = await self.bot.fetch_user(row["id"])  # Union[str, int]
+        except BaseException:
             return
 
         em: discord.Embed = discord.Embed(
-            description = row["content"],
-            color = 0x2ECC71,
-            timestamp = row["original"],
+            description=row["content"],
+            color=0x2ECC71,
+            timestamp=row["original"],
         )
         em.set_author(
-            name = f"{user.name}, this is your reminder.",
-            icon_url = self.bot.user.avatar.url,
+            name=f"{user.name}, this is your reminder.",
+            icon_url=self.bot.user.avatar.url,
         )
         em.add_field(
-            name = "Original message URL",
-            value = row["url"],
+            name="Original message URL",
+            value=row["url"],
         )
-        em.set_thumbnail(url = user.avatar.url if user.avatar else discord.Embed.Empty)
+        em.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
 
         try:
-            await user.send(embed = em)
+            await user.send(embed=em)
         except discord.Forbidden:
             pass
 
@@ -94,7 +95,7 @@ class UnmuteTask(Task):
         if not row:
             await asyncio.sleep(3600)
             return
-        
+
         await discord.utils.sleep_until(row["time"])
         await self.unmute(row)
 
@@ -108,41 +109,41 @@ class UnmuteTask(Task):
 
         try:
             if not member:
-                member: discord.Member = await guild.fetch_member(row["member"]) # Union[str, int]
+                member: discord.Member = await guild.fetch_member(row["member"])  # Union[str, int]
             await member.remove_roles(muted_role)
-        except:
+        except BaseException:
             pass
 
         if not member:
             return
 
-        self.bot.loop.create_task(self.cleanup(member = member, reason = "Timed out"))
+        self.bot.loop.create_task(self.cleanup(member=member, reason="Timed out"))
         roles: List[discord.Object] = [discord.Object(id) for id in row["roles"]]
         try:
-            await member.add_roles(*roles, reason = "Unmute: " + reason[:50])
-        except:
+            await member.add_roles(*roles, reason="Unmute: " + reason[:50])
+        except BaseException:
             pass
 
     async def cleanup(self, *, member: discord.Member, reason: str) -> None:
         em: discord.Embed = discord.Embed(
-            color = 0x2ECC71,
-            timestamp = discord.utils.utcnow(),
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
         )
         em.set_author(
-            name = "You were unmuted from the server",
-            icon_url = self.bot.user.avatar.url,
+            name="You were unmuted from the server",
+            icon_url=self.bot.user.avatar.url,
         )
         em.add_field(
-            name = "Server",
-            value = member.guild.name,
+            name="Server",
+            value=member.guild.name,
         )
         em.add_field(
-            name = "Reason",
-            value = reason,
+            name="Reason",
+            value=reason,
         )
-        em.set_thumbnail(url = member.guild.icon.url if member.guild.icon else discord.Embed.Empty)
+        em.set_thumbnail(url=member.guild.icon.url if member.guild.icon else discord.Embed.Empty)
         try:
-            await member.send(embed = em)
+            await member.send(embed=em)
         except discord.Forbidden:
             return
 

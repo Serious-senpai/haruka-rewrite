@@ -46,8 +46,8 @@ class Haruka(commands.Bot):
         self.log("Overwriting slash commands: " + ", ".join(json["name"] for json in self.json))
         async with self.session.put(
             f"{self.BASE_URL}/applications/{self.user.id}/commands",
-            json = self.json,
-            headers = self.headers,
+            json=self.json,
+            headers=self.headers,
         ) as response:
             self.log(f"Slash commands setup returned status code {response.status}.")
             if not response.ok:
@@ -74,7 +74,7 @@ class Haruka(commands.Bot):
         signal.signal(signal.SIGTERM, self.kill)
 
         # Setup logging file
-        self.logfile = open("./log.txt", "a", encoding = "utf-8")
+        self.logfile = open("./log.txt", "a", encoding="utf-8")
 
         # Connect to database
         async with database.Database(self, self.DATABASE_URL) as self.conn:
@@ -91,7 +91,7 @@ class Haruka(commands.Bot):
                 self._cancelling_signal: asyncio.Event = asyncio.Event()
 
                 # Start the bot
-                await asyncio.wait([super().start(self.TOKEN), self.close()], return_when = asyncio.FIRST_COMPLETED)
+                await asyncio.wait([super().start(self.TOKEN), self.close()], return_when=asyncio.FIRST_COMPLETED)
 
     def _get_external_source(self) -> None:
         import image
@@ -124,7 +124,7 @@ class Haruka(commands.Bot):
             tasks.append(task)
 
         self._get_external_source()
-        self.loop.create_task(self.overwrite_slash_commands()) # Ignore exceptions
+        self.loop.create_task(self.overwrite_slash_commands())  # Ignore exceptions
 
         # Keep the server alive
         if self.host:
@@ -140,9 +140,9 @@ class Haruka(commands.Bot):
             self.topgg = topgg.DBLClient(
                 self,
                 self.TOPGG_TOKEN,
-                autopost = True,
-                autopost_interval = 900,
-                session = self.session,
+                autopost=True,
+                autopost_interval=900,
+                session=self.session,
             )
 
         await asyncio.gather(*tasks)
@@ -179,7 +179,7 @@ class Haruka(commands.Bot):
         self.owner: discord.User = await self.fetch_user(self.owner_id)
 
         try:
-            await self.report("Haruka is ready!", send_state = False)
+            await self.report("Haruka is ready!", send_state=False)
         except Exception as ex:
             self.log(f"Cannot send ready notification: {ex}")
 
@@ -196,15 +196,15 @@ class Haruka(commands.Bot):
         args.insert(0, "youtube-dl")
         process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
             *args,
-            stdout = asyncio.subprocess.PIPE,
-            stderr = asyncio.subprocess.STDOUT,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
         )
 
         output, _ = await process.communicate()
 
         try:
             content: str = output.decode("utf-8")
-        except:
+        except BaseException:
             self.log("Cannot decode output for ytdl test.")
             self.log(traceback.format_exc())
             self.log(f"Finished ytdl test on {url}:\nOutput: {output}")
@@ -220,7 +220,7 @@ class Haruka(commands.Bot):
         try:
             await self.report("Terminating bot. This is the final report.")
             print("Final report has been sent.")
-        except:
+        except BaseException:
             print("Unable to send log file during termination.")
             traceback.print_exc()
         finally:
@@ -240,8 +240,8 @@ class Haruka(commands.Bot):
 
         await self.owner.send(
             message,
-            embed = self.display_status if send_state else None,
-            files = files,
+            embed=self.display_status if send_state else None,
+            files=files,
         )
 
     @property
@@ -255,54 +255,54 @@ class Haruka(commands.Bot):
         messages: Deque[discord.Message] = self._connection._messages
 
         em: discord.Embed = discord.Embed(
-            title = "Internal status",
-            description = "**Commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._command_count.items())
-                        + "\n**Slash commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._slash_command_count.items()),
-            color = 0x2ECC71,
-            timestamp = discord.utils.utcnow(),
+            title="Internal status",
+            description="**Commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._command_count.items())
+            + "\n**Slash commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._slash_command_count.items()),
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
         )
-        em.set_thumbnail(url = self.user.avatar.url)
+        em.set_thumbnail(url=self.user.avatar.url)
 
         em.add_field(
-            name = "Cached servers",
-            value = f"{len(guilds)} servers",
-            inline = False,
+            name="Cached servers",
+            value=f"{len(guilds)} servers",
+            inline=False,
         )
         em.add_field(
-            name = "Cached users",
-            value = f"{len(users)} users",
+            name="Cached users",
+            value=f"{len(users)} users",
         )
         em.add_field(
-            name = "Cached emojis",
-            value = f"{len(emojis)} emojis",
+            name="Cached emojis",
+            value=f"{len(emojis)} emojis",
         )
         em.add_field(
-            name = "Cached stickers",
-            value = f"{len(stickers)} stickers",
+            name="Cached stickers",
+            value=f"{len(stickers)} stickers",
         )
         em.add_field(
-            name = "Cached voice clients",
-            value = f"{len(voice_clients)} voice clients",
+            name="Cached voice clients",
+            value=f"{len(voice_clients)} voice clients",
         )
         em.add_field(
-            name = "Cached DM channels",
-            value = f"{len(private_channels)} channels",
+            name="Cached DM channels",
+            value=f"{len(private_channels)} channels",
         )
         em.add_field(
-            name = "Cached messages",
-            value = f"{len(messages)} messages",
-            inline = False,
+            name="Cached messages",
+            value=f"{len(messages)} messages",
+            inline=False,
         )
         em.add_field(
-            name = "Uptime",
-            value = datetime.datetime.now() - self.uptime,
-            inline = False,
+            name="Uptime",
+            value=datetime.datetime.now() - self.uptime,
+            inline=False,
         )
 
         return em
 
     @tasks.loop(
-        minutes = 10,
+        minutes=10,
     )
     async def _keep_alive(self) -> None:
         async with self.session.get(self.host) as response:
@@ -312,4 +312,4 @@ class Haruka(commands.Bot):
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
         self.log(f"Exception in {event_method}:")
         self.log(traceback.format_exc())
-        await self.report("An error has just occurred and was handled by `on_error`", send_state = False)
+        await self.report("An error has just occurred and was handled by `on_error`", send_state=False)

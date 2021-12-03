@@ -3,16 +3,16 @@ import discord
 
 def UserConverter(interaction: discord.Interaction, id: str) -> discord.User:
     return discord.User(
-        state = interaction._state,
-        data = interaction.data["resolved"]["users"][id],
+        state=interaction._state,
+        data=interaction.data["resolved"]["users"][id],
     )
 
 
 def RoleConverter(interaction: discord.Interaction, id: str) -> discord.Role:
     return discord.Role(
-        guild = interaction.guild,
-        state = interaction._state,
-        data = interaction.data["resolved"]["roles"][id],
+        guild=interaction.guild,
+        state=interaction._state,
+        data=interaction.data["resolved"]["roles"][id],
     )
 
 

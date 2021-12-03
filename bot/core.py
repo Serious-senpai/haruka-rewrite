@@ -34,7 +34,7 @@ class LoggingFilter(logging.Filter):
         return True
 
 
-handler: logging.FileHandler = logging.FileHandler(filename = "./log.txt", encoding = "utf-8", mode = "a")
+handler: logging.FileHandler = logging.FileHandler(filename="./log.txt", encoding="utf-8", mode="a")
 handler.setFormatter(logging.Formatter("HARUKA | %(levelname)s (%(name)s):: %(message)s"))
 handler.addFilter(LoggingFilter())
 
@@ -76,17 +76,17 @@ intents.webhooks = False
 
 
 activity: discord.Activity = discord.Activity(
-    type = discord.ActivityType.playing,
-    name = "@Haruka help",
+    type=discord.ActivityType.playing,
+    name="@Haruka help",
 )
 
 
 bot: haruka.Haruka = haruka.Haruka(
-    activity = activity,
-    command_prefix = get_prefix,
-    intents = intents,
-    case_insensitive = True,
-    max_messages = 80000,
+    activity=activity,
+    command_prefix=get_prefix,
+    intents=intents,
+    case_insensitive=True,
+    max_messages=80000,
 )
 
 

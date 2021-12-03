@@ -52,30 +52,30 @@ class Playlist:
     def create_embed(self) -> discord.Embed:
         """Create an embed for this playlist."""
         embed: discord.Embed = discord.Embed(
-            title = self.title,
-            description = self.description,
-            color = 0x2ECC71,
+            title=self.title,
+            description=self.description,
+            color=0x2ECC71,
         )
 
         if self.author:
-            embed.set_thumbnail(url = self.author.avatar.url if self.author.avatar else discord.Embed.Empty)
+            embed.set_thumbnail(url=self.author.avatar.url if self.author.avatar else discord.Embed.Empty)
 
         embed.add_field(
-            name = "Playlist ID",
-            value = self.id,
-            inline = False,
+            name="Playlist ID",
+            value=self.id,
+            inline=False,
         )
         embed.add_field(
-            name = "Author",
-            value = escape(str(self.author)),
+            name="Author",
+            value=escape(str(self.author)),
         )
         embed.add_field(
-            name = "Tracks count",
-            value = len(self.queue),
+            name="Tracks count",
+            value=len(self.queue),
         )
         embed.add_field(
-            name = "Usage count",
-            value = self.use_count,
+            name="Usage count",
+            value=self.use_count,
         )
         return embed
 
@@ -117,7 +117,7 @@ class Playlist:
             else:
                 try:
                     author = await bot.fetch_user(author_id)
-                except:
+                except BaseException:
                     author = None
 
                 cached[author_id] = author
@@ -152,7 +152,7 @@ class Playlist:
 
             try:
                 author = await bot.fetch_user(author_id)
-            except:
+            except BaseException:
                 author = None
 
             return cls(row, author)
@@ -181,28 +181,28 @@ class YouTubePlaylist:
 
     def create_embed(self) -> discord.Embed:
         embed: discord.Embed = discord.Embed(
-            title = escape(self.title),
-            description = escape(self.description),
-            color = 0x2ECC71,
+            title=escape(self.title),
+            description=escape(self.description),
+            color=0x2ECC71,
         )
-        embed.set_thumbnail(url = self.thumbnail)
+        embed.set_thumbnail(url=self.thumbnail)
         embed.add_field(
-            name = "Author",
-            value = escape(self.author),
-        )
-        embed.add_field(
-            name = "Songs count",
-            value = len(self.videos),
+            name="Author",
+            value=escape(self.author),
         )
         embed.add_field(
-            name = "View count",
-            value = self.view,
+            name="Songs count",
+            value=len(self.videos),
+        )
+        embed.add_field(
+            name="View count",
+            value=self.view,
         )
         for index, video in enumerate(self.videos[:5]):
             embed.add_field(
-                name = f"#{index + 1} {escape(video['title'])}",
-                value = escape(video["author"]),
-                inline = False,
+                name=f"#{index + 1} {escape(video['title'])}",
+                value=escape(video["author"]),
+                inline=False,
             )
         return embed
 
@@ -234,7 +234,7 @@ class YouTubePlaylist:
             The bot that initialized the request.
         id: :class:`str`
             The playlist ID.
-        
+
         Returns
         -----
         Optional[:class:`YouTubePlaylist`]
@@ -242,7 +242,7 @@ class YouTubePlaylist:
             if not found.
         """
         for url in audio.INVIDIOUS_URLS:
-            async with bot.session.get(f"{url}/api/v1/playlists/{id}", timeout = audio.TIMEOUT) as response:
+            async with bot.session.get(f"{url}/api/v1/playlists/{id}", timeout=audio.TIMEOUT) as response:
                 if response.ok:
                     data: Dict[str, Any] = await response.json()
 

@@ -4,8 +4,8 @@ from core import bot
 
 
 @bot.command(
-    name = "cancel",
-    description = "Cancel the running `eval` task",
+    name="cancel",
+    description="Cancel the running `eval` task",
 )
 @commands.is_owner()
 async def _cancel_cmd(ctx: commands.Context):

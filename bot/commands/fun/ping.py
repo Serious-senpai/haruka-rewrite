@@ -13,9 +13,9 @@ PINGED: List[int] = []
 
 
 @bot.command(
-    name = "ping",
-    description = "Ping someone and measure their response speed.\nTry breaking the record of 0.01 sec.",
-    usage = "ping <user>",
+    name="ping",
+    description="Ping someone and measure their response speed.\nTry breaking the record of 0.01 sec.",
+    usage="ping <user>",
 )
 @commands.cooldown(1, 4, commands.BucketType.user)
 async def _ping_cmd(ctx: commands.Context, user: discord.User = None):
@@ -44,7 +44,7 @@ async def _ping_cmd(ctx: commands.Context, user: discord.User = None):
             return message.author.id == user.id and message.channel.id == ctx.channel.id
 
         try:
-            _ = await bot.wait_for("message", check = check, timeout = 300.0)
+            _ = await bot.wait_for("message", check=check, timeout=300.0)
         except asyncio.TimeoutError:
             await ctx.message.reply(f"<@!{user.id}> hasn't sent any messages in 5 minutes, ping request timed out.")
         else:

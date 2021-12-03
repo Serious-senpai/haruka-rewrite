@@ -7,9 +7,9 @@ from core import bot
 
 
 @bot.command(
-    name = "thread",
-    aliases = ["threads"],
-    description = "Display list of active threads.",
+    name="thread",
+    aliases=["threads"],
+    description="Display list of active threads.",
 )
 @commands.is_owner()
 async def _thread_cmd(ctx: commands.Context):
@@ -19,7 +19,7 @@ async def _thread_cmd(ctx: commands.Context):
     if len(string) > 2000:
         with open("./thread.txt", "w") as f:
             f.write(content)
-        await ctx.send(f"Currently running {len(threading.enumerate())} threads", file = discord.File("./thread.txt"))
+        await ctx.send(f"Currently running {len(threading.enumerate())} threads", file=discord.File("./thread.txt"))
 
     else:
         await ctx.send(string)

@@ -9,16 +9,16 @@ from core import bot
 
 
 @bot.command(
-    name = "sauce",
-    description = "Find the image source with saucenao.",
-    usage = "sauce <URL to image>\nsauce <attachment>",
+    name="sauce",
+    description="Find the image source with saucenao.",
+    usage="sauce <URL to image>\nsauce <attachment>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _sauce_cmd(ctx: commands.Context, src: Optional[str] = None):
     if src is None:
         try:
             src = ctx.message.attachments[0].url
-        except:
+        except BaseException:
             return await ctx.send("Please attach or provide a URL to the image.")
 
     results: List[discord.Embed] = await get_sauce(src)

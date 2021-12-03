@@ -28,8 +28,8 @@ class Database(contextlib.AbstractAsyncContextManager):
             self.bot.log("".join(line for line in traceback.format_exception(exc_type, exc_value, tb)))
 
         try:
-            await asyncio.wait_for(self._pool.close(), timeout = 10.0)
-        except:
+            await asyncio.wait_for(self._pool.close(), timeout=10.0)
+        except BaseException:
             self.bot.log("Unable to close database connection.")
             self.bot.log(traceback.format_exc())
         else:
@@ -40,9 +40,9 @@ class Database(contextlib.AbstractAsyncContextManager):
     async def connect(self) -> None:
         self._pool: asyncpg.Pool = await asyncpg.create_pool(
             self.database_url,
-            min_size = 10,
-            max_size = 10,
-            max_inactive_connection_lifetime = 3.0,
+            min_size=10,
+            max_size=10,
+            max_inactive_connection_lifetime=3.0,
         )
         self.bot.log("Created connection pool.")
         await self.initialization()
@@ -64,9 +64,8 @@ class Database(contextlib.AbstractAsyncContextManager):
         ):
             try:
                 await self._pool.execute(f"CREATE EXTENSION {extension};")
-            except:
+            except BaseException:
                 pass
-
 
         # Initialize blacklist
         if not await self._pool.fetchrow("SELECT * FROM misc WHERE title = 'blacklist';"):

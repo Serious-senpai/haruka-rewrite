@@ -16,23 +16,19 @@ if __name__ == "__main__":
     import tracemalloc
     tracemalloc.start()
 
-
     print(f"Running on {sys.platform}\nPython {sys.version}")
-    process: multiprocessing.Process = multiprocessing.Process(target = _run_server)
+    process: multiprocessing.Process = multiprocessing.Process(target=_run_server)
     print("Server is starting")
     process.start()
-
 
     from core import bot
     from events import *
     from commands import *
 
-
     @bot.event
     async def on_ready():
         bot.log(f"Logged in as {bot.user}")
         print(f"Logged in as {bot.user}")
-
 
     @bot.before_invoke
     async def _before_invoke(ctx: commands.Context):
@@ -48,7 +44,6 @@ if __name__ == "__main__":
             bot._command_count[name] = 0
 
         bot._command_count[name] += 1
-
 
     try:
         bot.loop.run_until_complete(bot.start())

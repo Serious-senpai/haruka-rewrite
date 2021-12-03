@@ -6,8 +6,8 @@ from typing import Optional, List, Tuple, Type, TypeVar
 from PIL import Image
 
 
-CT = TypeVar("CT", bound = "BaseCard")
-HT = TypeVar("HT", bound = "BaseHand")
+CT = TypeVar("CT", bound="BaseCard")
+HT = TypeVar("HT", bound="BaseHand")
 
 
 CARDLIST: List[str] = [f for f in os.listdir(f"./bot/assets/cards")]
@@ -52,7 +52,7 @@ class BaseHand:
 
     def make_image(self) -> io.BytesIO:
         _data: io.BytesIO = io.BytesIO()
-        self.image.save(_data, format = "PNG")
+        self.image.save(_data, format="PNG")
         _data.seek(0)
         return _data
 

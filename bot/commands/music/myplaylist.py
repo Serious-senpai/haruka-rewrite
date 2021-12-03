@@ -10,9 +10,9 @@ from core import bot
 
 
 @bot.command(
-    name = "myplaylist",
-    aliases = ["myplaylists"],
-    description = "View your published playlists",
+    name="myplaylist",
+    aliases=["myplaylists"],
+    description="View your published playlists",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _myplaylist_cmd(ctx: commands.Context):
@@ -25,10 +25,10 @@ async def _myplaylist_cmd(ctx: commands.Context):
     for index, playlist in enumerate(playlists):
         embed = playlist.create_embed()
         embed.set_author(
-            name = f"Displaying playlist #{index + 1}",
-            icon_url = bot.user.avatar.url,
+            name=f"Displaying playlist #{index + 1}",
+            icon_url=bot.user.avatar.url,
         )
-        embed.set_footer(text = f"Playlist {index + 1}/{length}")
+        embed.set_footer(text=f"Playlist {index + 1}/{length}")
         embeds.append(embed)
 
     display: emoji_ui.NavigatorPagination = emoji_ui.NavigatorPagination(embeds)

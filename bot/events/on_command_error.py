@@ -52,17 +52,17 @@ async def on_command_error(ctx: commands.Context, error: Exception):
             time += f" {minutes}m"
         if seconds > 0:
             time += " {:.2f}s".format(seconds)
-        
+
         time: str = time.strip()
 
         await ctx.send(
             f"⏱️ <@!{ctx.author.id}> This command is on cooldown!\nYou can use it after **{time}**!",
-            delete_after = max(1.0, error.retry_after) if error.retry_after < 600 else None,
+            delete_after=max(1.0, error.retry_after) if error.retry_after < 600 else None,
         )
 
         await asyncio.sleep(error.retry_after)
         COOLDOWN_NOTIFY[ctx.author.id][ctx.command.name] = False
-    
+
     elif isinstance(error, commands.UserInputError):
         await ctx.send(f"📝 Please check your input again. See `help {ctx.command.name}` for more details.")
 
@@ -72,7 +72,7 @@ async def on_command_error(ctx: commands.Context, error: Exception):
 
     elif isinstance(error, commands.NoPrivateMessage):
         await ctx.send("This command can only be invoked in a server channel.")
-    
+
     elif isinstance(error, commands.BotMissingPermissions):
         await ctx.send("🚫 I do not have permission to execute this command: " + ", ".join(f"`{perm}`" for perm in error.missing_permissions))
 
@@ -81,24 +81,24 @@ async def on_command_error(ctx: commands.Context, error: Exception):
 
     elif isinstance(error, commands.NSFWChannelRequired):
         await ctx.send("🔞 This command can only be invoked in a NSFW channel.")
-    
+
     elif isinstance(error, commands.CheckFailure):
         return
-    
+
     elif isinstance(error, commands.CommandInvokeError):
         await on_command_error(ctx, error.original)
 
     # Other exceptions
     elif isinstance(error, discord.Forbidden):
         return
-    
+
     elif isinstance(error, discord.DiscordServerError):
         return
 
     else:
         try:
             await ctx.send("...")
-        except:
+        except BaseException:
             bot.log("An exception occurred when trying to send a notification message:")
             bot.log(traceback.format_exc())
         else:
@@ -106,4 +106,4 @@ async def on_command_error(ctx: commands.Context, error: Exception):
 
         bot.log(f"'{ctx.message.content}' in {ctx.guild}/{ctx.channel} from {ctx.author} ({ctx.author.id}):")
         bot.log("".join(line for line in traceback.format_exception(error.__class__, error, error.__traceback__)))
-        await bot.report("An error has just occured and was handled by `on_command_error`", send_state = False)
+        await bot.report("An error has just occured and was handled by `on_command_error`", send_state=False)

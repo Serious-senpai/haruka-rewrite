@@ -8,9 +8,9 @@ from core import bot
 
 
 @bot.command(
-    name = "remove",
-    description = "Remove a track from the current queue. Use `remove all` to remove all tracks.",
-    usage = "remove <track position | all | default: 1>"
+    name="remove",
+    description="Remove a track from the current queue. Use `remove all` to remove all tracks.",
+    usage="remove <track position | all | default: 1>"
 )
 @commands.guild_only()
 @commands.cooldown(1, 5, commands.BucketType.user)
@@ -27,15 +27,15 @@ async def _remove_cmd(ctx: commands.Context, pos: Union[int, str] = 1):
     if not isinstance(pos, int):
         raise commands.UserInputError
 
-    id: Optional[str] = await MusicClient.remove(channel.id, pos = pos)
+    id: Optional[str] = await MusicClient.remove(channel.id, pos=pos)
 
     if id is not None:
         track: InvidiousSource = await InvidiousSource.build(id)
         em: discord.Embed = track.create_embed()
         em.set_author(
-            name = f"{ctx.author.name} removed 1 song from {channel.name}",
-            icon_url = ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+            name=f"{ctx.author.name} removed 1 song from {channel.name}",
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
         )
-        await ctx.send(embed = em)
+        await ctx.send(embed=em)
     else:
         await ctx.send("No song with this position.")

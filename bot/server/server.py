@@ -21,9 +21,9 @@ routes: web.RouteTableDef = web.RouteTableDef()
 @routes.get("/")
 async def _main_page(request: web.Request) -> web.Response:
     return web.Response(
-        text = index,
-        status = 200,
-        content_type = "text/html",
+        text=index,
+        status=200,
+        content_type="text/html",
     )
 
 
@@ -38,7 +38,4 @@ routes.static("/asset", "./bot/assets/server")
 
 app: web.Application = web.Application()
 app.add_routes(routes)
-web.run_app(
-    app,
-    port = int(os.environ.get("PORT", 8080)),
-)
+web.run_app(app, port=int(os.environ.get("PORT", 8080)))

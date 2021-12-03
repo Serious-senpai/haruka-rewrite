@@ -7,8 +7,8 @@ from core import bot
 
 
 @bot.command(
-    name = "shuffle",
-    description = "Enable/Disable music playing shuffle",
+    name="shuffle",
+    description="Enable/Disable music playing shuffle",
 )
 @commands.guild_only()
 @commands.cooldown(1, 5, commands.BucketType.user)

@@ -24,10 +24,10 @@ async def _avatar_slash(interaction: discord.Interaction):
     args: Dict[str, discord.User] = slash_utils.parse(interaction)
     user: discord.User = args.get("user", interaction.user)
 
-    embed: discord.Embed = discord.Embed(color = 0x2ECC71)
+    embed: discord.Embed = discord.Embed(color=0x2ECC71)
     embed.set_author(
-        name = f"This is {user.name}'s avatar",
-        icon_url = bot.user.avatar.url,
+        name=f"This is {user.name}'s avatar",
+        icon_url=bot.user.avatar.url,
     )
-    embed.set_image(url = user.avatar.url if user.avatar else discord.Embed.Empty)
-    await interaction.response.send_message(embed = embed)
+    embed.set_image(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+    await interaction.response.send_message(embed=embed)

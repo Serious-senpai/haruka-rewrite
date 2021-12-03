@@ -25,4 +25,4 @@ async def _stopafter_slash(interaction: discord.Interaction):
     if player._stopafter:
         await interaction.followup.send("Enabled `stopafter`. This will be the last song to be played.")
     else:
-        await interaction.followup.send("Disabled `stopafter`. Other songs will be played normally after this one ends.")        
+        await interaction.followup.send("Disabled `stopafter`. Other songs will be played normally after this one ends.")

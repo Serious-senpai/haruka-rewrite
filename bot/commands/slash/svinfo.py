@@ -20,4 +20,4 @@ async def _svinfo_slash(interaction: discord.Interaction):
         await response.send_message("This command can only be used in a server.")
     else:
         em: discord.Embed = info.server_info(interaction.guild)
-        await response.send_message(embed = em)
+        await response.send_message(embed=em)

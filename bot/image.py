@@ -13,7 +13,7 @@ from discord.ext import commands
 import haruka
 
 
-IT = TypeVar("IT", bound = "ImageSource")
+IT = TypeVar("IT", bound="ImageSource")
 
 
 class CategoryNotFound(Exception):
@@ -49,7 +49,7 @@ class ImageSource:
         """This function is a coroutine
 
         Get all endpoints that this image source can provide.
-        
+
         Subclasses must implement this.
 
         Returns
@@ -75,7 +75,7 @@ class ImageSource:
             should be registered with :meth:`_get_all_endpoints` first.
         mode: Literal["sfw", "nsfw"]
             Whether the image should be sfw or nsfw.
-        
+
         Returns
         -----
         Optional[:class:`str`]
@@ -247,14 +247,14 @@ class Asuna(ImageSource):
                 return data["sfw"], data["nsfw"]
 
             return [], []
-        
+
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"]) -> Optional[str]:
         category = self.converter.get(category, category)
         async with self.session.get(f"https://asuna.ga/api/{category}") as response:
             if response.ok:
                 json: Dict[str, str] = await response.json()
                 return json["url"]
-        
+
         return
 
 
@@ -305,23 +305,23 @@ class ImageClient:
 
         async def _wrapped_callback(category: str, mode: Literal["sfw", "nsfw"], ctx: commands.Context):
             em: discord.Embed = discord.Embed(
-                color = 0x2ECC71,
+                color=0x2ECC71,
             )
             em.set_author(
-                name = f"{ctx.author.name}, this is your image!",
-                icon_url = ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+                name=f"{ctx.author.name}, this is your image!",
+                icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
             )
-            em.set_image(url = await self.get(category, mode = mode))
+            em.set_image(url=await self.get(category, mode=mode))
 
-            await ctx.send(embed = em)
+            await ctx.send(embed=em)
 
         command: commands.Command
         for category in self.sfw:
             command = commands.Command(
                 functools.partial(_wrapped_callback, category, "sfw"),
-                name = "*" + category.replace(" ", "_"),
-                description = f"Send you a SFW `{category}` image",
-                cooldown = commands.CooldownMapping(
+                name="*" + category.replace(" ", "_"),
+                description=f"Send you a SFW `{category}` image",
+                cooldown=commands.CooldownMapping(
                     commands.Cooldown(1, 4),
                     commands.BucketType.user,
                 ),
@@ -331,13 +331,13 @@ class ImageClient:
         for category in self.nsfw:
             command = commands.Command(
                 commands.is_nsfw()(functools.partial(_wrapped_callback, category, "nsfw")),
-                name = "**" + category.replace(" ", "_"),
-                description = f"Send you a NSFW `{category}` image",
-                cooldown = commands.CooldownMapping(
+                name="**" + category.replace(" ", "_"),
+                description=f"Send you a NSFW `{category}` image",
+                cooldown=commands.CooldownMapping(
                     commands.Cooldown(1, 4),
                     commands.BucketType.user,
                 ),
-                checks = [
+                checks=[
 
                 ],
             )
@@ -372,7 +372,7 @@ class ImageClient:
                 self.nsfw[endpoint] = [source]
             else:
                 self.nsfw[endpoint].append(source)
-        
+
         self.bot.log(f"Loaded {len(sfw)} SFW endpoints and {len(self.nsfw)} NSFW endpoints from {source.__class__.__name__}")
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
@@ -390,16 +390,16 @@ class ImageClient:
         -----
         category: :class:`str`
             The image category to fetch URL.
-        
+
         mode: Literal["sfw", "nsfw"]
             Whether the category belongs to the SFW or NSFW
             collections.
-        
+
         Returns
         -----
         Optional[:class:`str`]
             The image URL.
-        
+
         Exceptions
         -----
         :class:`CategoryNotFound`
@@ -408,7 +408,7 @@ class ImageClient:
         """
         if category not in self.sfw and mode == "sfw":
             raise CategoryNotFound(category)
-        
+
         if category not in self.nsfw and mode == "nsfw":
             raise CategoryNotFound(category)
 
@@ -416,7 +416,7 @@ class ImageClient:
             random.shuffle(self.sfw[category])
 
             for source in self.sfw[category]:
-                image_url: Optional[str] = await source.get(category, mode = "sfw")
+                image_url: Optional[str] = await source.get(category, mode="sfw")
                 if image_url:
                     return image_url
 
@@ -424,6 +424,6 @@ class ImageClient:
             random.shuffle(self.nsfw[category])
 
             for source in self.nsfw[category]:
-                image_url: Optional[str] = await source.get(category, mode = "nsfw")
+                image_url: Optional[str] = await source.get(category, mode="nsfw")
                 if image_url:
                     return image_url

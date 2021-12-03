@@ -118,7 +118,7 @@ class PixivArtwork:
 
         async with bot.session.get(
             self.image_url,
-            headers = PIXIV_HEADERS,
+            headers=PIXIV_HEADERS,
         ) as response:
             if response.ok:
                 data: bytes = await response.content.read(128)
@@ -131,40 +131,40 @@ class PixivArtwork:
 
     async def create_embed(self) -> discord.Embed:
         em: discord.Embed = discord.Embed(
-            title = escape(self.title),
-            description = escape(self.description) if self.description else discord.Embed.Empty,
-            url = self.url,
-            color = 0x2ECC71,
+            title=escape(self.title),
+            description=escape(self.description) if self.description else discord.Embed.Empty,
+            url=self.url,
+            color=0x2ECC71,
         )
 
         try:
             await self.stream()
         except discord.HTTPException:
-            em.set_image(url = self.thumbnail)
+            em.set_image(url=self.thumbnail)
         else:
-            em.set_image(url = f"{bot.host}/image/{self.id}.png")
+            em.set_image(url=f"{bot.host}/image/{self.id}.png")
 
         em.add_field(
-            name = "Tags",
-            value = ", ".join(escape(tag) for tag in self.tags) if self.tags else "*No tags given*",
-            inline = False,
+            name="Tags",
+            value=", ".join(escape(tag) for tag in self.tags) if self.tags else "*No tags given*",
+            inline=False,
         )
         em.add_field(
-            name = "Artwork ID",
-            value = self.id,
+            name="Artwork ID",
+            value=self.id,
         )
         em.add_field(
-            name = "Author",
-            value = f"[{escape(self.author.name)}](https://www.pixiv.net/en/users/{self.author.id})",
+            name="Author",
+            value=f"[{escape(self.author.name)}](https://www.pixiv.net/en/users/{self.author.id})",
         )
         em.add_field(
-            name = "Size",
-            value = f"{self.width} x {self.height}",
+            name="Size",
+            value=f"{self.width} x {self.height}",
         )
         em.add_field(
-            name = "Artwork link",
-            value = self.url,
-            inline = False,
+            name="Artwork link",
+            value=self.url,
+            inline=False,
         )
         return em
 
@@ -193,9 +193,9 @@ class PixivArtwork:
     ) -> Optional[PixivArtwork]:
         async with bot.session.get(f"https://pixiv.net/en/artworks/{id}") as response:
             if response.ok:
-                html: str = await response.text(encoding = "utf-8")
+                html: str = await response.text(encoding="utf-8")
                 soup: bs4.BeautifulSoup = bs4.BeautifulSoup(html, "html.parser")
-                content: Optional[str] = soup.find("meta", attrs = {"name": "preload-data"}).get("content")
+                content: Optional[str] = soup.find("meta", attrs={"name": "preload-data"}).get("content")
                 if content:
                     data: Dict[str, Any] = json.loads(content)
                     illust: Dict[str, Any] = data["illust"][str(id)]

@@ -5,8 +5,8 @@ from core import bot
 
 
 @bot.command(
-    name = "quote",
-    description = "Send you a random quote."
+    name="quote",
+    description="Send you a random quote."
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _quote_cmd(ctx: commands.Context):

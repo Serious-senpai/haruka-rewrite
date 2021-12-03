@@ -16,7 +16,7 @@ from discord.utils import escape_markdown as escape
 from core import bot
 
 
-TIMEOUT: aiohttp.ClientTimeout = aiohttp.ClientTimeout(total = 15)
+TIMEOUT: aiohttp.ClientTimeout = aiohttp.ClientTimeout(total=15)
 SIZE_LIMIT: int = 8 << 20
 
 
@@ -49,7 +49,7 @@ def get_from_memory(id: str) -> Optional[Dict[str, Any]]:
     if os.path.isfile(f"./tracks/{id}.json"):
         with open(f"./tracks/{id}.json", "r") as f:
             data: Dict[str, Any] = json.load(f)
-        
+
         return data
 
 
@@ -73,7 +73,7 @@ def save_to_memory(data: Dict[str, Any]) -> None:
 
 class PartialInvidiousSource:
     """Represents a video object from Invidious
-    
+
     This class only has information from the track and can be
     obtained from :meth:`PartialInvidiousSource.search`
     """
@@ -141,25 +141,25 @@ class PartialInvidiousSource:
             The embed with information about the video
         """
         em: discord.Embed = discord.Embed(
-            title = escape(self.title),
-            description = escape(self.description) if self.description else discord.Embed.Empty,
-            url = f"https://www.youtube.com/watch?v={self.id}",
-            color = 0x2ECC71,
+            title=escape(self.title),
+            description=escape(self.description) if self.description else discord.Embed.Empty,
+            url=f"https://www.youtube.com/watch?v={self.id}",
+            color=0x2ECC71,
         )
         em.add_field(
-            name = "Channel",
-            value = escape(self.channel),
-            inline = False,
+            name="Channel",
+            value=escape(self.channel),
+            inline=False,
         )
         em.add_field(
-            name = "Length",
-            value = f"{self.length} seconds",
+            name="Length",
+            value=f"{self.length} seconds",
         )
 
         if not self.thumbnail.startswith("http"):
-            em.set_thumbnail(url = self._api_url + self.thumbnail)
+            em.set_thumbnail(url=self._api_url + self.thumbnail)
         else:
-            em.set_thumbnail(url = self.thumbnail)
+            em.set_thumbnail(url=self.thumbnail)
 
         return em
 
@@ -181,7 +181,7 @@ class PartialInvidiousSource:
             The searching query
         max_results: :class:`int`
             The maximum number of results to return
-        
+
         Returns
         -----
         List[:class:`PartialInvidiousSource`]
@@ -196,12 +196,12 @@ class PartialInvidiousSource:
 
         for url in INVIDIOUS_URLS:
             try:
-                async with bot.session.get(f"{url}/api/v1/search", params = params, timeout = TIMEOUT) as response:
+                async with bot.session.get(f"{url}/api/v1/search", params=params, timeout=TIMEOUT) as response:
                     if response.status == 200:
                         json: List[Dict[str, Any]] = await response.json()
                         items.extend(cls(data, url) for data in json[:max_results])
                         return items
-            except:
+            except BaseException:
                 continue
 
         return items
@@ -220,7 +220,7 @@ class PartialInvidiousSource:
         -----
         id: :class:`str`
             The track ID
-        
+
         Returns
         -----
         Optional[:class:`PartialInvidiousSource`]
@@ -242,14 +242,14 @@ class PartialInvidiousSource:
 
 class InvidiousSource(PartialInvidiousSource):
     """Represents a playable video object from Invidious
-    
+
     This class inherits from :class:`PartialInvidiousSource`,
     but provides additional attributes and methods that
     support music playing.
 
     If users want to get the Invidious URL to the audio,
     they should also use this class.
-    """    
+    """
 
     __slots__ = (
         "_json",
@@ -271,7 +271,7 @@ class InvidiousSource(PartialInvidiousSource):
 
     def initialize(self) -> None:
         """Initialize this track before playing
-        
+
         This method will be automatically called
         when the first portion of the track starts
         loading. However, users can also call this
@@ -283,7 +283,7 @@ class InvidiousSource(PartialInvidiousSource):
 
     def fetch(self) -> Optional[discord.FFmpegOpusAudio]:
         """Fetch a 30-second portion of the audio
-        
+
         If the track hasn't been initialized for
         playing yet, this will automatically call
         :meth:`initialize()`
@@ -325,16 +325,16 @@ class InvidiousSource(PartialInvidiousSource):
 
         return discord.FFmpegOpusAudio(
             self.source,
-            before_options = before_options,
-            options = options,
+            before_options=before_options,
+            options=options,
         )
 
     async def get_source(self) -> Optional[str]:
         """This function is a coroutine
-        
+
         Get the URL to the source of the opus
         encoded audio.
-        
+
         Returns
         -----
         :class:`str`
@@ -342,7 +342,7 @@ class InvidiousSource(PartialInvidiousSource):
             is always opus encoded.
         """
         if self.source:
-            async with bot.session.get(self.source, timeout = TIMEOUT) as response:
+            async with bot.session.get(self.source, timeout=TIMEOUT) as response:
                 if response.ok:
                     return self.source
 
@@ -358,11 +358,11 @@ class InvidiousSource(PartialInvidiousSource):
 
         process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
             *args,
-            stdout = asyncio.subprocess.PIPE,
-            stderr = asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await process.communicate()
-        
+
         try:
             url: Optional[str] = stdout.decode("utf-8").split("\n")[0]
         except Exception as ex:
@@ -379,7 +379,7 @@ class InvidiousSource(PartialInvidiousSource):
     @classmethod
     async def build(cls: Type[InvidiousSource], id: str) -> Optional[InvidiousSource]:
         """This function is a coroutine
-        
+
         Get a :class:`InvidiousSource` from a video ID.
 
         Parameters
@@ -396,7 +396,7 @@ class InvidiousSource(PartialInvidiousSource):
             try:
                 async with bot.session.get(
                     f"{url}/api/v1/videos/{id}",
-                    timeout = TIMEOUT,
+                    timeout=TIMEOUT,
                 ) as response:
                     if response.ok:
                         json: Dict[str, Any] = await response.json()
@@ -405,7 +405,7 @@ class InvidiousSource(PartialInvidiousSource):
                             json | {"api_url": url},
                         )
                         return cls(json, url)
-            except:
+            except BaseException:
                 continue
 
     @classmethod
@@ -416,7 +416,7 @@ class InvidiousSource(PartialInvidiousSource):
         :meth:`PartialInvidiousSource.search` instead.
         """
         raise NotImplementedError
-    
+
 
 async def fetch(url: str) -> bytes:
     args: List[str] = [
@@ -428,8 +428,8 @@ async def fetch(url: str) -> bytes:
     ]
     process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
         *args,
-        stdout = asyncio.subprocess.PIPE,
-        stderr = asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
     stdout, _ = await process.communicate()
     return stdout
@@ -443,6 +443,7 @@ class MusicClient(discord.VoiceClient):
     This class provides some additional functions for
     implementing the music queue system.
     """
+
     def __init__(self, *args, **kwargs) -> None:
         self._shuffle: bool = False
         self._stopafter: bool = False
@@ -498,9 +499,9 @@ class MusicClient(discord.VoiceClient):
         pos: Optional[int] = None,
     ) -> Optional[str]:
         """This function is a coroutine
-        
+
         Remove a track from the music queue of a voice channel.
-        
+
         Parameters
         -----
         channel_id: :class:`int`
@@ -508,7 +509,7 @@ class MusicClient(discord.VoiceClient):
         pos: Optional[:class:`int`]
             The position of the track to remove, indexing starts from 1. If
             this argument is not provided, a random track will be poped out.
-        
+
         Returns
         -----
         Optional[:class:`str`]
@@ -543,28 +544,28 @@ class MusicClient(discord.VoiceClient):
             if self._shuffle:
                 track_id: Optional[str] = await self.remove(self.channel.id)
             else:
-                track_id: Optional[str] = await self.remove(self.channel.id, pos = 1)
+                track_id: Optional[str] = await self.remove(self.channel.id, pos=1)
 
             if not track_id:
-                return await self.disconnect(force = True)
+                return await self.disconnect(force=True)
 
             track: Optional[InvidiousSource] = await InvidiousSource.build(track_id)
 
             if track is None:
                 em: discord.Embed = discord.Embed(
-                    description = "Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.",
-                    color = 0x2ECC71,
+                    description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.",
+                    color=0x2ECC71,
                 )
                 em.set_author(
-                    name = "Warning",
-                    icon_url = bot.user.avatar.url,
+                    name="Warning",
+                    icon_url=bot.user.avatar.url,
                 )
                 em.add_field(
-                    name = "YouTube URL",
-                    value = f"https://www.youtube.com/watch?v={track_id}",
+                    name="YouTube URL",
+                    value=f"https://www.youtube.com/watch?v={track_id}",
                 )
                 try:
-                    await self.target.send(embed = em)
+                    await self.target.send(embed=em)
                 except discord.Forbidden:
                     pass
                 continue
@@ -573,14 +574,14 @@ class MusicClient(discord.VoiceClient):
                 async with self.target.typing():
                     em: discord.Embed = track.create_embed()
                     em.set_author(
-                        name = f"Playing in {self.channel}",
-                        icon_url = bot.user.avatar.url,
+                        name=f"Playing in {self.channel}",
+                        icon_url=bot.user.avatar.url,
                     )
 
                     if self._shuffle:
-                        em.set_footer(text = "Shuffle is ON")
+                        em.set_footer(text="Shuffle is ON")
                     else:
-                        em.set_footer(text = "Shuffle is OFF")
+                        em.set_footer(text="Shuffle is OFF")
 
                     if playing_info:
                         try:
@@ -588,7 +589,7 @@ class MusicClient(discord.VoiceClient):
                         except discord.HTTPException:
                             pass
 
-                    playing_info = await self.target.send(embed = em)
+                    playing_info = await self.target.send(embed=em)
             except discord.Forbidden:
                 pass
 
@@ -603,14 +604,14 @@ class MusicClient(discord.VoiceClient):
                     pass
                 continue
 
-            async with bot.session.get(url, timeout = TIMEOUT) as response:
+            async with bot.session.get(url, timeout=TIMEOUT) as response:
                 if not response.ok:
                     try:
                         await self.target.send(f"Cannot fetch the audio for this track ({response.status}), removing from queue.")
                     except discord.Forbidden:
                         pass
                     continue
-            
+
             await self.add(self.channel.id, track_id)
 
             # The playing loop for a song: divide each track
@@ -622,7 +623,7 @@ class MusicClient(discord.VoiceClient):
             # only 1 to prevent race conditions as mentioned
             # above (as well as to save memory for storing
             # buffer)
-            audios: asyncio.Queue = asyncio.Queue(maxsize = 1)
+            audios: asyncio.Queue = asyncio.Queue(maxsize=1)
 
             # Load the first audio portion asynchronously
             audio: discord.FFmpegOpusAudio = await asyncio.to_thread(track.fetch)
@@ -653,10 +654,10 @@ class MusicClient(discord.VoiceClient):
                     task: Optional[asyncio.Task] = None
 
                 self._event.clear()
-                self._operable.set() # Enable pause/resume
-                super().play(audio, after = self._set_event)
+                self._operable.set()  # Enable pause/resume
+                super().play(audio, after=self._set_event)
                 await self._event.wait()
-                self._operable.clear() # Disable pause/resume
+                self._operable.clear()  # Disable pause/resume
 
                 if not self.is_connected():
                     return
@@ -668,7 +669,7 @@ class MusicClient(discord.VoiceClient):
                 return
 
             if self._stopafter:
-                await self.disconnect(force = True)
+                await self.disconnect(force=True)
                 try:
                     await self.target.send("Done playing song, disconnected due to `stopafter` request.")
                 except discord.Forbidden:

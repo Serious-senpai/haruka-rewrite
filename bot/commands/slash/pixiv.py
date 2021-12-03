@@ -42,7 +42,7 @@ async def _pixiv_slash(interaction: discord.Interaction):
         else:
             id = int(match.group())
             artwork = await _pixiv.PixivArtwork.from_id(id)
-    
+
     else:
         # Get the first Pixiv result from query
         if len(query) < 2:
@@ -51,7 +51,7 @@ async def _pixiv_slash(interaction: discord.Interaction):
         rslt: List[_pixiv.PixivArtwork] = await _pixiv.PixivArtwork.search(query)
         if not rslt:
             return await interaction.followup.send("No matching result was found.")
-        
+
         artwork = rslt[0]
 
     if isinstance(interaction.channel, discord.TextChannel):
@@ -60,7 +60,7 @@ async def _pixiv_slash(interaction: discord.Interaction):
 
     embed: discord.Embed = await artwork.create_embed()
     embed.set_author(
-        name = "Pixiv searching request",
-        icon_url = bot.user.avatar.url,
+        name="Pixiv searching request",
+        icon_url=bot.user.avatar.url,
     )
-    return await interaction.followup.send(embed = embed)
+    return await interaction.followup.send(embed=embed)

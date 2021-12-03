@@ -9,7 +9,7 @@ import discord
 from core import bot
 
 
-ET = TypeVar("ET", bound = "EmojiUI")
+ET = TypeVar("ET", bound="EmojiUI")
 
 
 # Frequently used emoji lists
@@ -42,7 +42,7 @@ class EmojiUI:
 
     async def timeout(self, pending: Optional[Set[Union[asyncio.Future, asyncio.Task]]] = None) -> None:
         """This function is a coroutine
-        
+
         This is called when the interaction times out to ensure
         proper cleanup.
         """
@@ -58,9 +58,9 @@ class EmojiUI:
                 embed = embeds[0]
                 embed.color = 0x607d8b
 
-            await self.message.edit("This message has timed out.", embed = embed or discord.utils.MISSING)
+            await self.message.edit("This message has timed out.", embed=embed or discord.utils.MISSING)
             await self.message.clear_reactions()
-        except:
+        except BaseException:
             pass
 
 
@@ -106,13 +106,13 @@ class Pagination(EmojiUI):
         -----
         target: :class:`discord.abc.Messageable`
             The target to interact with.
-        
+
         user_id: Optional[:class:`int`]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
             this bot itself.
         """
-        self.message = await target.send(embed = self.pages[0])
+        self.message = await target.send(embed=self.pages[0])
         self.user_id = user_id
 
         for emoji in self.allowed_emojis:
@@ -120,17 +120,17 @@ class Pagination(EmojiUI):
 
         while True:
             done, pending = await asyncio.wait([
-                    bot.wait_for("raw_reaction_add", check = self.check),
-                    bot.wait_for("raw_reaction_remove", check = self.check),
-                ],
-                timeout = 300.0,
-                return_when = asyncio.FIRST_COMPLETED,
+                bot.wait_for("raw_reaction_add", check=self.check),
+                bot.wait_for("raw_reaction_remove", check=self.check),
+            ],
+                timeout=300.0,
+                return_when=asyncio.FIRST_COMPLETED,
             )
 
             if done:
                 payload: discord.RawReactionActionEvent = done.pop().result()
                 page: int = self.allowed_emojis.index(str(payload.emoji))
-                await self.message.edit(embed = self.pages[page])
+                await self.message.edit(embed=self.pages[page])
             else:
                 return await self.timeout(pending)
 
@@ -171,7 +171,7 @@ class RandomPagination(EmojiUI):
         -----
         target: :class:`discord.abc.Messageable`
             The target to interact with.
-        
+
         user_id: Optional[:class:`int`]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
@@ -182,20 +182,20 @@ class RandomPagination(EmojiUI):
         while True:
             if self.message:
                 try:
-                    await self.message.edit(embed = random.choice(self.pages))
+                    await self.message.edit(embed=random.choice(self.pages))
                 except discord.HTTPException:
                     self.message = None
 
             if not self.message:
-                self.message = await target.send(embed = random.choice(self.pages))
+                self.message = await target.send(embed=random.choice(self.pages))
                 await self.message.add_reaction("🔄")
 
             done, pending = await asyncio.wait([
-                    bot.wait_for("raw_reaction_add", check = self.check),
-                    bot.wait_for("raw_reaction_remove", check = self.check),
-                ],
-                timeout = 300.0,
-                return_when = asyncio.FIRST_COMPLETED,
+                bot.wait_for("raw_reaction_add", check=self.check),
+                bot.wait_for("raw_reaction_remove", check=self.check),
+            ],
+                timeout=300.0,
+                return_when=asyncio.FIRST_COMPLETED,
             )
 
             if not done:
@@ -240,13 +240,13 @@ class NavigatorPagination(EmojiUI):
         -----
         target: :class:`discord.abc.Messageable`
             The target to interact with.
-        
+
         user_id: Optional[:class:`int`]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
             this bot itself.
         """
-        self.message = await target.send(embed = self.pages[0])
+        self.message = await target.send(embed=self.pages[0])
         self.user_id = user_id
         page: int = 0
 
@@ -255,11 +255,11 @@ class NavigatorPagination(EmojiUI):
 
         while True:
             done, pending = await asyncio.wait([
-                    bot.wait_for("raw_reaction_add", check = self.check),
-                    bot.wait_for("raw_reaction_remove", check = self.check),
-                ],
-                timeout = 300.0,
-                return_when = asyncio.FIRST_COMPLETED,
+                bot.wait_for("raw_reaction_add", check=self.check),
+                bot.wait_for("raw_reaction_remove", check=self.check),
+            ],
+                timeout=300.0,
+                return_when=asyncio.FIRST_COMPLETED,
             )
 
             if done:
@@ -272,13 +272,13 @@ class NavigatorPagination(EmojiUI):
                     else:
                         page = len(self.pages) - 1
 
-                else: # action == 1
+                else:  # action == 1
                     if page == len(self.pages) - 1:
                         page = 0
                     else:
                         page += 1
 
-                await self.message.edit(embed = self.pages[page])
+                await self.message.edit(embed=self.pages[page])
             else:
                 return await self.timeout(pending)
 
@@ -292,7 +292,7 @@ class SelectMenu(EmojiUI):
     -----
     message: :class:`discord.Message`
         The message used to interact.
-    
+
     nargs: :class:`int`
         The number of options.
     """
@@ -316,7 +316,7 @@ class SelectMenu(EmojiUI):
 
     async def listen(self, user_id: int) -> Optional[int]:
         """This function is a coroutine
-        
+
         Add reactions to the message and start listening to the
         user.
 
@@ -324,7 +324,7 @@ class SelectMenu(EmojiUI):
         -----
         user_id: :class:`int`
             The user ID to listen to.
-        
+
         Returns
         -----
         Optional[:class:`int`]
@@ -337,7 +337,7 @@ class SelectMenu(EmojiUI):
             await self.message.add_reaction(emoji)
 
         try:
-            payload: discord.RawReactionActionEvent = await bot.wait_for("raw_reaction_add", check = self.check, timeout = 300.0)
+            payload: discord.RawReactionActionEvent = await bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
             await self.timeout()
             return

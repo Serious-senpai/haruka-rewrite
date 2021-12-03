@@ -15,4 +15,4 @@ json: Dict[str, Any] = {
 @bot.slash(json)
 async def _rr_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    await interaction.followup.send(file = discord.File("./bot/assets/misc/video0.mp4"))
+    await interaction.followup.send(file=discord.File("./bot/assets/misc/video0.mp4"))

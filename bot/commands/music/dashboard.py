@@ -9,10 +9,10 @@ from core import bot
 
 
 @bot.command(
-    name = "dashboard",
-    aliases = ["db"],
-    description = "Search for public playlists from the given searching query.",
-    usage = "dashboard <query>",
+    name="dashboard",
+    aliases=["db"],
+    description="Search for public playlists from the given searching query.",
+    usage="dashboard <query>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _dashboard_cmd(ctx: commands.Context, *, query: str):
@@ -25,8 +25,8 @@ async def _dashboard_cmd(ctx: commands.Context, *, query: str):
     for index, result in enumerate(results):
         embed: discord.Embed = result.create_embed()
         embed.set_author(
-            name = f"Displaying result #{index + 1}",
-            icon_url = bot.user.avatar.url,
+            name=f"Displaying result #{index + 1}",
+            icon_url=bot.user.avatar.url,
         )
         embeds.append(embed)
 

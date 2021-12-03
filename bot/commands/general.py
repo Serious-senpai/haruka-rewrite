@@ -13,51 +13,51 @@ from core import bot
 
 
 @bot.command(
-    name = "about",
-    description = "Display bot information",
+    name="about",
+    description="Display bot information",
 )
 @commands.cooldown(1, 4, commands.BucketType.user)
 async def _about_cmd(ctx: commands.Context):
     em: discord.Embed = info.user_info(bot.user)
     em.add_field(
-        name = "Uptime",
-        value = datetime.datetime.now() - bot.uptime,
+        name="Uptime",
+        value=datetime.datetime.now() - bot.uptime,
     )
     em.add_field(
-        name = "Latency",
-        value = "{:.2f} ms".format(1000 * bot.latency),
+        name="Latency",
+        value="{:.2f} ms".format(1000 * bot.latency),
     )
     em.add_field(
-        name = "Links",
-        value = "[Top.gg](https://top.gg/bot/848178172536946708)\n[GitHub](https://github.com/Saratoga-CV6/haruka-rewrite)",
+        name="Links",
+        value="[Top.gg](https://top.gg/bot/848178172536946708)\n[GitHub](https://github.com/Saratoga-CV6/haruka-rewrite)",
     )
     em.add_field(
-        name = "Latest commits from the `main` branch",
-        value = bot.latest_commits,
-        inline = False,
+        name="Latest commits from the `main` branch",
+        value=bot.latest_commits,
+        inline=False,
     )
-    await ctx.send(embed = em)
-
-
-@bot.command(
-    name = "invite",
-    description = "Get my invite link!",
-)
-@commands.cooldown(1, 4, commands.BucketType.user)
-async def _invite_cmd(ctx: commands.Context):
-    em: discord.Embed = discord.Embed(
-        title = "Invite me to your server",
-        description = f"My invitation link: https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=271969606&scope=applications.commands%20bot",
-        color = 0x2ECC71,
-    )
-    em.set_thumbnail(url = bot.user.avatar.url)
     await ctx.send(embed=em)
 
 
 @bot.command(
-    name = "info",
-    description = "Get a user's information",
-    usage = "info <user | default: yourself>"
+    name="invite",
+    description="Get my invite link!",
+)
+@commands.cooldown(1, 4, commands.BucketType.user)
+async def _invite_cmd(ctx: commands.Context):
+    em: discord.Embed = discord.Embed(
+        title="Invite me to your server",
+        description=f"My invitation link: https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=271969606&scope=applications.commands%20bot",
+        color=0x2ECC71,
+    )
+    em.set_thumbnail(url=bot.user.avatar.url)
+    await ctx.send(embed=em)
+
+
+@bot.command(
+    name="info",
+    description="Get a user's information",
+    usage="info <user | default: yourself>"
 )
 @commands.guild_only()
 @commands.cooldown(1, 4, commands.BucketType.user)
@@ -66,20 +66,20 @@ async def _info_cmd(ctx: commands.Context, *, user: discord.User = None):
         user = ctx.author
     info_em: discord.Embed = info.user_info(user)
     info_em.set_author(
-        name = "Information collected",
-        icon_url = bot.user.avatar.url,
+        name="Information collected",
+        icon_url=bot.user.avatar.url,
     )
-    await ctx.send(embed = info_em)
+    await ctx.send(embed=info_em)
 
 
 @bot.command(
-    name = "prefix",
-    description = "Change the bot's prefix in this server.\nThis requires the `Manage Server` permission.",
-    usage = "prefix <prefix>"
+    name="prefix",
+    description="Change the bot's prefix in this server.\nThis requires the `Manage Server` permission.",
+    usage="prefix <prefix>"
 )
 @commands.guild_only()
 @commands.cooldown(1, 4, commands.BucketType.guild)
-@commands.has_permissions(manage_guild = True)
+@commands.has_permissions(manage_guild=True)
 async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
     id: int = ctx.guild.id
     if not pref:
@@ -91,81 +91,81 @@ async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
 
 
 @bot.command(
-    name = "say",
-    description = "Make the bot says something",
-    usage = "say <anything>"
+    name="say",
+    description="Make the bot says something",
+    usage="say <anything>"
 )
 @commands.cooldown(1, 1, commands.BucketType.user)
 async def _say_cmd(ctx: commands.Context, *, content: str):
     files: List[discord.File] = []
     for attachment in ctx.message.attachments:
         files.append(await attachment.to_file())
-    await ctx.send(content, files = files)
+    await ctx.send(content, files=files)
 
 
 @bot.command(
-    name = "avatar",
-    aliases = ["ava"],
-    description = "Get an avatar from a user",
-    usage = "avatar <user | default: yourself>",
+    name="avatar",
+    aliases=["ava"],
+    description="Get an avatar from a user",
+    usage="avatar <user | default: yourself>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _avatar_cmd(ctx: commands.Context, *, user: discord.User = None):
-    if user == None:
+    if user is None:
         user = ctx.author
     if not user.avatar:
         return await ctx.send("This user hasn't uploaded an avatar yet.")
-    ava_em: discord.Embed = discord.Embed(color = 0x2ECC71)
+    ava_em: discord.Embed = discord.Embed(color=0x2ECC71)
     ava_em.set_author(
-        name = f"This is {user.name}'s avatar",
-        icon_url = bot.user.avatar.url,
+        name=f"This is {user.name}'s avatar",
+        icon_url=bot.user.avatar.url,
     )
-    ava_em.set_image(url = user.avatar.url)
-    await ctx.send(embed = ava_em)
+    ava_em.set_image(url=user.avatar.url)
+    await ctx.send(embed=ava_em)
 
 
 @bot.command(
-    name = "svinfo",
-    description = "Retrieve information about a server",
+    name="svinfo",
+    description="Retrieve information about a server",
 )
 @commands.guild_only()
 @commands.cooldown(1, 4, commands.BucketType.user)
 async def _svinfo_cmd(ctx: commands.Context):
     sv_em = info.server_info(ctx.guild)
-    await ctx.send(embed = sv_em)
+    await ctx.send(embed=sv_em)
 
 
 @bot.command(
-    name = "emoji",
-    description = "Show all emojis from the server",
+    name="emoji",
+    description="Show all emojis from the server",
 )
 @commands.guild_only()
 @commands.cooldown(1, 4, commands.BucketType.user)
 async def _emoji_cmd(ctx: commands.Context):
     emojis: Tuple[discord.Emoji, ...] = ctx.guild.emojis
-    pages: int = 1 + int(len(emojis)/50)
+    pages: int = 1 + int(len(emojis) / 50)
     index: List[discord.Embed] = []
     for page in range(pages):
         em: discord.Embed = discord.Embed(
-            title = escape(ctx.guild.name),
-            description = "".join(f"<a:{emoji.name}:{emoji.id}>" if emoji.animated else f"<:{emoji.name}:{emoji.id}>" for emoji in emojis[page * 50:page * 50 + 50]),
-            color = 0x2ECC71,
+            title=escape(ctx.guild.name),
+            description="".join(f"<a:{emoji.name}:{emoji.id}>" if emoji.animated else f"<:{emoji.name}:{emoji.id}>" for emoji in emojis[page * 50:page * 50 + 50]),
+            color=0x2ECC71,
         )
         em.set_author(
-            name = "These are the server's emojis!",
-            icon_url = ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+            name="These are the server's emojis!",
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
         )
-        em.set_thumbnail(url = ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
-        em.set_footer(text = f"Showing page {page + 1}/{pages}")
+        em.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
+        em.set_footer(text=f"Showing page {page + 1}/{pages}")
         index.append(em)
     display: emoji_ui.Pagination = emoji_ui.Pagination(index)
     await display.send(ctx.channel)
 
 
 @bot.command(
-    name = "remind",
-    description = "Remind you about something via DM.\nThe `content` is your reminder note.\nExample: `remind 0 30 do homework` will remind you to do your homework after 30 minutes.",
-    usage = "remind <hours> <minutes> <content>",
+    name="remind",
+    description="Remind you about something via DM.\nThe `content` is your reminder note.\nExample: `remind 0 30 do homework` will remind you to do your homework after 30 minutes.",
+    usage="remind <hours> <minutes> <content>",
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, content: str):
@@ -179,7 +179,7 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
         return await ctx.send("Maximum length for `content` is 1000 characters.")
 
     now: datetime.datetime = discord.utils.utcnow()
-    time: datetime.datetime = now + datetime.timedelta(hours = hours, minutes = minutes)
+    time: datetime.datetime = now + datetime.timedelta(hours=hours, minutes=minutes)
 
     await bot.conn.execute(
         f"INSERT INTO remind VALUES ('{ctx.author.id}', $1, $2, $3, $4);",
@@ -188,36 +188,37 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
     bot.task.remind.restart()
 
     em: discord.Embed = discord.Embed(
-        color = 0x2ECC71,
-        timestamp = now,
+        color=0x2ECC71,
+        timestamp=now,
     )
     em.add_field(
-        name = "Content",
-        value = content,
-        inline = False,
+        name="Content",
+        value=content,
+        inline=False,
     )
     em.add_field(
-        name = "After",
-        value = f"{hours}h {minutes}m",
-        inline = False,
+        name="After",
+        value=f"{hours}h {minutes}m",
+        inline=False,
     )
     em.set_author(
-        name = "Created new reminder",
-        icon_url = ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+        name="Created new reminder",
+        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
     )
-    em.set_thumbnail(url = bot.user.avatar.url)
-    em.set_footer(text = "Make sure you can receive Direct Message from me")
-    await ctx.send(embed = em)
+    em.set_thumbnail(url=bot.user.avatar.url)
+    em.set_footer(text="Make sure you can receive Direct Message from me")
+    await ctx.send(embed=em)
+
 
 @bot.command(
-    name = "source",
-    description = "Get the source code of a command",
-    usage = "source <command name>",
+    name="source",
+    description="Get the source code of a command",
+    usage="source <command name>",
 )
 @commands.cooldown(1, 4, commands.BucketType.user)
 async def _source_cmd(ctx: commands.Context, *, cmd: str):
     if cmd.lower() == "help":
-        file: discord.File = discord.File("./bot/commands/help.py", filename = "source.py")
+        file: discord.File = discord.File("./bot/commands/help.py", filename="source.py")
     else:
         command: Optional[commands.Command] = bot.get_command(cmd)
         if not command:
@@ -229,4 +230,4 @@ async def _source_cmd(ctx: commands.Context, *, cmd: str):
 
         file: discord.File = discord.File("./source.py")
 
-    await ctx.send("This is the source code", file = file)
+    await ctx.send("This is the source code", file=file)

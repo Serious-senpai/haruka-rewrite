@@ -35,13 +35,13 @@ async def _play_slash(interaction: discord.Interaction):
 
         try:
             voice_client: MusicClient = await vchannel.connect(
-                timeout = 30.0,
-                cls = MusicClient,
+                timeout=30.0,
+                cls=MusicClient,
             )
-        except:
+        except BaseException:
             bot.log(f"Error connecting to voice channel {vchannel.guild}/{vchannel}")
             bot.log(traceback.format_exc())
             return await interaction.followup.send("Cannot connect to voice channel.")
 
         await interaction.followup.send(f"Connected to <#{vchannel.id}>")
-        bot.loop.create_task(voice_client.play(target = interaction.channel))
+        bot.loop.create_task(voice_client.play(target=interaction.channel))

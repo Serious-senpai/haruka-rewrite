@@ -7,8 +7,8 @@ from core import bot
 
 
 @bot.command(
-    name = "pause",
-    description = "Pause the playing audio",
+    name="pause",
+    description="Pause the playing audio",
 )
 @commands.guild_only()
 @commands.cooldown(1, 5, commands.BucketType.user)

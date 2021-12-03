@@ -9,9 +9,9 @@ from core import bot
 
 
 @bot.command(
-    name = "playlist",
-    description = "Load a playlist from the bot's playlist dashboard or YouTube into the voice channel.",
-    usage = "playlist <playlist ID>\nplaylist <youtube URL>",
+    name="playlist",
+    description="Load a playlist from the bot's playlist dashboard or YouTube into the voice channel.",
+    usage="playlist <playlist ID>\nplaylist <youtube URL>",
 )
 @commands.guild_only()
 @commands.cooldown(1, 5, commands.BucketType.user)
@@ -32,16 +32,16 @@ async def _playlist_cmd(ctx: commands.Context, id: Union[int, str]):
 
         embed: discord.Embed = result.create_embed()
         embed.set_author(
-            name = f"{ctx.author.name} loaded a public playlist into {channel.name}",
-            icon_url = ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+            name=f"{ctx.author.name} loaded a public playlist into {channel.name}",
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
         )
-        await ctx.send(embed = embed)
+        await ctx.send(embed=embed)
 
     else:
         try:
             query: str = parse.urlparse(id).query
             playlist_id: str = parse.parse_qs(query)["list"][0]
-        except:
+        except BaseException:
             raise commands.UserInputError
         else:
             result: Optional[_playlist.YouTubePlaylist] = await _playlist.YouTubePlaylist.get(bot, playlist_id)
@@ -51,7 +51,7 @@ async def _playlist_cmd(ctx: commands.Context, id: Union[int, str]):
             await result.load(bot.conn, channel.id)
             embed: discord.Embed = result.create_embed()
             embed.set_author(
-                name = f"{ctx.author.name} loaded a YouTube playlist into {channel.name}",
-                icon_url = ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+                name=f"{ctx.author.name} loaded a YouTube playlist into {channel.name}",
+                icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
             )
-            await ctx.send(embed = embed)
+            await ctx.send(embed=embed)

@@ -13,9 +13,9 @@ QUEUE_MAX_SIZE: int = 100
 
 
 @bot.command(
-    name = "add",
-    description = "Search for a YouTube track and add to queue.",
-    usage = "add <query>",
+    name="add",
+    description="Search for a YouTube track and add to queue.",
+    usage="add <query>",
 )
 @commands.guild_only()
 @commands.cooldown(1, 5, commands.BucketType.user)
@@ -33,21 +33,21 @@ async def _add_cmd(ctx: commands.Context, *, query):
 
     if tracks:
         em: discord.Embed = discord.Embed(
-            title = f"Search results for {query}",
-            color = 0x2ECC71,
+            title=f"Search results for {query}",
+            color=0x2ECC71,
         )
         em.set_author(
-            name = f"{ctx.author.name}'s song request",
-            icon_url = ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+            name=f"{ctx.author.name}'s song request",
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
         )
-        em.set_footer(text = "This message will expire after 5 minutes.")
+        em.set_footer(text="This message will expire after 5 minutes.")
         for index, track in enumerate(tracks):
             em.add_field(
-                name = f"{CHOICES[index]} {track.title}",
-                value = track.channel,
-                inline = False,
+                name=f"{CHOICES[index]} {track.title}",
+                value=track.channel,
+                inline=False,
             )
-        msg: discord.Message = await ctx.send(embed = em)
+        msg: discord.Message = await ctx.send(embed=em)
 
     else:
         return await ctx.send(f"No matching result for {query}")
@@ -65,7 +65,7 @@ async def _add_cmd(ctx: commands.Context, *, query):
 
     em: discord.Embed = track.create_embed()
     em.set_author(
-        name = f"{ctx.author.name} added 1 song to {channel.name}",
-        icon_url = ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+        name=f"{ctx.author.name} added 1 song to {channel.name}",
+        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
     )
-    await ctx.send(embed = em)
+    await ctx.send(embed=em)

@@ -7,9 +7,9 @@ from core import bot
 
 
 @bot.command(
-    name = "vping",
-    aliases = ["vp"],
-    description = "Ping the connected voice client in this server.",
+    name="vping",
+    aliases=["vp"],
+    description="Ping the connected voice client in this server.",
 )
 @commands.guild_only()
 @commands.cooldown(1, 5, commands.BucketType.user)

@@ -13,8 +13,8 @@ INLINE: bool = False
 
 
 @bot.command(
-    name = "queue",
-    description = "View the music queue of a voice channel"
+    name="queue",
+    description="View the music queue of a voice channel"
 )
 @commands.guild_only()
 @commands.cooldown(1, 5, commands.BucketType.user)
@@ -39,15 +39,15 @@ async def _queue_cmd(ctx: commands.Context):
                 names.append(f"**#{_index + 1}** *Unknown track* {track_id}")
                 values.append(f"https://www.youtube.com/watch?v={track_id}")
 
-        pages: int = 1 + int(len(track_ids)/SONGS_PER_PAGE)
+        pages: int = 1 + int(len(track_ids) / SONGS_PER_PAGE)
 
         for page in range(pages):
             em: discord.Embed = discord.Embed(
-                title = f"Music queue of channel {channel.name}",
-                color = 0x2ECC71,
+                title=f"Music queue of channel {channel.name}",
+                color=0x2ECC71,
             )
             em.set_footer(
-                text = f"Currently has {len(track_ids)} song(s) | Page {page + 1}/{pages}"
+                text=f"Currently has {len(track_ids)} song(s) | Page {page + 1}/{pages}"
             )
 
             for _ in range(SONGS_PER_PAGE):
@@ -55,9 +55,9 @@ async def _queue_cmd(ctx: commands.Context):
                     name: str = names.pop(0)
                     value: str = values.pop(0)
                     em.add_field(
-                        name = name,
-                        value = value,
-                        inline = INLINE,
+                        name=name,
+                        value=value,
+                        inline=INLINE,
                     )
                 except IndexError:
                     break

@@ -30,9 +30,9 @@ async def _urban_slash(interaction: discord.Interaction):
     if result:
         em: discord.Embed = result.create_embed()
         em.set_author(
-            name = f"This is the definition of {query}",
-            icon_url = bot.user.avatar.url,
+            name=f"This is the definition of {query}",
+            icon_url=bot.user.avatar.url,
         )
-        await interaction.followup.send(embed = em)
+        await interaction.followup.send(embed=em)
     else:
-        await interaction.followup.send(content = "No matching result was found.")
+        await interaction.followup.send(content="No matching result was found.")

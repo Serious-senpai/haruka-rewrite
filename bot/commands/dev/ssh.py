@@ -14,22 +14,22 @@ def save_to(content: str) -> discord.File:
 
 
 @bot.command(
-    name = "ssh",
-    aliases = ["bash", "sh"],
-    description = "Execute a bash command",
-    usage = "ssh <command>",
+    name="ssh",
+    aliases=["bash", "sh"],
+    description="Execute a bash command",
+    usage="ssh <command>",
 )
 @commands.is_owner()
 async def _ssh_cmd(ctx: commands.Context, *, cmd: str):
     process: asyncio.subprocess.Process = await asyncio.create_subprocess_shell(
         cmd,
-        stdout = asyncio.subprocess.PIPE,
-        stderr = asyncio.subprocess.STDOUT,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
     )
 
     try:
         t: float = time.perf_counter()
-        stdout, _ = await asyncio.wait_for(process.communicate(), timeout = 30.0)
+        stdout, _ = await asyncio.wait_for(process.communicate(), timeout=30.0)
         _t: float = time.perf_counter()
     except asyncio.TimeoutError:
         process.kill()
@@ -40,6 +40,6 @@ async def _ssh_cmd(ctx: commands.Context, *, cmd: str):
 
         if output:
             f: discord.File = await asyncio.to_thread(save_to, output)
-            await ctx.send(notify, file = f)
+            await ctx.send(notify, file=f)
         else:
             await ctx.send(notify)

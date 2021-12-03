@@ -21,7 +21,7 @@ class MAL:
     )
 
     def __init__(self, soup: bs4.BeautifulSoup) -> None:
-        self._soup: bs4.BeautifulSoup= soup
+        self._soup: bs4.BeautifulSoup = soup
 
     @property
     def soup(self) -> bs4.BeautifulSoup:
@@ -35,7 +35,7 @@ class MALObject(MAL):
         "_id",
         "_soup",
     )
-    
+
     def __init__(self, id: int, soup: bs4.BeautifulSoup) -> None:
         self._id: int = id
         self._soup: bs4.BeautifulSoup = soup
@@ -50,61 +50,61 @@ class MALObject(MAL):
 
     @property
     def title(self) -> str:
-        return self.soup.find(name = "meta", attrs = {"property": "og:title"}).get("content")
+        return self.soup.find(name="meta", attrs={"property": "og:title"}).get("content")
 
     @property
     def image_url(self) -> Union[str, discord.embeds._EmptyEmbed]:
         try:
-            return self.soup.find(name = "img", attrs = {"itemprop": "image"}).get("data-src")
+            return self.soup.find(name="img", attrs={"itemprop": "image"}).get("data-src")
         except AttributeError:
             return discord.Embed.Empty
 
     @property
     def score(self) -> Optional[float]:
         try:
-            obj: str = self.soup.find(name = "span", attrs = {"itemprop": "ratingValue"}).get_text()
+            obj: str = self.soup.find(name="span", attrs={"itemprop": "ratingValue"}).get_text()
             return float(obj)
-        except:
+        except BaseException:
             return
 
     @property
     def ranked(self) -> Optional[int]:
         try:
-            obj: str = self.soup.find(name = "span", attrs = {"itemprop": "ratingCount"}).get_text()
+            obj: str = self.soup.find(name="span", attrs={"itemprop": "ratingCount"}).get_text()
             return int(obj)
-        except:
+        except BaseException:
             return
 
     @property
     def popularity(self) -> Optional[int]:
         try:
-            return self.soup.find(name = "span", attrs = {"class": "numbers popularity"}).strong.extract().get_text()[1:]
-        except:
+            return self.soup.find(name="span", attrs={"class": "numbers popularity"}).strong.extract().get_text()[1:]
+        except BaseException:
             return
 
     @property
     def genres(self) -> List[str]:
-        genres_ = self.soup.find_all(name = "span", attrs = {"itemprop": "genre"})
+        genres_ = self.soup.find_all(name="span", attrs={"itemprop": "genre"})
         return [genre.get_text() for genre in genres_]
 
     @property
     def synopsis(self) -> Optional[str]:
         try:
-            return self.soup.find(name = "meta", attrs = {"property": "og:description"}).get("content")
-        except:
+            return self.soup.find(name="meta", attrs={"property": "og:description"}).get("content")
+        except BaseException:
             return
 
     def data(self, category: str, cls: Type[T] = str) -> Optional[T]:
         try:
             obj: bs4.BeautifulSoup = self.soup.find(
-                name = "span",
-                string = category,
+                name="span",
+                string=category,
             ).parent
             _ = obj.span.extract()
-            return cls(obj.get_text(strip = True))
-        except:
+            return cls(obj.get_text(strip=True))
+        except BaseException:
             return
-    
+
 
 class MALSearchResult(MAL):
     """Represents a search result from MyAnimeList.
@@ -139,14 +139,14 @@ class MALSearchResult(MAL):
         }
         url = f"https://myanimelist.net/{criteria}.php"
 
-        async with bot.session.get(url, params = params) as response:
+        async with bot.session.get(url, params=params) as response:
             if response.status == 200:
-                html: str = await response.text(encoding = "utf-8")
+                html: str = await response.text(encoding="utf-8")
                 soup = bs(html, "html.parser")
                 obj = soup.find_all(
-                    name = "td",
-                    attrs = {"class": "borderClass bgColor0"},
-                    limit = 12,
+                    name="td",
+                    attrs={"class": "borderClass bgColor0"},
+                    limit=12,
                 )
                 for tag in enumerate(obj):
                     if tag[0] % 2 == 0:
@@ -168,7 +168,7 @@ class Anime(MALObject):
         url = f"https://myanimelist.net/anime/{id}"
         async with bot.session.get(url) as response:
             if response.ok:
-                html: str = await response.text(encoding = "utf-8")
+                html: str = await response.text(encoding="utf-8")
                 soup = bs(html, "html.parser")
                 return cls(id, soup)
             else:
@@ -176,59 +176,59 @@ class Anime(MALObject):
 
     def create_embed(self) -> discord.Embed:
         em: discord.Embed = discord.Embed(
-            title = escape(self.title),
-            description = escape(self.synopsis[:4096]),
-            color = 0x2ECC71,
+            title=escape(self.title),
+            description=escape(self.synopsis[:4096]),
+            color=0x2ECC71,
         )
-        em.set_thumbnail(url = self.image_url)
+        em.set_thumbnail(url=self.image_url)
         em.add_field(
-            name = "Genres",
-            value = ", ".join(self.genres),
-            inline = False,
-        )
-        em.add_field(
-            name = "Score",
-            value = self.score,
-            inline = False,
+            name="Genres",
+            value=", ".join(self.genres),
+            inline=False,
         )
         em.add_field(
-            name = "Aired",
-            value = self.data("Aired:"),
+            name="Score",
+            value=self.score,
+            inline=False,
         )
         em.add_field(
-            name = "Status",
-            value = self.data("Status:"),
+            name="Aired",
+            value=self.data("Aired:"),
         )
         em.add_field(
-            name = "Ranked",
-            value = f"#{self.ranked}",
+            name="Status",
+            value=self.data("Status:"),
         )
         em.add_field(
-            name = "Popularity",
-            value = f"#{self.popularity}",
+            name="Ranked",
+            value=f"#{self.ranked}",
         )
         em.add_field(
-            name = "Episodes",
-            value = self.data("Episodes:", int),
+            name="Popularity",
+            value=f"#{self.popularity}",
         )
         em.add_field(
-            name = "Type",
-            value = self.data("Type:"),
+            name="Episodes",
+            value=self.data("Episodes:", int),
         )
         em.add_field(
-            name = "Broadcast",
-            value = self.data("Broadcast:"),
+            name="Type",
+            value=self.data("Type:"),
         )
         em.add_field(
-            name = "Link reference",
-            value = f"[MyAnimeList link]({self.url})",
-            inline = False,
+            name="Broadcast",
+            value=self.data("Broadcast:"),
+        )
+        em.add_field(
+            name="Link reference",
+            value=f"[MyAnimeList link]({self.url})",
+            inline=False,
         )
         return em
 
 
 class Manga(MALObject):
-    
+
     __slots__ = (
         "_id",
         "_soup",
@@ -239,7 +239,7 @@ class Manga(MALObject):
         url = f"https://myanimelist.net/manga/{id}"
         async with bot.session.get(url) as response:
             if response.status == 200:
-                html: str = await response.text(encoding = "utf-8")
+                html: str = await response.text(encoding="utf-8")
                 soup = bs(html, "html.parser")
                 return cls(id, soup)
             else:
@@ -247,48 +247,48 @@ class Manga(MALObject):
 
     def create_embed(self) -> discord.Embed:
         em: discord.Embed = discord.Embed(
-            title = escape(self.title),
-            description = escape(self.synopsis[:4096]),
-            color = 0x2ECC71,
+            title=escape(self.title),
+            description=escape(self.synopsis[:4096]),
+            color=0x2ECC71,
         )
-        em.set_thumbnail(url = self.image_url)
+        em.set_thumbnail(url=self.image_url)
         em.add_field(
-            name = "Genres",
-            value = ", ".join(self.genres),
-            inline = False,
-        )
-        em.add_field(
-            name = "Score",
-            value = self.score,
-            inline = False,
+            name="Genres",
+            value=", ".join(self.genres),
+            inline=False,
         )
         em.add_field(
-            name = "Published",
-            value = self.data("Published:")
+            name="Score",
+            value=self.score,
+            inline=False,
         )
         em.add_field(
-            name = "Ranked",
-            value = f"#{self.ranked}",
+            name="Published",
+            value=self.data("Published:")
         )
         em.add_field(
-            name = "Popularity",
-            value = f"#{self.popularity}",
+            name="Ranked",
+            value=f"#{self.ranked}",
         )
         em.add_field(
-            name = "Episodes",
-            value = self.data("Episodes:", int),
+            name="Popularity",
+            value=f"#{self.popularity}",
         )
         em.add_field(
-            name = "Chapters",
-            value = self.data("Chapters:", int),
+            name="Episodes",
+            value=self.data("Episodes:", int),
         )
         em.add_field(
-            name = "Type",
-            value = self.data("Type:"),
+            name="Chapters",
+            value=self.data("Chapters:", int),
         )
         em.add_field(
-            name = "Link reference",
-            value = f"[MyAnimeList link]({self.url})",
-            inline = False,
+            name="Type",
+            value=self.data("Type:"),
+        )
+        em.add_field(
+            name="Link reference",
+            value=f"[MyAnimeList link]({self.url})",
+            inline=False,
         )
         return em

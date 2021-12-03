@@ -21,8 +21,8 @@ async def prepare_disconnect(voice_client: Optional[MusicClient]) -> None:
         # Check if someone has joined the channel within this 5-minute period
         await bot.wait_for(
             "voice_state_update",
-            check = lambda member, before, after: after.channel == voice_client.channel,
-            timeout = 300.0,
+            check=lambda member, before, after: after.channel == voice_client.channel,
+            timeout=300.0,
         )
     except AttributeError:
         # We have been disconnected (voice_client = None)
@@ -36,7 +36,7 @@ async def prepare_disconnect(voice_client: Optional[MusicClient]) -> None:
         return
 
     if _is_alone_in(voice_client):
-        await voice_client.disconnect(force = True)
+        await voice_client.disconnect(force=True)
         try:
             await voice_client.target.send(f"<#{voice_client.channel.id}> has been idle for 5 minutes. Disconnected.")
         except discord.Forbidden:

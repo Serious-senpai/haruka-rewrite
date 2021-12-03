@@ -6,9 +6,9 @@ from core import bot
 
 
 @bot.command(
-    name = "roll",
-    description = "Generate a random integer between `i` and `j`",
-    usage = "roll <i> <j>",
+    name="roll",
+    description="Generate a random integer between `i` and `j`",
+    usage="roll <i> <j>",
 )
 @commands.cooldown(1, 4, commands.BucketType.user)
 async def _roll_cmd(ctx: commands.Context, i: int, j: int):

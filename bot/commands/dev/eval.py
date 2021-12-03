@@ -23,10 +23,10 @@ def write(content: Any):
 
 
 @bot.command(
-    name = "eval",
-    aliases = ["exec"],
-    description = "Evaluate a Python code",
-    usage = "eval <code>",
+    name="eval",
+    aliases=["exec"],
+    description="Evaluate a Python code",
+    usage="eval <code>",
 )
 @commands.is_owner()
 async def _eval_cmd(ctx: commands.Context, *, code: str):
@@ -51,7 +51,7 @@ async def _eval_cmd(ctx: commands.Context, *, code: str):
 
     try:
         exec(code, env)
-    except:
+    except BaseException:
         await ctx.send("Cannot create coroutine:\n```\n" + traceback.format_exc() + "\n```")
         return IN_PROGRESS.set()
 
@@ -62,7 +62,7 @@ async def _eval_cmd(ctx: commands.Context, *, code: str):
         await bot._eval_task
     except asyncio.CancelledError:
         pass
-    except:
+    except BaseException:
         output.write(traceback.format_exc())
 
     _t: float = time.perf_counter()
@@ -73,8 +73,8 @@ async def _eval_cmd(ctx: commands.Context, *, code: str):
         await asyncio.to_thread(write, content)
 
         await ctx.send(
-            "Process completed after {:.2f} ms.".format(1000* (_t - t)),
-            file = discord.File("eval.txt"),
+            "Process completed after {:.2f} ms.".format(1000 * (_t - t)),
+            file=discord.File("eval.txt"),
         )
     else:
-        await ctx.send("Process completed after {:.2f} ms.".format(1000* (_t - t)))
+        await ctx.send("Process completed after {:.2f} ms.".format(1000 * (_t - t)))

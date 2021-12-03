@@ -21,7 +21,7 @@ class NHentaiSearch:
 
     @property
     def title(self) -> str:
-        return self.soup.find("div", attrs = {"class": "caption"}).get_text()
+        return self.soup.find("div", attrs={"class": "caption"}).get_text()
 
     @property
     def thumbnail(self) -> Optional[str]:
@@ -51,7 +51,7 @@ class NHentai:
     )
 
     def __init__(self, soup: bs4.BeautifulSoup):
-        self._soup: bs4.BeautifulSoup = soup.find("div", attrs = {"class": "container"})
+        self._soup: bs4.BeautifulSoup = soup.find("div", attrs={"class": "container"})
 
     @property
     def soup(self) -> bs4.BeautifulSoup:
@@ -78,25 +78,25 @@ class NHentai:
 
     @property
     def title(self) -> str:
-        return self.soup.find("h1", attrs = {"class": "title"}).find("span", attrs = {"class": "pretty"}).get_text()
+        return self.soup.find("h1", attrs={"class": "title"}).find("span", attrs={"class": "pretty"}).get_text()
 
     @property
     def subtitle(self) -> Optional[str]:
         try:
-            return self.soup.find("h2", attrs = {"class": "title"}).find("span", attrs = {"class": "pretty"}).get_text()
-        except:
+            return self.soup.find("h2", attrs={"class": "title"}).find("span", attrs={"class": "pretty"}).get_text()
+        except BaseException:
             return
 
     @property
     def sections(self) -> List[bs4.BeautifulSoup]:
-        return self.soup.find("section", attrs = {"id": "tags"}).find_all("div")
+        return self.soup.find("section", attrs={"id": "tags"}).find_all("div")
 
     def create_embed(self) -> discord.Embed:
         em: discord.Embed = discord.Embed(
-            title = escape(self.title),
-            description = escape(self.subtitle) if self.subtitle else discord.Embed.Empty,
-            url = self.url,
-            color = 0x2ECC71,
+            title=escape(self.title),
+            description=escape(self.subtitle) if self.subtitle else discord.Embed.Empty,
+            url=self.url,
+            color=0x2ECC71,
         )
         for section in self.sections:
             span: bs4.BeautifulSoup = section.span.extract()
@@ -107,17 +107,17 @@ class NHentai:
 
             name: str = section.get_text().strip().replace(":", "")
             em.add_field(
-                name = name,
-                value = ", ".join(
-                    obj.find("span", attrs = {"class": "name"}).get_text() for obj in content
+                name=name,
+                value=", ".join(
+                    obj.find("span", attrs={"class": "name"}).get_text() for obj in content
                 ),
-                inline = name not in ("Characters", "Tags"),
+                inline=name not in ("Characters", "Tags"),
             )
 
         em.add_field(
-            name = "Link",
-            value = self.url,
-            inline = False,
+            name="Link",
+            value=self.url,
+            inline=False,
         )
-        em.set_thumbnail(url = self.thumbnail)
+        em.set_thumbnail(url=self.thumbnail)
         return em

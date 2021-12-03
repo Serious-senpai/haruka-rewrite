@@ -26,4 +26,4 @@ async def info_(interaction: discord.Interaction):
     user: discord.User = args.get("user", interaction.user)
 
     em: discord.Embed = info.user_info(user)
-    await interaction.response.send_message(embed = em)
+    await interaction.response.send_message(embed=em)

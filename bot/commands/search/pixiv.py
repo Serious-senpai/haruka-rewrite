@@ -10,9 +10,9 @@ from core import bot
 
 
 @bot.command(
-    name = "pixiv",
-    description = "Get image(s) from Pixiv from a searching query, a URL or an ID.\nAll strings starting with `https://` are treated as URLs.\nAll 8-digit numbers are treated as IDs.\nImages from this command may not have the highest quality, use `sauce` to grab their original sources.",
-    usage = "pixiv <query, URL or ID>",
+    name="pixiv",
+    description="Get image(s) from Pixiv from a searching query, a URL or an ID.\nAll strings starting with `https://` are treated as URLs.\nAll 8-digit numbers are treated as IDs.\nImages from this command may not have the highest quality, use `sauce` to grab their original sources.",
+    usage="pixiv <query, URL or ID>",
 )
 @commands.cooldown(1, 4, commands.BucketType.user)
 async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
@@ -29,7 +29,7 @@ async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
             id: Optional[int] = int(match.group())
         else:
             return await ctx.send("Invalid URL.")
-    
+
     if id:
         # A URL or an ID was entered
         async with ctx.typing():
@@ -41,8 +41,8 @@ async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
             if isinstance(ctx.channel, discord.TextChannel):
                 if artwork.nsfw and not ctx.channel.is_nsfw():
                     return await ctx.send("🔞 This artwork is NSFW and can only be shown in a NSFW channel!")
-            
-            return await ctx.send(embed = await artwork.create_embed())
+
+            return await ctx.send(embed=await artwork.create_embed())
 
     # Search Pixiv by query
     if len(query) < 2:
@@ -56,10 +56,10 @@ async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
     async with ctx.typing():
         for i, artwork in enumerate(rslt[:6]):
             em: discord.Embed = await artwork.create_embed()
-            em.set_footer(text = f"Displaying result #{i + 1}")
+            em.set_footer(text=f"Displaying result #{i + 1}")
             em.set_author(
-                name = f"{ctx.author.name} searched for {query}",
-                icon_url = ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+                name=f"{ctx.author.name} searched for {query}",
+                icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
             )
             index.append(em)
 

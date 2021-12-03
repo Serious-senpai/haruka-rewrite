@@ -31,11 +31,11 @@ class Menu(discord.ui.Select):
 
         em: discord.Embed = manga.create_embed()
         em.set_author(
-            name = "Manga search result",
-            icon_url = bot.user.avatar.url,
+            name="Manga search result",
+            icon_url=bot.user.avatar.url,
         )
-        em.set_footer(text = "From myanimelist.net")
-        await interaction.followup.send(embed = em)
+        em.set_footer(text="From myanimelist.net")
+        await interaction.followup.send(embed=em)
 
 
 @bot.slash(json)
@@ -48,17 +48,17 @@ async def _manga_slash(interaction: discord.Interaction):
 
     results = await mal.MALSearchResult.search(
         query,
-        criteria = "manga",
+        criteria="manga",
     )
     if not results:
-        await interaction.followup.send(content = "No matching result was found.")
+        await interaction.followup.send(content="No matching result was found.")
 
-    options: List[discord.SelectOption] = [discord.SelectOption(label = result.title[:100], value = str(result.id)) for result in results]
+    options: List[discord.SelectOption] = [discord.SelectOption(label=result.title[:100], value=str(result.id)) for result in results]
 
     menu: Menu = Menu(
-        placeholder = "Select a manga",
-        options = options,
+        placeholder="Select a manga",
+        options=options,
     )
-    view: ui.View = ui.View(timeout = 120.0)
+    view: ui.View = ui.View(timeout=120.0)
     view.add_item(menu)
     await view.send(interaction.followup, "Please select a manga from the list below.")

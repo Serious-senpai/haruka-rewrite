@@ -27,9 +27,9 @@ async def _sauce_slash(interaction: discord.Interaction):
     results = await get_sauce(args["url"])
 
     if not results:
-        return await interaction.followup.send(content = "Cannot find the image sauce.")
+        return await interaction.followup.send(content="Cannot find the image sauce.")
 
     embed: discord.Embed = results[0]
     embed.title = "Displaying the first result"
-    embed.set_footer(text = "For all results, consider using the text command")
-    await interaction.followup.send(embed = embed)
+    embed.set_footer(text="For all results, consider using the text command")
+    await interaction.followup.send(embed=embed)

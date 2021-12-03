@@ -6,9 +6,9 @@ from core import bot
 
 
 @bot.command(
-    name = "sql",
-    description = "Perform a SQL query",
-    usage = "sql <query>",
+    name="sql",
+    description="Perform a SQL query",
+    usage="sql <query>",
 )
 @commands.is_owner()
 async def _sql_cmd(ctx: commands.Context, *, query):

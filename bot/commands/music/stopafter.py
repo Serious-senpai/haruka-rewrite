@@ -7,8 +7,8 @@ from core import bot
 
 
 @bot.command(
-    name = "stopafter",
-    description = "Tell the bot to disconnect after playing the current song.",
+    name="stopafter",
+    description="Tell the bot to disconnect after playing the current song.",
 )
 @commands.guild_only()
 @commands.cooldown(1, 5, commands.BucketType.user)
@@ -22,4 +22,4 @@ async def _stopafter_cmd(ctx: commands.Context):
     if player._stopafter:
         await ctx.send("Enabled `stopafter`. This will be the last song to be played.")
     else:
-        await ctx.send("Disabled `stopafter`. Other songs will be played normally after this one ends.")        
+        await ctx.send("Disabled `stopafter`. Other songs will be played normally after this one ends.")
