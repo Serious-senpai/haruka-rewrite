@@ -15,12 +15,12 @@ from core import bot
 @commands.bot_has_guild_permissions(ban_members=True)
 @commands.has_guild_permissions(ban_members=True)
 @commands.cooldown(1, 4, commands.BucketType.user)
-async def _ban_cmd(ctx: commands.Context, users: commands.Greedy[discord.Member], *, reason: str = "*No reason given*"):
+async def _ban_cmd(ctx: commands.Context, users: commands.Greedy[discord.Object], *, reason: str = "*No reason given*"):
     if not users:
         raise commands.UserInputError
 
-    success: List[discord.Member] = []
-    fail: List[discord.Member] = []
+    success: List[discord.Object] = []
+    fail: List[discord.Object] = []
     for user in users:
         try:
             await ctx.guild.ban(user, reason=reason, delete_message_days=0)

@@ -15,12 +15,12 @@ from core import bot
 @commands.bot_has_guild_permissions(kick_members=True)
 @commands.has_guild_permissions(kick_members=True)
 @commands.cooldown(1, 4, commands.BucketType.user)
-async def _kick_cmd(ctx: commands.Context, users: commands.Greedy[discord.Member], *, reason: str = "*No reason given*"):
+async def _kick_cmd(ctx: commands.Context, users: commands.Greedy[discord.Object], *, reason: str = "*No reason given*"):
     if not users:
         raise commands.UserInputError
 
-    success: List[discord.Member] = []
-    fail: List[discord.Member] = []
+    success: List[discord.Object] = []
+    fail: List[discord.Object] = []
     for user in users:
         try:
             await ctx.guild.kick(user, reason=reason)
@@ -37,14 +37,14 @@ async def _kick_cmd(ctx: commands.Context, users: commands.Greedy[discord.Member
     if success:
         em.add_field(
             name="Kicked",
-            value=", ".join(str(user) for user in success),
+            value=", ".join(f"<@!{user.id}>" for user in success),
             inline=False,
         )
 
     if fail:
         em.add_field(
             name="Unable to kick",
-            value=", ".join(str(user) for user in fail),
+            value=", ".join(f"<@!{user.id}>" for user in fail),
             inline=False,
         )
         em.set_footer(text="Please assign me an appropriate role.")
