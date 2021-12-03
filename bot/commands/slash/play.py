@@ -28,7 +28,7 @@ async def _play_slash(interaction: discord.Interaction):
 
         queue: List[str] = await MusicClient.queue(vchannel.id)
         if len(queue) == 0:
-            return await interaction.followup.send("Please add a song to the queue with `add`")
+            return await interaction.followup.send("Please add a song to the queue with `add` or `playlist`")
 
         if interaction.guild.voice_client:
             return await interaction.followup.send("Currently connected to another voice channel in the server. Please use `stop` first.")

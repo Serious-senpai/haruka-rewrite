@@ -22,7 +22,7 @@ async def _play_cmd(ctx: commands.Context):
 
         queue: List[str] = await MusicClient.queue(channel.id)
         if len(queue) == 0:
-            return await ctx.send("Please add a song to the queue with `add`")
+            return await ctx.send("Please add a song to the queue with `add` or `playlist`")
 
         if ctx.voice_client:
             return await ctx.send("Currently connected to another voice channel in the server. Please use `stop` first.")

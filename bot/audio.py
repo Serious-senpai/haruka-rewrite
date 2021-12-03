@@ -6,6 +6,7 @@ import json
 import os
 import random
 import shlex
+import time
 from typing import Any, Dict, List, Optional, Tuple, Type
 
 import aiohttp
@@ -642,6 +643,8 @@ class MusicClient(discord.VoiceClient):
                 audio: Optional[discord.FFmpegOpusAudio] = await asyncio.to_thread(track.fetch)
                 await audios.put(audio)
 
+            task: Optional[asyncio.Task]
+            t: float = time.perf_counter()
             while not audios.empty():
                 audio: Optional[discord.FFmpegOpusAudio] = await audios.get()
 
@@ -649,15 +652,22 @@ class MusicClient(discord.VoiceClient):
                     break
 
                 if track.left > 0:
-                    task: Optional[asyncio.Task] = asyncio.create_task(load())
+                    task = asyncio.create_task(load())
                 else:
-                    task: Optional[asyncio.Task] = None
+                    task = None
+
+                delta: float = time.perf_counter() - t
+                if delta > 0.5:
+                    bot.log(f"Warning: audio playing in {self.channel.name}/{self.guild.name} delayed for {1000 * delta} ms")
 
                 self._event.clear()
                 self._operable.set()  # Enable pause/resume
+
                 super().play(audio, after=self._set_event)
+
                 await self._event.wait()
                 self._operable.clear()  # Disable pause/resume
+                t = time.perf_counter()
 
                 if not self.is_connected():
                     return

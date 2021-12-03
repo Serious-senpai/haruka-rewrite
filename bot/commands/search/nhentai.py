@@ -14,7 +14,7 @@ from leech import search_nhentai, get_nhentai
     name="nhentai",
     aliases=["hentai"],
     description="Search for a hentai from nhentai.net from a searching query or code.\nAll 6-digit numbers are treated as codes. If no result is found with a code then it will be used as a searching query.\nThis command can only be used in a NSFW channel.",
-    usage="nhentai <query or code>"
+    usage="nhentai <query or code>",
 )
 @commands.is_nsfw()
 @commands.cooldown(1, 4, commands.BucketType.user)
