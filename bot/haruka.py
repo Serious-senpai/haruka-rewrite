@@ -181,7 +181,8 @@ class Haruka(commands.Bot):
         try:
             await self.report("Haruka is ready!", send_state=False)
         except Exception as ex:
-            self.log(f"Cannot send ready notification: {ex}")
+            self.log("Cannot send ready notification:")
+            self.log(traceback.format_exc())
 
     async def _ytdl_test(self, url: str) -> None:
         args: List[str] = [
@@ -243,7 +244,7 @@ class Haruka(commands.Bot):
         await self.owner.send(
             message,
             embed=self.display_status if send_state else None,
-            files=discord.File("./log.txt") if send_log else None,
+            file=discord.File("./log.txt") if send_log else None,
         )
 
     @property
