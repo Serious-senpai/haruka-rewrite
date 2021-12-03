@@ -300,17 +300,8 @@ class ImageClient:
         Register all image categories that this client can listen to.
         This method is scheduled right then this class is initialized.
         """
-        tasks: List[asyncio.Task] = []
-
-        for source in self.sources:
-            if not issubclass(source, ImageSource):
-                raise TypeError("All source types must inherit from ImageSource")
-
-            src: IT = source(self.session, self)
-            tasks.append(asyncio.create_task(self._register(src)))
-            
-        await asyncio.gather(*tasks)
-        self.bot.log(f"Loaded all ImageSource objects after {len(tasks)} tasks, preparing commands...")
+        await asyncio.gather(*[self._register(source(self.session, self)) for source in self.sources])
+        self.bot.log(f"Loaded {len(self.sources)} ImageSource objects, preparing commands...")
 
         async def _wrapped_callback(category: str, mode: Literal["sfw", "nsfw"], ctx: commands.Context):
             em: discord.Embed = discord.Embed(

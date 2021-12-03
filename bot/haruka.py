@@ -74,7 +74,7 @@ class Haruka(commands.Bot):
         signal.signal(signal.SIGTERM, self.kill)
 
         # Setup logging file
-        self.logfile = open("./log.txt", "a")
+        self.logfile = open("./log.txt", "a", encoding = "utf-8")
 
         # Connect to database
         async with database.Database(self, self.DATABASE_URL) as self.conn:
