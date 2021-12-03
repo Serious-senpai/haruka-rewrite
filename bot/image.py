@@ -140,7 +140,7 @@ class WaifuIm(ImageSource):
         async with self.session.get(url) as response:
             if response.status == 200:
                 json: Dict[str, Any] = await response.json()
-                return json["tags"][0]["images"][0]["url"]
+                return json["images"][0]["url"]
 
         return
 
