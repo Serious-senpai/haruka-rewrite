@@ -23,12 +23,10 @@ class HangmanProgress:
         self.life: int = life
         self.guessed: List[str] = []
         self.incorrect: List[str] = []
-    
 
     @property
     def word(self) -> str:
         return self._word
-    
 
     @property
     def display(self) -> str:

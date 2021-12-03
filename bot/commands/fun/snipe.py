@@ -23,7 +23,6 @@ class SnipedMessage:
         self.author_id: int = int(row["author_id"])
         self.attachments: List[str] = row["attachments"]
 
-
     @property
     def created_at(self) -> datetime.datetime:
         return discord.utils.snowflake_time(self.id)

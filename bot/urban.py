@@ -32,26 +32,21 @@ class UrbanSearch:
         self._example: str = example
         self._url: str = url
         
-        
     @property
     def title(self) -> str:
         return self._title
-
 
     @property
     def meaning(self) -> str:
         return self._meaning
 
-
     @property
     def example(self) -> str:
         return self._example
 
-
     @property
     def url(self) -> str:
         return self._url
-
 
     def create_embed(self) -> discord.Embed:
         meaning: str = escape(self.meaning)
@@ -71,7 +66,6 @@ class UrbanSearch:
         em.set_footer(text = "From Urban Dictionary")
 
         return em
-
 
     @classmethod
     async def search(cls: Type[UrbanSearch], word: str) -> Optional[UrbanSearch]:
@@ -109,5 +103,5 @@ class UrbanSearch:
 
             except aiohttp.ClientError:
                 bot.log(traceback.format_exc())
-                await bot.report("An `aiohttp.ClientError` exception has just occurred.", send_state = False)
+                await bot.report("An `aiohttp.ClientError` exception has just occurred from `urban` module.", send_state = False)
                 continue

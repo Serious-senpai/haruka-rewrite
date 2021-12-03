@@ -58,7 +58,7 @@ async def prefix(bot, message) -> str:
             return row["pref"]
 
     else:
-        return "$" # No command invoke from on_message
+        return "$"
 
 
 async def get_prefix(bot, message) -> List[str]:

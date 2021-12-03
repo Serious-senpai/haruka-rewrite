@@ -9,7 +9,6 @@ class View(discord.ui.View):
         asyncio.create_task(self._when_stopped())
         super().__init__(*args, **kwargs)
 
-
     async def _when_stopped(self) -> None:
         _timed_out: bool = await self.wait()
         if self.message:
@@ -17,7 +16,6 @@ class View(discord.ui.View):
                 await self.message.edit("This request has timed out.", view = None)
             else:
                 await self.message.edit("This request was received. Please wait for me a bit...", view = None)
-
 
     async def send(
         self,
