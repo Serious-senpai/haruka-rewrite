@@ -35,7 +35,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
 
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]):
         # Initialize
-        pref: str = self.context.prefix
+        pref: str = await prefix(bot, self.context.message)
         help_em: List[discord.Embed] = []
 
         # Page 1
@@ -75,12 +75,11 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         help_em.append(em)
 
-        instruction: str = f"Remember to add the prefix `{pref}`!\n"
         # Page 3
         em: discord.Embed = self.template(3, pref)
         em.add_field(
             name = "🖼️ SFW images",
-            value = instruction + self._sfw_description,
+            value = f"Remember to add the prefix `{pref}`! E.g. `{pref}*waifu`\n" + self._sfw_description,
             inline = False,
         )
         help_em.append(em)
@@ -89,7 +88,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         em: discord.Embed = self.template(4, pref)
         em.add_field(
             name = "🔞 NSFW images",
-            value = instruction + self._nsfw_description,
+            value = f"Remember to add the prefix `{pref}`! E.g. `{pref}**waifu`\n" + self._nsfw_description,
             inline = False,
         )
         help_em.append(em)
@@ -107,9 +106,9 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
             command.aliases = [command.qualified_name]
 
         command.usage = command.usage if command.usage else command.qualified_name
-        usage = command.usage.replace("\n", f"\n{pref}")
+        usage: str = command.usage.replace("\n", f"\n{pref}")
 
-        description = command.description
+        description: str = command.description
 
         cooldown: commands.CooldownMapping = command._buckets
         cooldown_notify: str = "**Cooldown**\nNo cooldown"
@@ -131,14 +130,13 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         await self.context.send(embed = em)
 
     async def prepare_help_command(self, ctx: commands.Context, command: Optional[str] = None) -> None:
-        if not hasattr(self, "sfw_keys") or not hasattr(self, "nsfw_keys"):
-            self.sfw_keys: List[str] = list(ctx.bot.image.sfw.keys())
-            self.sfw_keys.sort()
-            self._sfw_description: str = "```\n" + ", ".join(f"*{s.replace(' ', '_')}" for s in self.sfw_keys) + "\n```"
+        self.sfw_keys: List[str] = list(ctx.bot.image.sfw.keys())
+        self.sfw_keys.sort()
+        self._sfw_description: str = "```\n" + ", ".join(f"*{s.replace(' ', '_')}" for s in self.sfw_keys) + "\n```"
 
-            self.nsfw_keys: List[str] = list(ctx.bot.image.nsfw.keys())
-            self.nsfw_keys.sort()
-            self._nsfw_description: str = "```\n" + ", ".join(f"**{s.replace(' ', '_')}" for s in self.nsfw_keys) + "\n```"
+        self.nsfw_keys: List[str] = list(ctx.bot.image.nsfw.keys())
+        self.nsfw_keys.sort()
+        self._nsfw_description: str = "```\n" + ", ".join(f"**{s.replace(' ', '_')}" for s in self.nsfw_keys) + "\n```"
 
     async def command_not_found(self, string: str) -> str:
         if len(string) > 20:
