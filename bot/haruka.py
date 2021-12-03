@@ -233,15 +233,17 @@ class Haruka(commands.Bot):
         with open("./log.txt", "r") as f:
             print(f.read())
 
-    async def report(self, message: str, *, send_state: bool = True, file: discord.File = None) -> None:
-        files: List[discord.File] = [discord.File("./log.txt")]
-        if file:
-            files.append(file)
-
+    async def report(
+        self,
+        message: str,
+        *,
+        send_log: bool = True,
+        send_state: bool = True,
+    ) -> None:
         await self.owner.send(
             message,
             embed=self.display_status if send_state else None,
-            files=files,
+            files=discord.File("./log.txt") if send_log else None,
         )
 
     @property
