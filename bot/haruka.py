@@ -13,7 +13,7 @@ from discord.ext import commands, tasks
 
 class Haruka(commands.Bot):
     TOKEN: str = os.environ["TOKEN"]
-    HOST: Optional[str] = os.environ.get("HOST")
+    HOST: Optional[str] = os.environ.get("HOST", "https://haruka39.herokuapp.com/")
     TOPGG_TOKEN: Optional[str] = os.environ.get("TOPGG_TOKEN")
     DATABASE_URL: str = os.environ["DATABASE_URL"]
 
@@ -23,6 +23,14 @@ class Haruka(commands.Bot):
     }
     slash_commands: Dict[str, Callable[[discord.Interaction], Coroutine[Any, Any, Any]]] = {}
     json: List[Dict[str, Any]] = []
+
+    def __init__(self, *args, **kwargs) -> None:
+        self._command_count: Dict[str, int] = {}
+        self._slash_command_count: Dict[str, int] = {}
+        self.owner: Optional[discord.User] = None
+        self.host: Optional[str] = self.HOST.strip("/")
+
+        super().__init__(*args, **kwargs)
 
     def register_slash_command(self, coro: Callable[[discord.Interaction], Coroutine[Any, Any, Any]], json: Dict[str, Any]) -> None:
         if not asyncio.iscoroutinefunction(coro):
@@ -78,20 +86,13 @@ class Haruka(commands.Bot):
         import database
 
         async with database.Database(self, self.DATABASE_URL) as self.conn:
-            # Create side session for other stuff
-            async with aiohttp.ClientSession() as self.session:
-                # Initialize state
-                self.loop.create_task(self.startup())
+            # Initialize state
+            self.session: aiohttp.ClientSession = aiohttp.ClientSession()
+            self.loop.create_task(self.startup())
+            self.uptime: datetime.datetime = datetime.datetime.now()
 
-                self.uptime: datetime.datetime = datetime.datetime.now()
-                self._command_count: Dict[str, int] = {}
-                self._slash_command_count: Dict[str, int] = {}
-                self.owner: Optional[discord.User] = None
-                self.host: Optional[str] = self.HOST.strip("/") if self.HOST else None
-                self._cancelling_signal: asyncio.Event = asyncio.Event()
-
-                # Start the bot
-                await asyncio.wait([super().start(self.TOKEN), self.close()], return_when=asyncio.FIRST_COMPLETED)
+            # Start the bot
+            await super().start(self.TOKEN)
 
     def _get_external_source(self) -> None:
         import image
@@ -214,10 +215,11 @@ class Haruka(commands.Bot):
 
     def kill(self, *args) -> None:
         self.log("Received SIGTERM signal. Terminating bot...")
-        self._cancelling_signal.set()
+        self.loop.create_task(asyncio.shield(self.close()))
 
     async def close(self) -> None:
-        await self._cancelling_signal.wait()
+        await self.conn.close()
+        await self.session.close()
         try:
             await self.report("Terminating bot. This is the final report.")
             print("Final report has been sent.")

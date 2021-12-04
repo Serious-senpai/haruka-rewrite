@@ -1,6 +1,4 @@
-import asyncio
 import contextlib
-import traceback
 from types import TracebackType
 from typing import Literal, Optional, Type
 
@@ -26,17 +24,6 @@ class Database(contextlib.AbstractAsyncContextManager):
         return self._pool
 
     async def __aexit__(self, exc_type: Optional[Type[Exception]], exc_value: Optional[Exception], tb: Optional[TracebackType]) -> Literal[True]:
-        if exc_value:
-            self.bot.log("".join(line for line in traceback.format_exception(exc_type, exc_value, tb)))
-
-        try:
-            await asyncio.wait_for(self._pool.close(), timeout=10.0)
-        except BaseException:
-            self.bot.log("Unable to close database connection.")
-            self.bot.log(traceback.format_exc())
-        else:
-            self.bot.log("Successfully closed database connection.")
-
         return True
 
     async def connect(self) -> None:

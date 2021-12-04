@@ -1,4 +1,5 @@
-﻿import multiprocessing
+﻿import asyncio
+import multiprocessing
 import os
 import sys
 
@@ -48,6 +49,6 @@ if __name__ == "__main__":
     try:
         bot.loop.run_until_complete(bot.start())
     except KeyboardInterrupt:
-        bot._cancelling_signal.set()
+        bot.loop.run_until_complete(asyncio.shield(bot.close()))
     finally:
         bot.cleanup()

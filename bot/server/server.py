@@ -54,7 +54,7 @@ class WebApp:
                 self.loop.run_until_complete(asyncio.gather(*tasks))
             except asyncio.CancelledError:
                 pass
-            print(f"Cleaned up {len(tasks)} tasks")
+            print(f"Cleaned up {len(tasks)} tasks for server.")
 
     async def start(self) -> None:
         self.pool: asyncpg.Pool = await asyncpg.create_pool(
