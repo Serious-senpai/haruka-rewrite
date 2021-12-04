@@ -20,18 +20,18 @@ class WebApp:
 
     __slots__ = (
         "app",
-        "routes",
         "pool",
         "loop",
         "session",
     )
 
     def __init__(self) -> None:
-        self.routes: web.RouteTableDef = web.RouteTableDef()
-        self.routes.static("/asset", "./bot/assets/server")
+        routes: web.RouteTableDef = web.RouteTableDef()
+        routes.static("/asset", "./bot/assets/server")
+        routes.static("/image", "./server/image")
 
         self.app: web.Application = web.Application()
-        self.app.add_routes(self.routes)
+        self.app.add_routes(routes)
         self.app.add_routes(
             [
                 web.get("/", self._main_page),
