@@ -215,7 +215,7 @@ class Haruka(commands.Bot):
 
     def kill(self, *args) -> None:
         self.log("Received SIGTERM signal. Terminating bot...")
-        self.loop.create_task(asyncio.shield(self.close()))
+        self.loop.create_task(self.close())
 
     async def close(self) -> None:
         await self.conn.close()
