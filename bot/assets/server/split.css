@@ -1,0 +1,46 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+a {
+    color: #2ECC71;
+    text-decoration: none;
+}
+
+table {
+    width: 100%;
+}
+
+table, th, td {
+    border: 1px solid #000000;
+}
+
+.split {
+    height: 100%;
+    position: fixed;
+    top: 0;
+}
+
+.sidebar {
+    background-color: #212121;
+    width: 25%;
+    left: 0;
+}
+
+.sidebar .inner {
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
+    text-align: center;
+}
+
+.main {
+    background-color: #F3E5AB;
+    width: 75%;
+    right: 0;
+}
+
+.main .inner {
+    border-left: 40px solid transparent;
+    border-right: 10px solid transparent;
+}

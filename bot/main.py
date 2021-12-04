@@ -49,6 +49,5 @@ if __name__ == "__main__":
         bot.loop.run_until_complete(bot.start())
     except KeyboardInterrupt:
         bot._cancelling_signal.set()
-        bot.loop.run_until_complete(bot.close())
     finally:
         bot.cleanup()

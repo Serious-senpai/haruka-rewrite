@@ -98,13 +98,15 @@ class Playlist:
         List[:class:`Playlist`]
             A list of results, this may be empty.
         """
-        rows: List[asyncpg.Record] = await bot.conn.fetch(f"""
-            SELECT *
+        rows: List[asyncpg.Record] = await bot.conn.fetch(
+            """SELECT *
             FROM playlist
-            WHERE similarity(title, '{query}') > 0.35
-            ORDER BY similarity(title, '{query}')
+            WHERE similarity(title, $1) > 0.35
+            ORDER BY similarity(title, $1)
             LIMIT 6;
-        """)
+            """,
+            query,
+        )
         results: List[Playlist] = []
         cached: Dict[int, Optional[discord.User]] = {}
         for row in rows:

@@ -6,6 +6,8 @@ from typing import Literal, Optional, Type
 
 import asyncpg
 
+import haruka
+
 
 class Database(contextlib.AbstractAsyncContextManager):
 
@@ -15,8 +17,8 @@ class Database(contextlib.AbstractAsyncContextManager):
         "_pool",
     )
 
-    def __init__(self, bot, url):
-        self.bot = bot
+    def __init__(self, bot: haruka.Haruka, url: str) -> None:
+        self.bot: haruka.Haruka = bot
         self.database_url: str = url
 
     async def __aenter__(self) -> asyncpg.Pool:
@@ -40,7 +42,7 @@ class Database(contextlib.AbstractAsyncContextManager):
     async def connect(self) -> None:
         self._pool: asyncpg.Pool = await asyncpg.create_pool(
             self.database_url,
-            min_size=10,
+            min_size=2,
             max_size=10,
             max_inactive_connection_lifetime=3.0,
         )
@@ -59,7 +61,6 @@ class Database(contextlib.AbstractAsyncContextManager):
         """)
 
         for extension in (
-            "fuzzystrmatch",
             "pg_trgm",
         ):
             try:

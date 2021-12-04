@@ -10,8 +10,6 @@ import discord
 import topgg
 from discord.ext import commands, tasks
 
-import database
-
 
 class Haruka(commands.Bot):
     TOKEN: str = os.environ["TOKEN"]
@@ -77,6 +75,8 @@ class Haruka(commands.Bot):
         self.logfile = open("./log.txt", "a", encoding="utf-8")
 
         # Connect to database
+        import database
+
         async with database.Database(self, self.DATABASE_URL) as self.conn:
             # Create side session for other stuff
             async with aiohttp.ClientSession() as self.session:
