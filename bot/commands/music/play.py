@@ -13,7 +13,7 @@ from core import bot
     description="Start playing the queue of the voice channel you are connected to.\nThis always plays the music queue as `Repeat All`. If you want something like `Repeat One`, consider making a queue with only 1 song instead.",
 )
 @commands.guild_only()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _play_cmd(ctx: commands.Context):
     if not ctx.author.voice:
         await ctx.send("Please join a voice channel first.")

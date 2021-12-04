@@ -16,7 +16,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
             "description": "Get all available commands or for a specific command.",
             "usage": "help\nhelp <command>",
             "cooldown": commands.CooldownMapping(
-                commands.Cooldown(1, 4.0),
+                commands.Cooldown(1, 3),
                 commands.BucketType.user,
             ),
         }

@@ -14,7 +14,7 @@ from core import bot
 @commands.guild_only()
 @commands.bot_has_guild_permissions(kick_members=True)
 @commands.has_guild_permissions(kick_members=True)
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _kick_cmd(ctx: commands.Context, users: commands.Greedy[discord.Object], *, reason: str = "*No reason given*"):
     if not users:
         raise commands.UserInputError

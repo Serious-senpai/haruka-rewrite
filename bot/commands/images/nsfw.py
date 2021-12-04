@@ -13,7 +13,7 @@ from core import bot
     usage="nsfw <category>",
 )
 @commands.is_nsfw()
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _nsfw_cmd(ctx: commands.Context, *, category: str):
     category = category.lower()
     try:

@@ -16,7 +16,7 @@ from core import bot
     name="about",
     description="Display bot information",
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _about_cmd(ctx: commands.Context):
     em: discord.Embed = info.user_info(bot.user)
     em.add_field(
@@ -43,7 +43,7 @@ async def _about_cmd(ctx: commands.Context):
     name="invite",
     description="Get my invite link!",
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _invite_cmd(ctx: commands.Context):
     em: discord.Embed = discord.Embed(
         title="Invite me to your server",
@@ -57,10 +57,10 @@ async def _invite_cmd(ctx: commands.Context):
 @bot.command(
     name="info",
     description="Get a user's information",
-    usage="info <user | default: yourself>"
+    usage="info <user | default: yourself>",
 )
 @commands.guild_only()
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _info_cmd(ctx: commands.Context, *, user: discord.User = None):
     if user is None:
         user = ctx.author
@@ -78,7 +78,7 @@ async def _info_cmd(ctx: commands.Context, *, user: discord.User = None):
     usage="prefix <prefix>"
 )
 @commands.guild_only()
-@commands.cooldown(1, 4, commands.BucketType.guild)
+@commands.cooldown(1, 2, commands.BucketType.guild)
 @commands.has_permissions(manage_guild=True)
 async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
     id: int = ctx.guild.id
@@ -109,7 +109,7 @@ async def _say_cmd(ctx: commands.Context, *, content: str):
     description="Get an avatar from a user",
     usage="avatar <user | default: yourself>",
 )
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _avatar_cmd(ctx: commands.Context, *, user: discord.User = None):
     if user is None:
         user = ctx.author
@@ -129,7 +129,7 @@ async def _avatar_cmd(ctx: commands.Context, *, user: discord.User = None):
     description="Retrieve information about a server",
 )
 @commands.guild_only()
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _svinfo_cmd(ctx: commands.Context):
     sv_em = info.server_info(ctx.guild)
     await ctx.send(embed=sv_em)
@@ -140,7 +140,7 @@ async def _svinfo_cmd(ctx: commands.Context):
     description="Show all emojis from the server",
 )
 @commands.guild_only()
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _emoji_cmd(ctx: commands.Context):
     emojis: Tuple[discord.Emoji, ...] = ctx.guild.emojis
     pages: int = 1 + int(len(emojis) / 50)
@@ -167,7 +167,7 @@ async def _emoji_cmd(ctx: commands.Context):
     description="Remind you about something via DM.\nThe `content` is your reminder note.\nExample: `remind 0 30 do homework` will remind you to do your homework after 30 minutes.",
     usage="remind <hours> <minutes> <content>",
 )
-@commands.cooldown(1, 3, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, content: str):
     if hours < 0 or minutes < 0:
         return await ctx.send("Both `hours` and `minutes` must be greater than or equal to 0.")
@@ -215,7 +215,7 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
     description="Get the source code of a command",
     usage="source <command name>",
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _source_cmd(ctx: commands.Context, *, cmd: str):
     if cmd.lower() == "help":
         file: discord.File = discord.File("./bot/commands/help.py", filename="source.py")

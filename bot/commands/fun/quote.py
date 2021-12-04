@@ -8,6 +8,6 @@ from core import bot
     name="quote",
     description="Send you a random quote."
 )
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _quote_cmd(ctx: commands.Context):
     await ctx.send(leech.get_quote())

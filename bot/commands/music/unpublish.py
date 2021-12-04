@@ -12,7 +12,7 @@ from core import bot
     description="Unpublish a public playlist you published.",
     usage="unpublish <playlist ID>",
 )
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _unpublish_cmd(ctx: commands.Context, id: int):
     result: Optional[_playlist.Playlist] = await _playlist.Playlist.get(bot, id)
     if not result:

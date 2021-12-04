@@ -14,7 +14,7 @@ from core import bot
     description="Get image(s) from Pixiv from a searching query, a URL or an ID.\nAll strings starting with `https://` are treated as URLs.\nAll 8-digit numbers are treated as IDs.\nImages from this command may not have the highest quality, use `sauce` to grab their original sources.",
     usage="pixiv <query, URL or ID>",
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
     id: Optional[int] = None
 

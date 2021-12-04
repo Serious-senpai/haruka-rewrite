@@ -12,7 +12,7 @@ from core import bot
     description="Ping the connected voice client in this server.",
 )
 @commands.guild_only()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _vping_cmd(ctx: commands.Context):
     player: Optional[MusicClient] = ctx.voice_client
 

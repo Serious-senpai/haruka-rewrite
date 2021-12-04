@@ -9,7 +9,7 @@ from core import bot
     name="miku",
     description="HATSUNE MIKU NUMBER ONE!\nImages from this command may not have the highest quality, use `sauce` to grab their original sources.",
 )
-@commands.cooldown(1, 3, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _miku_cmd(ctx: commands.Context):
     return
     image_url: str = leech.get_miku()

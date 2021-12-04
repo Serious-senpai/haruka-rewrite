@@ -14,7 +14,7 @@ from core import bot
     aliases=["myplaylists"],
     description="View your published playlists",
 )
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _myplaylist_cmd(ctx: commands.Context):
     rows: List[asyncpg.Record] = await bot.conn.fetch(f"SELECT * FROM playlist WHERE author_id = '{ctx.author.id}' LIMIT 10;")
     playlists: List[_playlist.Playlist] = [_playlist.Playlist(row, ctx.author) for row in rows]

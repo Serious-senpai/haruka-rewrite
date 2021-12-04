@@ -11,7 +11,7 @@ from core import bot
     description="Resume the paused audio"
 )
 @commands.guild_only()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _resume_cmd(ctx: commands.Context):
     player: Optional[MusicClient] = ctx.voice_client
 

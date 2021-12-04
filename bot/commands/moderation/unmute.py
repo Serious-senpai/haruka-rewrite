@@ -15,7 +15,7 @@ from core import bot
 @commands.guild_only()
 @commands.bot_has_guild_permissions(manage_roles=True)
 @commands.has_guild_permissions(manage_guild=True)
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _unmute_cmd(ctx: commands.Context, member: discord.Member, *, reason: str = "*No reason given*"):
     row: Optional[asyncpg.Record] = await bot.conn.fetchrow(f"SELECT * FROM muted WHERE member = '{member.id}' AND guild = '{ctx.guild.id}';")
 

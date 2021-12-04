@@ -13,7 +13,7 @@ from core import bot
     description="Send a SFW image.\nImages from this command may not have the highest quality, use `sauce` to grab their original sources.\nPossible values for `category` are: ",  # Will be filled from help
     usage="sfw <category>",
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _sfw_cmd(ctx: commands.Context, *, category: str):
     category = category.lower()
     try:

@@ -13,7 +13,7 @@ from core import bot
     description="Find the image source with saucenao.",
     usage="sauce <URL to image>\nsauce <attachment>",
 )
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _sauce_cmd(ctx: commands.Context, src: Optional[str] = None):
     if src is None:
         try:

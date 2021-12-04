@@ -17,7 +17,7 @@ PINGED: List[int] = []
     description="Ping someone and measure their response speed.\nTry breaking the record of 0.01 sec.",
     usage="ping <user>",
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _ping_cmd(ctx: commands.Context, user: discord.User = None):
     if not user:
         await ctx.send(f"Who do you want to ping, <@!{ctx.author.id}>?")

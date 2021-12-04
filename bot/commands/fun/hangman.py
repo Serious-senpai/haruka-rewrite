@@ -47,7 +47,7 @@ HangmanInProgress: Dict[int, HangmanProgress] = {}
     description="Play a hangman game",
     usage="hangman <initial number of lives | default: 5>",
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _hangman_cmd(ctx: commands.Context, n: int = 5):
     if n < 1:
         return await ctx.send("Initial number of lives must be greater than 0.")

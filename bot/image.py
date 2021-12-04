@@ -322,7 +322,7 @@ class ImageClient:
                 name="*" + category.replace(" ", "_"),
                 description=f"Send you a SFW `{category}` image",
                 cooldown=commands.CooldownMapping(
-                    commands.Cooldown(1, 4),
+                    commands.Cooldown(1, 2),
                     commands.BucketType.user,
                 ),
             )
@@ -334,7 +334,7 @@ class ImageClient:
                 name="**" + category.replace(" ", "_"),
                 description=f"Send you a NSFW `{category}` image",
                 cooldown=commands.CooldownMapping(
-                    commands.Cooldown(1, 4),
+                    commands.Cooldown(1, 2),
                     commands.BucketType.user,
                 ),
                 checks=[

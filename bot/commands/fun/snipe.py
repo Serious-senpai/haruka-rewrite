@@ -33,7 +33,7 @@ class SnipedMessage:
     description="Get a deleted messge in the channel.\nNote that I cannot snipe my own messages!",
 )
 @commands.guild_only()
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _snipe_cmd(ctx: commands.Context):
     row: Optional[asyncpg.Record] = await bot.conn.fetchrow(f"SELECT * FROM snipe WHERE channel_id = '{ctx.channel.id}';")
     if not row:

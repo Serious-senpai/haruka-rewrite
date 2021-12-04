@@ -17,7 +17,7 @@ from leech import search_nhentai, get_nhentai
     usage="nhentai <query or code>",
 )
 @commands.is_nsfw()
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _nhentai_cmd(ctx: commands.Context, *, query: str):
     try:
         id: int = int(query)

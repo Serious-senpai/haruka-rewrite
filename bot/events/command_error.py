@@ -1,8 +1,9 @@
 import asyncio
-import discord
 import traceback
-from discord.ext import commands
 from typing import Dict
+
+import discord
+from discord.ext import commands
 
 from core import bot
 

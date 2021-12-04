@@ -13,7 +13,7 @@ from emoji_ui import CHECKER
     description="Skip the playing song."
 )
 @commands.guild_only()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _skip_cmd(ctx: commands.Context):
     player: Optional[MusicClient] = ctx.voice_client
 

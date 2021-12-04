@@ -14,7 +14,7 @@ from core import bot
     usage="playlist <playlist ID>\nplaylist <youtube URL>",
 )
 @commands.guild_only()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _playlist_cmd(ctx: commands.Context, id: Union[int, str]):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")

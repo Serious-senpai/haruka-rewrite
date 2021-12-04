@@ -10,6 +10,6 @@ from core import bot
     description="Ask the 8ball a yes/no question",
     usage="8ball <question>",
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _8ball_cmd(ctx: commands.Context):
     await ctx.send(leech.get_8ball())

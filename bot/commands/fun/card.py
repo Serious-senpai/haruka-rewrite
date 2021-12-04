@@ -14,7 +14,7 @@ CARD_LIMIT: int = 9
     description="Draw a number of cards from the 52-card standard deck",
     usage="card <amount | default: 1>",
 )
-@commands.cooldown(1, 6, commands.BucketType.user)
+@commands.cooldown(1, 3, commands.BucketType.user)
 async def _card_cmd(ctx: commands.Context, n: int = 1):
     if n < 1 or n > CARD_LIMIT:
         return await ctx.send(f"Invalid card number (must be from 1 to {CARD_LIMIT}).")

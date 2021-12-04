@@ -22,7 +22,7 @@ MUTED_PERM.add_reactions = True
 @commands.guild_only()
 @commands.bot_has_guild_permissions(manage_roles=True)
 @commands.has_guild_permissions(manage_guild=True)
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _mute_cmd(ctx: commands.Context, hours: int, minutes: int, member: discord.Member, *, reason: str = "*No reason given*"):
     if hours < 0 or minutes < 0:
         return await ctx.send("Both `hours` and `minutes` must be greater than or equal to 0.")

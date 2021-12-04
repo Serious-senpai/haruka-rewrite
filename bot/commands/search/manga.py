@@ -12,7 +12,7 @@ from emoji_ui import CHOICES
     description="Search for a manga in the MyAnimeList database",
     usage="manga <query>"
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _manga_cmd(ctx: commands.Context, *, query):
     if len(query) < 3:
         await ctx.send(f"Search query must have at least 3 characters")

@@ -18,7 +18,7 @@ QUEUE_MAX_SIZE: int = 100
     usage="add <query>",
 )
 @commands.guild_only()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _add_cmd(ctx: commands.Context, *, query):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")

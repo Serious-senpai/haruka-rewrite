@@ -8,6 +8,6 @@ from core import bot
     name="fact",
     description="Send you a random fact."
 )
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _fact_cmd(ctx: commands.Context):
     await ctx.send(leech.get_fact())

@@ -14,7 +14,7 @@ from core import bot
     description="Search for public playlists from the given searching query.",
     usage="dashboard <query>",
 )
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _dashboard_cmd(ctx: commands.Context, *, query: str):
     results: List[_playlist.Playlist] = await _playlist.Playlist.search(bot, query)
     embeds: List[discord.Embed] = []

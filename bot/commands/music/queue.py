@@ -17,7 +17,7 @@ INLINE: bool = False
     description="View the music queue of a voice channel"
 )
 @commands.guild_only()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _queue_cmd(ctx: commands.Context):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")

@@ -9,7 +9,7 @@ from core import bot
     aliases=["rr", "nggyu"],
     description="Send a rickroll video",
 )
-@commands.cooldown(1, 8, commands.BucketType.user)
+@commands.cooldown(1, 3, commands.BucketType.user)
 async def _rickroll_cmd(ctx: commands.Context):
     try:
         await ctx.message.delete()

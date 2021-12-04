@@ -10,7 +10,7 @@ from core import bot
     description="Generate a random integer between `i` and `j`",
     usage="roll <i> <j>",
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _roll_cmd(ctx: commands.Context, i: int, j: int):
     if i < j:
         ans: int = randint(i, j)

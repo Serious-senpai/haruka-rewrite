@@ -12,7 +12,7 @@ from core import bot
     description="Search for a term from Urban Dictionary",
     usage="urban <query>"
 )
-@commands.cooldown(1, 4, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _urban_cmd(ctx: commands.Context, *, query: str):
     result: Optional[urban.UrbanSearch] = await urban.UrbanSearch.search(query)
     if result:

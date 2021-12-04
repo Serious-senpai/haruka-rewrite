@@ -13,7 +13,7 @@ from core import bot
     usage="remove <track position | all | default: 1>"
 )
 @commands.guild_only()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def _remove_cmd(ctx: commands.Context, pos: Union[int, str] = 1):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")
