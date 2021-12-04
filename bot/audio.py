@@ -21,7 +21,7 @@ TIMEOUT: aiohttp.ClientTimeout = aiohttp.ClientTimeout(total=15)
 SIZE_LIMIT: int = 8 << 20
 
 
-with open("./bot/assets/misc/iv_instances.txt", "r") as f:
+with open("./bot/assets/misc/iv_instances.txt", "r", encoding="utf-8") as f:
     INVIDIOUS_URLS: List[str] = ["https://" + instance.strip("\n") for instance in f.readlines()]
 
 

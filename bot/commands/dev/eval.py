@@ -18,7 +18,7 @@ bot._eval_task = None
 
 
 def write(content: Any):
-    with open("eval.txt", "w") as f:
+    with open("eval.txt", "w", encoding="utf-8") as f:
         f.write(content)
 
 

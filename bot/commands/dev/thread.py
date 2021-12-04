@@ -17,7 +17,7 @@ async def _thread_cmd(ctx: commands.Context):
     string: str = f"Currently running {len(threading.enumerate())} threads:\n```\n{content}\n```"
 
     if len(string) > 2000:
-        with open("./thread.txt", "w") as f:
+        with open("./thread.txt", "w", encoding="utf-8") as f:
             f.write(content)
         await ctx.send(f"Currently running {len(threading.enumerate())} threads", file=discord.File("./thread.txt"))
 

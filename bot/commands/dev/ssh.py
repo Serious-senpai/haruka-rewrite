@@ -8,7 +8,7 @@ from core import bot
 
 
 def save_to(content: str) -> discord.File:
-    with open("./ssh.txt", "w") as f:
+    with open("./ssh.txt", "w", encoding="utf-8") as f:
         f.write(content)
     return discord.File("./ssh.txt")
 

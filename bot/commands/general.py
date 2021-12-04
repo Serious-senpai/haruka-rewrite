@@ -225,7 +225,7 @@ async def _source_cmd(ctx: commands.Context, *, cmd: str):
             return await ctx.send(f"No command named `{cmd}` was found.")
 
         source: str = inspect.getsource(command.callback)
-        with open("./source.py", "w") as f:
+        with open("./source.py", "w", encoding="utf-8") as f:
             f.write(source)
 
         file: discord.File = discord.File("./source.py")

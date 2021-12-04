@@ -59,7 +59,7 @@ class WebApp:
     async def start(self) -> None:
         self.pool: asyncpg.Pool = await asyncpg.create_pool(
             os.environ["DATABASE_URL"],
-            min_size=10,
+            min_size=2,
             max_size=10,
             max_inactive_connection_lifetime=3.0,
         )

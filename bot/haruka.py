@@ -231,7 +231,7 @@ class Haruka(commands.Bot):
         super().cleanup()
         print("Writing log file to the console:")
         print("-------------------------------------------")
-        with open("./log.txt", "r") as f:
+        with open("./log.txt", "r", encoding="utf-8") as f:
             print(f.read())
 
     async def report(
