@@ -6,10 +6,9 @@ import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
-import task
 import info
 import emoji_ui
-from core import bot
+from core import bot, prefix
 
 
 @bot.command(
@@ -56,8 +55,8 @@ async def _invite_cmd(ctx: commands.Context):
 
 @bot.command(
     name="info",
-    description="Get a user's information",
-    usage="info <user | default: yourself>",
+    description="Get information about a user or yourself",
+    usage="info\ninfo <user>",
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
@@ -74,25 +73,30 @@ async def _info_cmd(ctx: commands.Context, *, user: discord.User = None):
 
 @bot.command(
     name="prefix",
-    description="Change the bot's prefix in this server.\nThis requires the `Manage Server` permission.",
-    usage="prefix <prefix>"
+    description="View or change the bot's prefix in this server.\nThis requires the `Manage Server` permission.",
+    usage="prefix\nprefix <prefix>",
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.guild)
-@commands.has_permissions(manage_guild=True)
 async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
-    id: int = ctx.guild.id
     if not pref:
-        await ctx.send("Please specify a prefix to change to!")
-    else:
-        await bot.conn.execute(f"DELETE FROM prefix WHERE id = '{id}';")
+        p: str = await prefix(bot, ctx.message)
+        return await ctx.send(f"The current prefix is `{p}`")
+
+    if not ctx.channel.permissions_for(ctx.author).manage_guild:
+        raise commands.MissingPermissions("manage_guild")
+
+    id: int = ctx.guild.id
+    await bot.conn.execute(f"DELETE FROM prefix WHERE id = '{id}' OR pref = '$';")
+    if not pref == "$":
         await bot.conn.execute(f"INSERT INTO prefix VALUES ('{id}', $1);", pref)
-        await ctx.send(f"Prefix has been set to `{pref}`")
+
+    await ctx.send(f"Prefix has been set to `{pref}`")
 
 
 @bot.command(
     name="say",
-    description="Make the bot says something",
+    description="Make me say something. I can also copy your attachments!",
     usage="say <anything>"
 )
 @commands.cooldown(1, 1, commands.BucketType.user)
@@ -126,7 +130,7 @@ async def _avatar_cmd(ctx: commands.Context, *, user: discord.User = None):
 
 @bot.command(
     name="svinfo",
-    description="Retrieve information about a server",
+    description="Retrieve information about this server",
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
@@ -137,6 +141,7 @@ async def _svinfo_cmd(ctx: commands.Context):
 
 @bot.command(
     name="emoji",
+    aliases=["emojis"],
     description="Show all emojis from the server",
 )
 @commands.guild_only()
