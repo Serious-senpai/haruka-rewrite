@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import html
 import os
 import signal
@@ -14,18 +15,42 @@ if not os.path.exists("./server"):
     os.mkdir("./server")
 if not os.path.exists("./server/image"):
     os.mkdir("./server/image")
-with open("./bot/server/index.html", "r", encoding="utf-8") as f:
-    index: str = f.read()
+
+
+class HTMLPage:
+
+    __slots__ = (
+        "_page",
+    )
+
+    def __init__(self) -> None:
+        with open("./bot/server/index.html", "r", encoding="utf-8") as f:
+            self._page: str = f.read()
+
+    @property
+    def page(self) -> str:
+        return self._page
+
+    def split(self, category: str) -> List[str]:
+        return self.page.split(f"<!--{category}-->")
+
+    def edit(self, category: str, content: str) -> str:
+        parts: List[str] = self.split(category)
+        return content.join(parts[::2])
+
+    def remove(self, category: str) -> str:
+        return self.edit(category, "")
 
 
 class WebApp:
 
     __slots__ = (
-        "app",
         "pool",
         "loop",
         "session",
         "logfile",
+        "index",
+        "runner",
     )
 
     def __init__(self) -> None:
@@ -33,34 +58,30 @@ class WebApp:
         routes.static("/asset", "./bot/assets/server")
         routes.static("/image", "./server/image")
 
-        self.app: web.Application = web.Application()
-        self.app.add_routes(routes)
-        self.app.add_routes(
+        app: web.Application = web.Application()
+        app.add_routes(routes)
+        app.add_routes(
             [
                 web.get("/", self._main_page),
-                web.get("/search", self._search),
+                web.get("/reload", self._reload_page),
+                web.get("/playlist", self._playlist_search_page),
             ]
         )
+        self.runner: web.AppRunner = web.AppRunner(app)
 
         self.loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
         self.logfile: TextIOWrapper = open("./log.txt", "a", encoding="utf-8")
         signal.signal(signal.SIGTERM, self.kill)
+        self.reload()
+
+    def reload(self) -> None:
+        self.index: HTMLPage = HTMLPage()
+
+    def run(self) -> None:
         try:
             self.loop.run_until_complete(self.start())
         finally:
             self.loop.run_until_complete(self.cleanup())
-
-            tasks: List[asyncio.Task] = []
-            for task in asyncio.all_tasks(loop=self.loop):
-                task.cancel()
-                tasks.append(task)
-
-            try:
-                self.loop.run_until_complete(asyncio.gather(*tasks))
-            except asyncio.CancelledError:
-                pass
-            self.log(f"Cleaned up {len(tasks)} tasks for server.")
-            self.logfile.close()
 
     async def start(self) -> None:
         self.pool: asyncpg.Pool = await asyncpg.create_pool(
@@ -72,20 +93,52 @@ class WebApp:
         self.log("Created connection pool for server")
         self.session: aiohttp.ClientSession = aiohttp.ClientSession()
         self.log("Created side session for server")
+        port: int = int(os.environ.get("PORT", "8080"))
 
         try:
-            await web._run_app(self.app, port=int(os.environ.get("PORT", 8080)))
+            await self.runner.setup()
+            site: web.TCPSite = web.TCPSite(self.runner, "localhost", port)
+            await site.start()
+            self.log(f"Started server on port {port}")
+            print(f"Started server on port {port}")
+            while True:
+                await asyncio.sleep(3600)
         except (web.GracefulExit, KeyboardInterrupt):
             pass
 
+    def kill(self, *args) -> None:
+        print("Received SIGTERM signal. Terminating server...")
+        self.log("Received SIGTERM signal. Terminating server...")
+        self.loop.create_task(self.cleanup())
+
+    async def cleanup(self) -> None:
+        await self.pool.close()
+        self.log("Closed connection pool for server.")
+        await self.session.close()
+        self.log("Closed side session for server.")
+        await self.runner.cleanup()
+        self.log("Closed server")
+        self.logfile.close()
+
+    def log(self, content: Any) -> None:
+        content: str = str(content).replace("\n", "\nSERVER | ")
+        self.logfile.write(f"SERVER | {content}\n")
+        self.logfile.flush()
+
+    # Web endpoints
+
     async def _main_page(self, request: web.Request) -> web.Response:
         return web.Response(
-            text=index,
+            text=self.index.page,
             status=200,
             content_type="text/html",
         )
 
-    async def _search(self, request: web.Request) -> web.Response:
+    async def _reload_page(self, request: web.Request) -> web.Response:
+        await asyncio.to_thread(self.reload)
+        raise web.HTTPFound("/")
+
+    async def _playlist_search_page(self, request: web.Request) -> web.Response:
         query: Optional[str] = request.query.get("query")
         if not query:
             raise web.HTTPFound("/")
@@ -122,30 +175,12 @@ class WebApp:
             content = "<table>" + content + "</table>"
 
         return web.Response(
-            text=index.replace("<!--results-->", content),
+            text=self.index.edit("Menu", content),
             status=200,
             content_type="text/html",
         )
 
-    def kill(self, *args) -> None:
-        print("Received SIGTERM signal. Terminating server...")
-        self.log("Received SIGTERM signal. Terminating server...")
-        self.loop.create_task(self.cleanup())
 
-    async def cleanup(self) -> None:
-        await self.pool.close()
-        self.log("Closed connection pool for server.")
-        await self.session.close()
-        self.log("Closed side session for server.")
-
-    def log(self, content: Any) -> None:
-        content: str = str(content).replace("\n", "\nSERVER | ")
-        self.logfile.write(f"SERVER | {content}\n")
-        self.logfile.flush()
-
-
-try:
-    app: WebApp = WebApp()
-except KeyboardInterrupt:
-    # Why this get re-raised here?
-    pass
+app: WebApp = WebApp()
+with contextlib.suppress(KeyboardInterrupt):
+    app.run()

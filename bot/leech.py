@@ -5,7 +5,7 @@ from typing import List, Optional
 import bs4
 import discord
 
-import nhentai
+import _nhentai
 from core import bot
 
 
@@ -110,7 +110,7 @@ async def get_sauce(src) -> List[discord.Embed]:
         return ret
 
 
-async def search_nhentai(query: str) -> Optional[List[nhentai.NHentaiSearch]]:
+async def search_nhentai(query: str) -> Optional[List[_nhentai.NHentaiSearch]]:
     params = {
         "q": query,
     }
@@ -125,16 +125,16 @@ async def search_nhentai(query: str) -> Optional[List[nhentai.NHentaiSearch]]:
             if not container:
                 return
             doujins: bs4.element.ResultSet[bs4.BeautifulSoup] = container.find_all("div", attrs={"class": "gallery"})
-            return list(nhentai.NHentaiSearch(doujin) for doujin in doujins)
+            return list(_nhentai.NHentaiSearch(doujin) for doujin in doujins)
         else:
             return
 
 
-async def get_nhentai(id: int) -> Optional[nhentai.NHentai]:
+async def get_nhentai(id: int) -> Optional[_nhentai.NHentai]:
     async with bot.session.get(f"https://nhentai.net/g/{id}") as response:
         if response.ok:
             html: str = await response.text(encoding="utf-8")
             soup: bs4.BeautifulSoup = bs4.BeautifulSoup(html, "html.parser")
-            return nhentai.NHentai(soup)
+            return _nhentai.NHentai(soup)
         else:
             return

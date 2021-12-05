@@ -2,9 +2,10 @@ from typing import List, Optional
 
 import discord
 from discord.ext import commands
+from discord.utils import escape_markdown as escape
 
 import emoji_ui
-import nhentai
+import _nhentai
 from core import bot
 from emoji_ui import CHOICES
 from leech import search_nhentai, get_nhentai
@@ -21,7 +22,7 @@ from leech import search_nhentai, get_nhentai
 async def _nhentai_cmd(ctx: commands.Context, *, query: str):
     try:
         id: int = int(query)
-        hentai: Optional[nhentai.NHentai] = await get_nhentai(id)
+        hentai: Optional[_nhentai.NHentai] = await get_nhentai(id)
         if not hentai:
             raise ValueError
 
@@ -29,7 +30,7 @@ async def _nhentai_cmd(ctx: commands.Context, *, query: str):
         if len(query) < 3:
             return await ctx.send("Searching query must have at least 3 characters")
 
-        rslt: Optional[List[nhentai.NHentaiSearch]] = await search_nhentai(query)
+        rslt: Optional[List[_nhentai.NHentaiSearch]] = await search_nhentai(query)
         if not rslt:
             return await ctx.send("No matching result was found.")
         rslt = rslt[:6]
@@ -37,14 +38,14 @@ async def _nhentai_cmd(ctx: commands.Context, *, query: str):
         desc: str = "\n".join(f"{CHOICES[index]} **{obj.id}** {obj.title}" for index, obj in enumerate(rslt))
         em: discord.Embed = discord.Embed(
             title=f"Search results for {query}",
-            description=desc,
+            description=escape(desc),
             color=0x2ECC71,
         )
         msg: discord.Message = await ctx.send(embed=em)
         display: emoji_ui.SelectMenu = emoji_ui.SelectMenu(msg, len(rslt))
         choice: Optional[int] = await display.listen(ctx.author.id)
         if choice is not None:
-            hentai: nhentai.NHentai = await get_nhentai(rslt[choice].id)
+            hentai: _nhentai.NHentai = await get_nhentai(rslt[choice].id)
 
     em: discord.Embed = hentai.create_embed()
     em.set_author(

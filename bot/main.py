@@ -19,6 +19,10 @@ if __name__ == "__main__":
     import tracemalloc
     tracemalloc.start()
 
+    with open("./log.txt", "w") as f:
+        line: str = "-" * 50
+        f.write(f"{line}\nHARUKA BOT\nRunning on Python {sys.version}\n{line}\n")
+
     print(f"Running on {sys.platform}\nPython {sys.version}")
     process: multiprocessing.Process = multiprocessing.Process(target=_run_server)
     print("Server is starting")
@@ -54,3 +58,4 @@ if __name__ == "__main__":
         bot.loop.run_until_complete(asyncio.shield(bot.close()))
     finally:
         bot.cleanup()
+        process.join()
