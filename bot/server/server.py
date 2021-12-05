@@ -1,7 +1,9 @@
 import asyncio
 import html
 import os
-from typing import List, Optional
+import signal
+from io import TextIOWrapper
+from typing import Any, List, Optional
 
 import aiohttp
 import asyncpg
@@ -23,6 +25,7 @@ class WebApp:
         "pool",
         "loop",
         "session",
+        "logfile",
     )
 
     def __init__(self) -> None:
@@ -40,6 +43,8 @@ class WebApp:
         )
 
         self.loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
+        self.logfile: TextIOWrapper = open("./log.txt", "a", encoding="utf-8")
+        signal.signal(signal.SIGTERM, self.kill)
         try:
             self.loop.run_until_complete(self.start())
         finally:
@@ -54,7 +59,8 @@ class WebApp:
                 self.loop.run_until_complete(asyncio.gather(*tasks))
             except asyncio.CancelledError:
                 pass
-            print(f"Cleaned up {len(tasks)} tasks for server.")
+            self.log(f"Cleaned up {len(tasks)} tasks for server.")
+            self.logfile.close()
 
     async def start(self) -> None:
         self.pool: asyncpg.Pool = await asyncpg.create_pool(
@@ -63,9 +69,9 @@ class WebApp:
             max_size=10,
             max_inactive_connection_lifetime=3.0,
         )
-        print("Created connection pool for server")
+        self.log("Created connection pool for server")
         self.session: aiohttp.ClientSession = aiohttp.ClientSession()
-        print("Created side session for server")
+        self.log("Created side session for server")
 
         try:
             await web._run_app(self.app, port=int(os.environ.get("PORT", 8080)))
@@ -121,11 +127,21 @@ class WebApp:
             content_type="text/html",
         )
 
+    def kill(self, *args) -> None:
+        print("Received SIGTERM signal. Terminating server...")
+        self.log("Received SIGTERM signal. Terminating server...")
+        self.loop.create_task(self.cleanup())
+
     async def cleanup(self) -> None:
         await self.pool.close()
-        print("Closed connection pool for server.")
+        self.log("Closed connection pool for server.")
         await self.session.close()
-        print("Closed side session for server.")
+        self.log("Closed side session for server.")
+
+    def log(self, content: Any) -> None:
+        content: str = str(content).replace("\n", "\nSERVER | ")
+        self.logfile.write(f"SERVER | {content}\n")
+        self.logfile.flush()
 
 
 try:

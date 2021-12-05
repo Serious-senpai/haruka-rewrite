@@ -1,4 +1,5 @@
 ﻿import asyncio
+import contextlib
 import multiprocessing
 import os
 import sys
@@ -7,10 +8,11 @@ from discord.ext import commands
 
 
 def _run_server():
-    if sys.platform == "win32":
-        os.system("py ./bot/server/server.py")
-    else:
-        os.system("python3 ./bot/server/server.py")
+    with contextlib.suppress(KeyboardInterrupt):
+        if sys.platform == "win32":
+            os.system("py ./bot/server/server.py")
+        else:
+            os.system("python3 ./bot/server/server.py")
 
 
 if __name__ == "__main__":

@@ -108,8 +108,8 @@ class Haruka(commands.Bot):
         self.task: task.TaskManager = task.TaskManager(self)
         self.log("Loaded all external sources.")
 
-    def log(self, log: Any) -> None:
-        content: str = str(log).replace("\n", "\nHARUKA | ")
+    def log(self, content: Any) -> None:
+        content: str = str(content).replace("\n", "\nHARUKA | ")
         self.logfile.write(f"HARUKA | {content}\n")
         self.logfile.flush()
 
@@ -214,6 +214,7 @@ class Haruka(commands.Bot):
             self.log(f"Finished ytdl test on {url}:\nOutput: {content}")
 
     def kill(self, *args) -> None:
+        print("Received SIGTERM signal. Terminating bot...")
         self.log("Received SIGTERM signal. Terminating bot...")
         self.loop.create_task(self.close())
 
