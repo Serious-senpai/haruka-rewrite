@@ -97,7 +97,7 @@ class WebApp:
 
         try:
             await self.runner.setup()
-            site: web.TCPSite = web.TCPSite(self.runner, "localhost", port)
+            site: web.TCPSite = web.TCPSite(self.runner, None, port)
             await site.start()
             self.log(f"Started server on port {port}")
             print(f"Started server on port {port}")
