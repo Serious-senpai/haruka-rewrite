@@ -39,7 +39,7 @@ class Menu(discord.ui.Select):
         )
 
         t: float = time.perf_counter()
-        url: Optional[str] = await audio.fetch(track)
+        url: Optional[str] = await audio.fetch(track.id)
         done: float = time.perf_counter() - t
 
         if not url:

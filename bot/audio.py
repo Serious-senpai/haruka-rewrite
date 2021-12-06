@@ -355,7 +355,7 @@ class InvidiousSource(PartialInvidiousSource):
         self.source = await self.get_source()
         return self.source
 
-    async def get_source(self, format: Literal["video", "audio"] = "audio") -> Optional[str]:
+    async def get_source(self) -> Optional[str]:
         """This function is a coroutine
 
         Get the video/audio URL of the source. This method
@@ -371,48 +371,31 @@ class InvidiousSource(PartialInvidiousSource):
         Optional[:class:`str`]
             The fetched URL, or ``None`` if an error occured.
         """
-        args: List[str]
-        if format == "video":
-            args = [
-                "youtube-dl",
-                "--get-url",
-                "--rm-cache-dir",
-                "--force-ipv4",
-                f"https://www.youtube.com/watch?v={self.id}",
-            ]
-
-        elif format == "audio":
-            args = [
-                "youtube-dl",
-                "--get-url",
-                "--extract-audio",
-                "--audio-format", "opus",
-                "--rm-cache-dir",
-                "--force-ipv4",
-                f"https://www.youtube.com/watch?v={self.id}",
-            ]
-
-        else:
-            raise ValueError(f"Invalid format: {format}")
+        args: List[str] = [
+            "youtube-dl",
+            "--get-url",
+            "--extract-audio",
+            "--audio-format", "opus",
+            "--rm-cache-dir",
+            "--force-ipv4",
+            f"https://www.youtube.com/watch?v={self.id}",
+        ]
 
         process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
             *args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        stdout, stderr = await process.communicate()
 
         try:
+            stdout, stderr = await process.communicate()
             url: Optional[str] = stdout.decode("utf-8").split("\n")[0]
         except BaseException:
-            bot.log(f"Error while getting URL format {format} for track {self.id}.")
+            bot.log(f"Error while getting URL for track {self.id}.")
             bot.log(traceback.format_exc())
             bot.log("stdout from youtube-dl:" + stdout.decode("utf-8"))
             bot.log("stderr from youtube-dl:" + stderr.decode("utf-8"))
             url: Optional[str] = None
-
-        if url and format == "audio":
-            self.source = url
 
         return url
 
@@ -517,15 +500,15 @@ async def embed_search(
         return await InvidiousSource.build(results[track_index].id)
 
 
-async def fetch(source: InvidiousSource) -> Optional[str]:
+async def fetch(track_id: str) -> Optional[str]:
     """This function is a coroutine
 
     Download a video to the local machine and return its URL.
 
     Parameters
     -----
-    source: :class:`InvidiousSource`
-        The media source
+    track_id: :class:`str`
+        The YouTube track ID
 
     Returns
     -----
@@ -533,27 +516,26 @@ async def fetch(source: InvidiousSource) -> Optional[str]:
         The URL to the video, remember that we are hosting
         on Heroku.
     """
-    if os.path.isfile(f"./server/video/{source.id}.mp4"):
-        return bot.host + f"/video/{source.id}.mp4"
+    if os.path.isfile(f"./server/video/{track_id}.mp4"):
+        return bot.host + f"/video/{track_id}.mp4"
 
-    url: Optional[str] = await source.get_source("video")
-    if not url:
-        return
+    process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
+        "youtube-dl",
+        "--format", "mp4",
+        "--rm-cache-dir",
+        "--force-ipv4",
+        f"https://www.youtube.com/watch?v={track_id}",
+        "-o", f"./server/video/{track_id}.mp4",
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    _, stderr = await process.communicate()
 
-    try:
-        async with bot.session.get(url) as response:
-            if response.ok:
-                with open(f"./server/video/{source.id}.mp4", "wb") as f:
-                    data: bytes = await response.content.read(2048)
-                    while data:
-                        await asyncfile.write(f, data)
-                        data = await response.content.read(2048)
-
-                return bot.host + f"/video/{source.id}.mp4"
-    except BaseException:
-        bot.log(f"Warning: Cannot fetch video from url {url}\n{traceback.format_exc()}")
-        if os.path.isfile(f"./server/video/{source.id}.mp4"):
-            os.remove(f"./server/video/{source.id}.mp4")
+    if stderr:
+        bot.log(f"Warning while fetching track ID {track_id}:")
+        bot.log(stderr.decode("utf-8"))
+    else:
+        return bot.host + f"/video/{track_id}.mp4"
 
 
 class MusicClient(discord.VoiceClient):
