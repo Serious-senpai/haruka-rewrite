@@ -15,6 +15,8 @@ if not os.path.exists("./server"):
     os.mkdir("./server")
 if not os.path.exists("./server/image"):
     os.mkdir("./server/image")
+if not os.path.exists("./server/video"):
+    os.mkdir("./server/video")
 
 
 class HTMLPage:
@@ -57,6 +59,7 @@ class WebApp:
         routes: web.RouteTableDef = web.RouteTableDef()
         routes.static("/asset", "./bot/assets/server")
         routes.static("/image", "./server/image")
+        routes.static("/video", "./server/video")
 
         app: web.Application = web.Application()
         app.add_routes(routes)

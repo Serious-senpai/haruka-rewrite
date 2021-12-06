@@ -7,13 +7,16 @@ import os
 import random
 import shlex
 import time
-from typing import Any, Dict, List, Optional, Tuple, Type
+import traceback
+from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 
 import aiohttp
 import asyncpg
 import discord
 from discord.utils import escape_markdown as escape
 
+import asyncfile
+import emoji_ui
 from core import bot
 
 
@@ -265,6 +268,7 @@ class InvidiousSource(PartialInvidiousSource):
         self.playable: bool = False
         self.source: Optional[str] = None
         super().__init__(*args, **kwargs)
+
         for adaptiveFormat in self._json["adaptiveFormats"]:
             if adaptiveFormat.get("encoding") == "opus":
                 self.source = adaptiveFormat["url"]
@@ -330,32 +334,66 @@ class InvidiousSource(PartialInvidiousSource):
             options=options,
         )
 
-    async def get_source(self) -> Optional[str]:
+    async def ensure_source(self) -> Optional[str]:
         """This function is a coroutine
 
-        Get the URL to the source of the opus
-        encoded audio.
+        Ensure that the opus encoded audio URL can function
+        properly. If it does not then a new URL will be
+        fetched via :meth:`get_source`.
 
         Returns
         -----
-        :class:`str`
-            The URL to the source of the audio, this
-            is always opus encoded.
+        Optional[:class:`str`]
+            The URL to the audio. This is the same as the
+            ``source`` attribute of the object.
         """
         if self.source:
             async with bot.session.get(self.source, timeout=TIMEOUT) as response:
                 if response.ok:
                     return self.source
 
-        args: List[str] = [
-            "youtube-dl",
-            "--get-url",
-            "--extract-audio",
-            "--audio-format", "opus",
-            "--rm-cache-dir",
-            "--force-ipv4",
-            f"https://www.youtube.com/watch?v={self.id}",
-        ]
+        self.source = await self.get_source()
+        return self.source
+
+    async def get_source(self, format: Literal["video", "audio"] = "audio") -> Optional[str]:
+        """This function is a coroutine
+
+        Get the video/audio URL of the source. This method
+        launches an asynchronous subprocess to ``youtube-dl``.
+
+        Parameters
+        -----
+        format: Literal[``video``, ``audio``]
+            Whether a video or an audio URL should be returned.
+
+        Returns
+        -----
+        Optional[:class:`str`]
+            The fetched URL, or ``None`` if an error occured.
+        """
+        args: List[str]
+        if format == "video":
+            args = [
+                "youtube-dl",
+                "--get-url",
+                "--rm-cache-dir",
+                "--force-ipv4",
+                f"https://www.youtube.com/watch?v={self.id}",
+            ]
+
+        elif format == "audio":
+            args = [
+                "youtube-dl",
+                "--get-url",
+                "--extract-audio",
+                "--audio-format", "opus",
+                "--rm-cache-dir",
+                "--force-ipv4",
+                f"https://www.youtube.com/watch?v={self.id}",
+            ]
+
+        else:
+            raise ValueError(f"Invalid format: {format}")
 
         process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
             *args,
@@ -366,16 +404,17 @@ class InvidiousSource(PartialInvidiousSource):
 
         try:
             url: Optional[str] = stdout.decode("utf-8").split("\n")[0]
-        except Exception as ex:
-            bot.log(f"Error while getting URL for audio {self.id}:: {ex.__class__.__name__}: {ex}")
+        except BaseException:
+            bot.log(f"Error while getting URL format {format} for track {self.id}.")
+            bot.log(traceback.format_exc())
             bot.log("stdout from youtube-dl:" + stdout.decode("utf-8"))
             bot.log("stderr from youtube-dl:" + stderr.decode("utf-8"))
             url: Optional[str] = None
 
-        if url:
+        if url and format == "audio":
             self.source = url
 
-        return self.source
+        return url
 
     @classmethod
     async def build(cls: Type[InvidiousSource], id: str) -> Optional[InvidiousSource]:
@@ -419,21 +458,94 @@ class InvidiousSource(PartialInvidiousSource):
         raise NotImplementedError
 
 
-async def fetch(url: str) -> bytes:
-    args: List[str] = [
-        "ffmpeg",
-        "-i", url,
-        "-f", "mp3",
-        "-fs", str(SIZE_LIMIT),
-        "pipe:1",
-    ]
-    process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
-        *args,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
+async def embed_search(
+    query: str,
+    target: discord.abc.Messageable,
+    user_id: int,
+) -> Optional[InvidiousSource]:
+    """This function is a coroutine
+
+    Let a user with ``user_id`` search for a YouTube track
+    via an embed.
+
+    Parameters
+    -----
+    query: :class:`str`
+        The searching query
+    target: :class:`discord.abc.Messageable`
+        The interaction target channel
+    user_id: :class:`int`
+        The user ID to listen to
+
+    Returns
+    -----
+    Optional[:class:`InvidiousSource`]
+        The selected track. This can be ``None`` in the
+        following cases:
+        - No track was found. In this case a notification
+        will be sent to the user
+        - The user timed out for the interaction
+    """
+    t: float = time.perf_counter()
+    results: List[PartialInvidiousSource] = await PartialInvidiousSource.search(query)
+    done: float = time.perf_counter() - t
+
+    if not results:
+        await target.send("No matching result was found.")
+        return
+
+    embed: discord.Embed = discord.Embed(
+        color=0x2ECC71,
     )
-    stdout, _ = await process.communicate()
-    return stdout
+    embed.set_author(
+        name=f"Search results for {query}",
+        icon_url=bot.user.avatar.url,
+    )
+    embed.set_footer(text="Fetched results in {:.2f} ms".format(1000 * done))
+    for index, result in enumerate(results):
+        embed.add_field(
+            name=f"{emoji_ui.CHOICES[index]} {escape(result.title)}",
+            value=escape(result.channel),
+            inline=False,
+        )
+
+    message: discord.Message = await target.send(embed=embed)
+    display: emoji_ui.SelectMenu = emoji_ui.SelectMenu(message, len(results))
+    track_index: Optional[int] = await display.listen(user_id)
+
+    if track_index is not None:
+        return await InvidiousSource.build(results[track_index].id)
+
+
+async def fetch(source: InvidiousSource) -> Optional[str]:
+    """This function is a coroutine
+
+    Download a video to the local machine and return its URL.
+
+    Parameters
+    -----
+    source: :class:`InvidiousSource`
+        The media source
+
+    Returns
+    -----
+    Optional[:class:`str`]
+        The URL to the video, remember that we are hosting
+        on Heroku.
+    """
+    if os.path.isfile(f"./server/video/{source.id}.mp4"):
+        return bot.host + f"/video/{source.id}.mp4"
+
+    url: str = await source.get_source("video")
+    async with bot.session.get(url) as response:
+        if response.ok:
+            with open(f"./server/video/{source.id}.mp4", "wb") as f:
+                data: bytes = await response.content.read(2048)
+                while data:
+                    await asyncfile.write(f, data)
+                    data = await response.content.read(2048)
+
+            return bot.host + f"/video/{source.id}.mp4"
 
 
 class MusicClient(discord.VoiceClient):
@@ -596,7 +708,7 @@ class MusicClient(discord.VoiceClient):
 
             # Check if the URL that Invidious provided
             # us is usable
-            url: Optional[str] = await track.get_source()
+            url: Optional[str] = await track.ensure_source()
 
             if not url:
                 try:

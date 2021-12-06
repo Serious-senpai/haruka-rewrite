@@ -31,7 +31,6 @@ class Menu(discord.ui.Select):
 
         id: str = self.values.pop()
         track: audio.InvidiousSource = await audio.InvidiousSource.build(id)
-        url: str = await track.get_source()
 
         em: discord.Embed = track.create_embed()
         em.set_author(
@@ -39,23 +38,18 @@ class Menu(discord.ui.Select):
             icon_url=bot.user.avatar.url,
         )
 
-        async with bot.session.get(url) as response:
-            if not response.ok:
-                em.set_footer(text=f"Cannot get the audio source, response status {response.status}")
-                await interaction.followup.send(embed=em)
-            else:
-                t = time.perf_counter()
-                data: bytes = await audio.fetch(url)
-                _t = time.perf_counter()
-                file: Optional[discord.File] = None
+        t: float = time.perf_counter()
+        url: str = await audio.fetch(track)
+        done: float = time.perf_counter() - t
 
-                if sys.getsizeof(data) > 8 << 20:
-                    em.set_footer(text="Output exceeded file size limit.")
-                else:
-                    em.set_footer(text="Fetched data in {:.2f} ms".format(1000 * (_t - t)))
-                    file: Optional[discord.File] = discord.File(io.BytesIO(data), filename="audio.mp3")
+        em.add_field(
+            name="Video URL",
+            value=f"[Download]({url})",
+            inline=False,
+        )
+        em.set_footer(text="Fetched data in {:.2f} ms".format(1000 * done))
 
-                await interaction.followup.send(embed=em, file=file or discord.utils.MISSING)
+        await interaction.followup.send(embed=em)
 
 
 @bot.slash(json)

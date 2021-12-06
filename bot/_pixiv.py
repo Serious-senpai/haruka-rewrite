@@ -9,6 +9,7 @@ import bs4
 import discord
 from discord.utils import escape_markdown as escape
 
+import asyncfile
 from core import bot
 
 
@@ -121,11 +122,11 @@ class PixivArtwork:
             headers=PIXIV_HEADERS,
         ) as response:
             if response.ok:
-                data: bytes = await response.content.read(128)
                 with open(f"./server/image/{self.id}.png", "wb") as f:
+                    data: bytes = await response.content.read(2048)
                     while data:
-                        f.write(data)
-                        data: bytes = await response.content.read(128)
+                        await asyncfile.write(f, data)
+                        data = await response.content.read(2048)
             else:
                 raise discord.HTTPException(response, f"HTTP status code {response.status}")
 

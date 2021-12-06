@@ -1,16 +1,11 @@
-import io
-import sys
 import time
-from typing import List, Optional
+from typing import Optional
 
 import discord
 from discord.ext import commands
-from discord.utils import escape_markdown as escape
 
 import audio
-import emoji_ui
 from core import bot
-from emoji_ui import CHOICES
 
 
 @bot.command(
@@ -24,40 +19,10 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
     if len(query) < 3:
         return await ctx.send("Search query must have at least 3 characters")
 
-    t: float = time.perf_counter()
-    results: List[audio.PartialInvidiousSource] = await audio.PartialInvidiousSource.search(query)
-    _t: float = time.perf_counter()
-
-    if not results:
-        return await ctx.send(f"Cannot find any videos from the query `{query}`")
-
-    em: discord.Embed = discord.Embed(
-        title=f"Search results for {query}",
-        color=0x2ECC71,
-    )
-
-    for index, track in enumerate(results[:6]):
-        em.add_field(
-            name=f"{CHOICES[index]} {escape(track.title)}",
-            value=escape(track.channel),
-            inline=False,
-        )
-
-    em.set_author(
-        name=f"{ctx.author.name} searched YouTube",
-        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
-    )
-    em.set_footer(text="Done searching in {:.2f} ms".format(1000 * (_t - t)))
-    msg: discord.Message = await ctx.send(embed=em)
-
-    board: emoji_ui.SelectMenu = emoji_ui.SelectMenu(msg, len(results))
-    choice: Optional[int] = await board.listen(ctx.author.id)
-
-    if choice is None:
+    source: Optional[audio.InvidiousSource] = await audio.embed_search(query, ctx.channel, ctx.author.id)
+    if not source:
         return
 
-    source: audio.InvidiousSource = await audio.InvidiousSource.build(results[choice].id)
-    url: str = await source.get_source()
     em: discord.Embed = source.create_embed()
     em.set_author(
         name=f"{ctx.author.name}'s request",
@@ -65,29 +30,14 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
     )
 
     async with ctx.typing():
-        async with bot.session.get(url) as response:
-            # Sometimes the link Invidious gave us is
-            # 403 Forbidden or something idk, just do
-            # a check here.
-            if not response.ok:
-                em.set_footer(text=f"Cannot fetch the audio, HTTP code {response.status}")
-                await ctx.send(embed=em)
-            else:
-                t: float = time.perf_counter()
-                data: bytes = await audio.fetch(url)
-                _t: float = time.perf_counter()
+        t: float = time.perf_counter()
+        url: str = await audio.fetch(source)
+        done: float = time.perf_counter() - t
 
-                if sys.getsizeof(data) > 8 << 20:
-                    em.set_footer(text="Output exceeded file size limit.")
-                    await ctx.send(embed=em)
-                else:
-                    em.set_footer(
-                        text="Fetched data in {:.2f} ms.".format(1000 * (_t - t))
-                    )
-                    await ctx.send(
-                        embed=em,
-                        file=discord.File(
-                            io.BytesIO(data),
-                            filename="audio.mp3",
-                        )
-                    )
+        em.add_field(
+            name="Video URL",
+            value=f"[Download]({url})",
+            inline=False,
+        )
+        em.set_footer(text="Fetched data in {:.2f} ms.".format(1000 * done))
+        await ctx.send(embed=em)
