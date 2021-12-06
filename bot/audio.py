@@ -347,10 +347,13 @@ class InvidiousSource(PartialInvidiousSource):
             The URL to the audio. This is the same as the
             ``source`` attribute of the object.
         """
-        if self.source:
-            async with bot.session.get(self.source, timeout=TIMEOUT) as response:
-                if response.ok:
-                    return self.source
+        try:
+            if self.source:
+                async with bot.session.get(self.source, timeout=TIMEOUT) as response:
+                    if response.ok:
+                        return self.source
+        except BaseException:
+            pass
 
         self.source = await self.get_source()
         return self.source
@@ -523,25 +526,22 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
     if not url:
         return
 
-    try:
-        async with bot.session.get(url, timeout=TIMEOUT) as response:
-            if response.ok:
-                with open(f"./server/audio/{track.id}.mp3", "wb") as f:
-                    data: bytes = await response.content.read(2048)
-                    while data:
-                        await asyncfile.write(f, data)
-                        data = await response.content.read(2048)
-
-    except BaseException:
-        if os.path.isfile(f"./server/audio/{track.id}.mp3"):
-            os.remove(f"./server/audio/{track.id}.mp3")
-
-        bot.log(f"Error while downloading audio for track ID {track.id}\n{track.title}")
-        bot.log(traceback.format_exc())
-        return
-
-    else:
-        return bot.host + f"/audio/{track.id}.mp3"
+    args: List[str] = [
+        "ffmpeg",
+        "-reconnect", "1",
+        "-reconnect_streamed", "1",
+        "-i", url,
+        "-f", "mp3",
+        "-vn",
+        f"./server/audio/{track.id}.mp3",
+    ]
+    process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
+        *args,
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.DEVNULL,
+    )
+    await process.communicate()
+    return bot.host + f"/audio/{track.id}.mp3"
 
 
 class MusicClient(discord.VoiceClient):

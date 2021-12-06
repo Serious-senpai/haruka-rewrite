@@ -114,6 +114,16 @@ class Haruka(commands.Bot):
         self.logfile.flush()
 
     async def startup(self) -> None:
+        # Get bot owner
+        await self.wait_until_ready()
+        app_info: discord.AppInfo = await self.application_info()
+        if app_info.team:
+            self.owner_id: int = app_info.team.owner_id
+        else:
+            self.owner_id: int = app_info.owner.id
+
+        self.owner: discord.User = await self.fetch_user(self.owner_id)
+
         # Run youtube-dl tests
         tasks: List[asyncio.Task] = []
 
@@ -147,9 +157,6 @@ class Haruka(commands.Bot):
                 session=self.session,
             )
 
-        await asyncio.gather(*tasks)
-        self.log(f"Finished {len(tasks)} youtube-dl tests.")
-
         # Fetch repository's latest commits
         async with self.session.get("https://api.github.com/repos/Saratoga-CV6/haruka-rewrite/commits") as response:
             if response.ok:
@@ -168,17 +175,8 @@ class Haruka(commands.Bot):
                 self.log(f"Warning: Unable to fetch repository's commits (status {response.status})")
                 self.latest_commits: str = "*No data*"
 
-        # Wait for the bot cache to ready
-        await self.wait_until_ready()
-
-        # Get bot owner
-        app_info: discord.AppInfo = await self.application_info()
-        if app_info.team:
-            self.owner_id: int = app_info.team.owner_id
-        else:
-            self.owner_id: int = app_info.owner.id
-
-        self.owner: discord.User = await self.fetch_user(self.owner_id)
+        await asyncio.gather(*tasks)
+        self.log(f"Finished {len(tasks)} youtube-dl tests.")
 
         try:
             await self.report("Haruka is ready!", send_state=False)
