@@ -526,13 +526,16 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
     try:
         async with bot.session.get(url, timeout=TIMEOUT) as response:
             if response.ok:
-                with open(f"./server/audio/{track.id}.mp3"):
+                with open(f"./server/audio/{track.id}.mp3", "wb") as f:
                     data: bytes = await response.content.read(2048)
                     while data:
                         await asyncfile.write(f, data)
                         data = await response.content.read(2048)
 
     except BaseException:
+        if os.path.isfile(f"./server/audio/{track.id}.mp3"):
+            os.remove(f"./server/audio/{track.id}.mp3")
+
         bot.log(f"Error while downloading audio for track ID {track.id}\n{track.title}")
         bot.log(traceback.format_exc())
         return
