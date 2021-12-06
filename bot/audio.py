@@ -536,16 +536,24 @@ async def fetch(source: InvidiousSource) -> Optional[str]:
     if os.path.isfile(f"./server/video/{source.id}.mp4"):
         return bot.host + f"/video/{source.id}.mp4"
 
-    url: str = await source.get_source("video")
-    async with bot.session.get(url) as response:
-        if response.ok:
-            with open(f"./server/video/{source.id}.mp4", "wb") as f:
-                data: bytes = await response.content.read(2048)
-                while data:
-                    await asyncfile.write(f, data)
-                    data = await response.content.read(2048)
+    url: Optional[str] = await source.get_source("video")
+    if not url:
+        return
 
-            return bot.host + f"/video/{source.id}.mp4"
+    try:
+        async with bot.session.get(url) as response:
+            if response.ok:
+                with open(f"./server/video/{source.id}.mp4", "wb") as f:
+                    data: bytes = await response.content.read(2048)
+                    while data:
+                        await asyncfile.write(f, data)
+                        data = await response.content.read(2048)
+
+                return bot.host + f"/video/{source.id}.mp4"
+    except BaseException:
+        bot.log(f"Warning: Cannot fetch video from url {url}\n{traceback.format_exc()}")
+        if os.path.isfile(f"./server/video/{source.id}.mp4"):
+            os.remove(f"./server/video/{source.id}.mp4")
 
 
 class MusicClient(discord.VoiceClient):

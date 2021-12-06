@@ -31,8 +31,12 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
 
     async with ctx.typing():
         t: float = time.perf_counter()
-        url: str = await audio.fetch(source)
+        url: Optional[str] = await audio.fetch(source)
         done: float = time.perf_counter() - t
+
+        if not url:
+            em.set_footer(text="Cannot fetch video file")
+            await ctx.send(embed=em)
 
         em.add_field(
             name="Video URL",

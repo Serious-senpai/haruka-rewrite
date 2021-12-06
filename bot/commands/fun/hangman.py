@@ -114,7 +114,7 @@ async def _hangman_cmd(ctx: commands.Context, n: int = 5):
                 )
 
             else:
-                if not guess in game.incorrect:
+                if guess not in game.incorrect:
                     game.life -= 1
                     game.incorrect.append(guess)
                 em.set_author(

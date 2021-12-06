@@ -39,8 +39,12 @@ class Menu(discord.ui.Select):
         )
 
         t: float = time.perf_counter()
-        url: str = await audio.fetch(track)
+        url: Optional[str] = await audio.fetch(track)
         done: float = time.perf_counter() - t
+
+        if not url:
+            em.set_footer(text="Cannot fetch video file")
+            await interaction.followup.send(embed=em)
 
         em.add_field(
             name="Video URL",
