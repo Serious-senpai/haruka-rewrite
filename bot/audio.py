@@ -522,6 +522,7 @@ async def fetch(track_id: str) -> Optional[str]:
     process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
         "youtube-dl",
         "--format", "mp4",
+        "--http-chunk-size", "10485760",
         "--rm-cache-dir",
         "--force-ipv4",
         f"https://www.youtube.com/watch?v={track_id}",
