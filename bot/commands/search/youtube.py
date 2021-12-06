@@ -11,7 +11,7 @@ from core import bot
 @bot.command(
     name="youtube",
     aliases=["yt"],
-    description="Search for a YouTube video and get the mp3 file.\nMaximum file size is 8 MB regardless of the server's upload limit.",
+    description="Search for a YouTube video and get the mp3 file.",
     usage="youtube <query>",
 )
 @commands.cooldown(1, 15, commands.BucketType.user)
@@ -35,11 +35,11 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
         done: float = time.perf_counter() - t
 
         if not url:
-            em.set_footer(text="Cannot fetch video file")
+            em.set_footer(text="Cannot fetch audio file")
             return await ctx.send(embed=em)
 
         em.add_field(
-            name="Video URL",
+            name="Audio URL",
             value=f"[Download]({url})",
             inline=False,
         )

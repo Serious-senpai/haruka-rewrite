@@ -120,6 +120,7 @@ class Haruka(commands.Bot):
         for url in (
             "https://www.youtube.com/watch?v=Hy9s13hWsoc",
             "https://www.youtube.com/watch?v=n89SKAymNfA",
+            "https://www.youtube.com/watch?v=tsYOZj9qOHQ",
         ):
             task: asyncio.Task = self.loop.create_task(self._ytdl_test(url))
             tasks.append(task)

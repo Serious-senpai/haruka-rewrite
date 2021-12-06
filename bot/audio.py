@@ -500,43 +500,45 @@ async def embed_search(
         return await InvidiousSource.build(results[track_index].id)
 
 
-async def fetch(track_id: str) -> Optional[str]:
+async def fetch(track: InvidiousSource) -> Optional[str]:
     """This function is a coroutine
 
-    Download a video to the local machine and return its URL.
+    Download a video audio to the local machine and return its URL.
 
     Parameters
     -----
-    track_id: :class:`str`
-        The YouTube track ID
+    track: :class:`InvidiousSource`
+        The target track.
 
     Returns
     -----
     Optional[:class:`str`]
-        The URL to the video, remember that we are hosting
+        The URL to the audio, remember that we are hosting
         on Heroku.
     """
-    if os.path.isfile(f"./server/video/{track_id}.mp4"):
-        return bot.host + f"/video/{track_id}.mp4"
+    if os.path.isfile(f"./server/audio/{track.id}.mp3"):
+        return bot.host + f"/audio/{track.id}.mp3"
 
-    process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
-        "youtube-dl",
-        "--format", "mp4",
-        "--http-chunk-size", "10485760",
-        "--rm-cache-dir",
-        "--force-ipv4",
-        f"https://www.youtube.com/watch?v={track_id}",
-        "-o", f"./server/video/{track_id}.mp4",
-        stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    _, stderr = await process.communicate()
+    url: Optional[str] = await track.ensure_source()
+    if not url:
+        return
 
-    if stderr:
-        bot.log(f"Warning while fetching track ID {track_id}:")
-        bot.log(stderr.decode("utf-8"))
+    try:
+        async with bot.session.get(url, timeout=TIMEOUT) as response:
+            if response.ok:
+                with open(f"./server/audio/{track.id}.mp3"):
+                    data: bytes = await response.content.read(2048)
+                    while data:
+                        await asyncfile.write(f, data)
+                        data = await response.content.read(2048)
+
+    except BaseException:
+        bot.log(f"Error while downloading audio for track ID {track.id}\n{track.title}")
+        bot.log(traceback.format_exc())
+        return
+
     else:
-        return bot.host + f"/video/{track_id}.mp4"
+        return bot.host + f"/audio/{track.id}.mp3"
 
 
 class MusicClient(discord.VoiceClient):

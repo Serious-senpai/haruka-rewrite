@@ -14,7 +14,7 @@ from core import bot
 json: Dict[str, Any] = {
     "name": "youtube",
     "type": 1,
-    "description": "Search for a YouTube video and get the mp3 file, max 8 MB",
+    "description": "Search for a YouTube video and get the mp3 file",
     "options": [{
         "name": "query",
         "description": "The searching query",
@@ -39,15 +39,15 @@ class Menu(discord.ui.Select):
         )
 
         t: float = time.perf_counter()
-        url: Optional[str] = await audio.fetch(track.id)
+        url: Optional[str] = await audio.fetch(track)
         done: float = time.perf_counter() - t
 
         if not url:
-            em.set_footer(text="Cannot fetch video file")
+            em.set_footer(text="Cannot fetch audio file")
             return await interaction.followup.send(embed=em)
 
         em.add_field(
-            name="Video URL",
+            name="Audio URL",
             value=f"[Download]({url})",
             inline=False,
         )
