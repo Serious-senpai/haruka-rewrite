@@ -44,7 +44,7 @@ class Menu(discord.ui.Select):
 
         if not url:
             em.set_footer(text="Cannot fetch video file")
-            await interaction.followup.send(embed=em)
+            return await interaction.followup.send(embed=em)
 
         em.add_field(
             name="Video URL",

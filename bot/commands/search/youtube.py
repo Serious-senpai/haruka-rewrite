@@ -36,7 +36,7 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
 
         if not url:
             em.set_footer(text="Cannot fetch video file")
-            await ctx.send(embed=em)
+            return await ctx.send(embed=em)
 
         em.add_field(
             name="Video URL",
