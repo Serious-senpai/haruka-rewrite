@@ -29,6 +29,7 @@ class Haruka(commands.Bot):
         self._slash_command_count: Dict[str, int] = {}
         self.owner: Optional[discord.User] = None
         self.host: Optional[str] = self.HOST.strip("/")
+        self._log_lock: asyncio.Lock = asyncio.Lock()
 
         super().__init__(*args, **kwargs)
 
@@ -87,6 +88,7 @@ class Haruka(commands.Bot):
 
         async with database.Database(self, self.DATABASE_URL) as self.conn:
             # Initialize state
+            asyncio.current_task().set_name("Startup-task")
             self.session: aiohttp.ClientSession = aiohttp.ClientSession()
             self.loop.create_task(self.startup())
             self.uptime: datetime.datetime = datetime.datetime.now()
@@ -109,8 +111,15 @@ class Haruka(commands.Bot):
         self.log("Loaded all external sources.")
 
     def log(self, content: Any) -> None:
+        self.loop.create_task(self._do_log(content))
+
+    async def _do_log(self, content: Any) -> None:
         content: str = str(content).replace("\n", "\nHARUKA | ")
-        self.logfile.write(f"HARUKA | {content}\n")
+        async with self._log_lock:
+            await asyncio.to_thread(
+                self.logfile.write,
+                f"HARUKA | {content}\n",
+            )
 
     async def startup(self) -> None:
         # Get bot owner

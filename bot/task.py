@@ -47,6 +47,7 @@ class ReminderTask(Task):
 
     @tasks.loop()
     async def run(self) -> None:
+        asyncio.current_task().set_name("ReminderTask")
         row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM remind ORDER BY time;")
         if not row:
             await asyncio.sleep(3600)
@@ -91,6 +92,7 @@ class UnmuteTask(Task):
 
     @tasks.loop()
     async def run(self) -> None:
+        asyncio.current_task().set_name("UnmuteTask")
         row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM muted ORDER BY time;")
         if not row:
             await asyncio.sleep(3600)
