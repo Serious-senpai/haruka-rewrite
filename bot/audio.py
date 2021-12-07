@@ -755,6 +755,8 @@ class MusicClient(discord.VoiceClient):
 
             task: Optional[asyncio.Task]
             t: float = time.perf_counter()
+            seq: int = 1
+
             while not audios.empty():
                 audio = await audios.get()
 
@@ -774,9 +776,11 @@ class MusicClient(discord.VoiceClient):
                 self._operable.set()  # Enable pause/resume
 
                 super().play(audio, after=self._set_event)
+                self._player.setName(f"Channel {self.channel.id}/{seq}")
 
                 await self._event.wait()
                 self._operable.clear()  # Disable pause/resume
+                seq += 1
                 t = time.perf_counter()
 
                 if not self.is_connected():
@@ -796,5 +800,8 @@ class MusicClient(discord.VoiceClient):
                     pass
                 return
 
-    def _set_event(self, *args, **kwargs) -> None:
+    def _set_event(self, exc: Optional[BaseException] = None) -> None:
         self._event.set()
+        if exc is not None:
+            bot.log(f"Warning: Voice client in {self.channel}/{self.guild} ({self._player.name}) raised an exception (handled in _set_event method):")
+            bot.log(traceback.format_exception(exc.__class__, exc, exc.__traceback__))

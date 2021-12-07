@@ -87,7 +87,7 @@ class Haruka(commands.Bot):
 
         async with database.Database(self, self.DATABASE_URL) as self.conn:
             # Initialize state
-            asyncio.current_task().set_name("Startup-task")
+            asyncio.current_task().set_name("Haruka main task")
             self.session: aiohttp.ClientSession = aiohttp.ClientSession()
             self.loop.create_task(self.startup())
             self.uptime: datetime.datetime = datetime.datetime.now()
@@ -312,10 +312,9 @@ class Haruka(commands.Bot):
 
         return em
 
-    @tasks.loop(
-        minutes=10,
-    )
+    @tasks.loop(minutes=10)
     async def _keep_alive(self) -> None:
+        asyncio.current_task().set_name("Keep server alive")
         async with self.session.get(self.HOST) as response:
             if not response.status == 200:
                 self.log(f"Warning: _keep_alive task returned response code {response.status}")
