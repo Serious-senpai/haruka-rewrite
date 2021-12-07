@@ -1,17 +1,16 @@
 import io
 import os
 import random
-from typing import Optional, List, Tuple, Type, TypeVar
+from typing import Generic, Optional, List, Tuple, Type, TypeVar
 
 from PIL import Image
 
 
 CT = TypeVar("CT", bound="BaseCard")
-HT = TypeVar("HT", bound="BaseHand")
 
 
-CARDLIST: List[str] = [f for f in os.listdir(f"./bot/assets/cards")]
 SUITS: Tuple[str, ...] = ("a", "b", "c", "d")
+cardlist: List[str] = [f for f in os.listdir(f"./bot/assets/cards")]
 
 
 class BaseCard:
@@ -32,7 +31,7 @@ class BaseCard:
         return Image.open(f"./bot/assets/cards/{self.id}.png")
 
 
-class BaseHand:
+class BaseHand(Generic[CT]):
 
     __slots__ = (
         "cards",
@@ -64,11 +63,12 @@ class BaseHand:
         if len(self.cards) >= 52:
             raise ValueError("This hand cannot draw any more cards")
 
-        f: str = random.choice(CARDLIST)
-        while f.removeprefix(".png") in [card.id for card in self.cards]:
-            f = random.choice(CARDLIST)
+        random.shuffle(cardlist)
+        for fcard in cardlist:
+            if fcard.removesuffix(".png") not in [card.id for card in self.cards]:
+                break
 
-        self.cards.append(self.cardtype(f))
+        self.cards.append(self.cardtype(fcard))
 
 
 class PlayingCard(BaseCard):

@@ -235,7 +235,7 @@ class PartialInvidiousSource:
         track: Optional[InvidiousSource] = await InvidiousSource.build(id)
         if track:
             # Construct json
-            data: Dict[str, Any] = track._json
+            data = track._json
             data["api_url"] = track._api_url
             # Save to disk
             await asyncio.to_thread(save_to_memory, data)
@@ -282,7 +282,7 @@ class InvidiousSource(PartialInvidiousSource):
         """
         self.part: int = 0
         self.left: int = copy.deepcopy(self.length)
-        self.playable: bool = True
+        self.playable = True
 
     def fetch(self) -> Optional[discord.FFmpegOpusAudio]:
         """Fetch a 30-second portion of the audio
@@ -396,7 +396,7 @@ class InvidiousSource(PartialInvidiousSource):
             bot.log(traceback.format_exc())
             bot.log("stdout from youtube-dl:" + stdout.decode("utf-8"))
             bot.log("stderr from youtube-dl:" + stderr.decode("utf-8"))
-            url: Optional[str] = None
+            url = None
 
         return url
 
@@ -518,7 +518,7 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
         on Heroku.
     """
     if os.path.isfile(f"./server/audio/{track.id}.mp3"):
-        return bot.host + f"/audio/{track.id}.mp3"
+        return bot.HOST + f"/audio/{track.id}.mp3"
 
     url: Optional[str] = await track.ensure_source()
     if not url:
@@ -539,7 +539,7 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
         stderr=asyncio.subprocess.DEVNULL,
     )
     await process.communicate()
-    return bot.host + f"/audio/{track.id}.mp3"
+    return bot.HOST + f"/audio/{track.id}.mp3"
 
 
 class MusicClient(discord.VoiceClient):
@@ -550,6 +550,8 @@ class MusicClient(discord.VoiceClient):
     This class provides some additional functions for
     implementing the music queue system.
     """
+
+    channel: discord.VoiceChannel
 
     def __init__(self, *args, **kwargs) -> None:
         self._shuffle: bool = False
@@ -733,7 +735,9 @@ class MusicClient(discord.VoiceClient):
             audios: asyncio.Queue = asyncio.Queue(maxsize=1)
 
             # Load the first audio portion asynchronously
-            audio: discord.FFmpegOpusAudio = await asyncio.to_thread(track.fetch)
+            audio: Optional[discord.FFmpegOpusAudio]
+
+            audio = await asyncio.to_thread(track.fetch)
             audios.put_nowait(audio)
 
             self._event: asyncio.Event = asyncio.Event()
@@ -746,13 +750,13 @@ class MusicClient(discord.VoiceClient):
 
             # Play the audio while loading asynchronously
             async def load() -> None:
-                audio: Optional[discord.FFmpegOpusAudio] = await asyncio.to_thread(track.fetch)
+                audio = await asyncio.to_thread(track.fetch)
                 await audios.put(audio)
 
             task: Optional[asyncio.Task]
             t: float = time.perf_counter()
             while not audios.empty():
-                audio: Optional[discord.FFmpegOpusAudio] = await audios.get()
+                audio = await audios.get()
 
                 if not audio:
                     break
@@ -764,7 +768,7 @@ class MusicClient(discord.VoiceClient):
 
                 delta: float = time.perf_counter() - t
                 if delta > 0.5:
-                    bot.log(f"Warning: audio playing in {self.channel.name}/{self.guild.name} delayed for {1000 * delta} ms")
+                    bot.log(f"Warning: audio playing in {self.channel}/{self.guild} delayed for {1000 * delta} ms")
 
                 self._event.clear()
                 self._operable.set()  # Enable pause/resume

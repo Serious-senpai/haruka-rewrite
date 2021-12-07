@@ -10,7 +10,7 @@ from core import bot
 
 @bot.command(
     name="playlist",
-    description=f"Load a playlist from the bot's playlist dashboard or YouTube into the voice channel. You can get a playlist ID via the `dashboard` command or the [website]({bot.host}).",
+    description=f"Load a playlist from the bot's playlist dashboard or YouTube into the voice channel. You can get a playlist ID via the `dashboard` command or the [website]({bot.HOST}).",
     usage="playlist <playlist ID>\nplaylist <youtube URL>",
 )
 @commands.guild_only()

@@ -22,7 +22,7 @@ class EmojiUI:
     """Base class for emoji-based UIs."""
     message: Optional[discord.Message]
     user_id: Optional[int]
-    allowed_emoji: Tuple[str, ...]
+    allowed_emojis: Tuple[str, ...]
 
     def __init_subclass__(cls: Type[ET]) -> None:
         requirement: Tuple[str, ...] = (

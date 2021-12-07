@@ -11,7 +11,7 @@ from core import bot
 @bot.command(
     name="dashboard",
     aliases=["db"],
-    description=f"Search for public playlists from the given searching query. You can also search on the [website]({bot.host}).",
+    description=f"Search for public playlists from the given searching query. You can also search on the [website]({bot.HOST}).",
     usage="dashboard <query>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)

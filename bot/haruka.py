@@ -13,7 +13,7 @@ from discord.ext import commands, tasks
 
 class Haruka(commands.Bot):
     TOKEN: str = os.environ["TOKEN"]
-    HOST: Optional[str] = os.environ.get("HOST", "https://haruka39.herokuapp.com/")
+    HOST: Optional[str] = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
     TOPGG_TOKEN: Optional[str] = os.environ.get("TOPGG_TOKEN")
     DATABASE_URL: str = os.environ["DATABASE_URL"]
 
@@ -28,7 +28,6 @@ class Haruka(commands.Bot):
         self._command_count: Dict[str, int] = {}
         self._slash_command_count: Dict[str, int] = {}
         self.owner: Optional[discord.User] = None
-        self.host: Optional[str] = self.HOST.strip("/")
         self._log_lock: asyncio.Lock = asyncio.Lock()
 
         super().__init__(*args, **kwargs)
@@ -147,7 +146,7 @@ class Haruka(commands.Bot):
         self.loop.create_task(self.overwrite_slash_commands())  # Ignore exceptions
 
         # Keep the server alive
-        if self.host:
+        if self.HOST:
             try:
                 self._keep_alive.start()
             except Exception as ex:
@@ -317,7 +316,7 @@ class Haruka(commands.Bot):
         minutes=10,
     )
     async def _keep_alive(self) -> None:
-        async with self.session.get(self.host) as response:
+        async with self.session.get(self.HOST) as response:
             if not response.status == 200:
                 self.log(f"Warning: _keep_alive task returned response code {response.status}")
 

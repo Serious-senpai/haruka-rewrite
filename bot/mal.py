@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Literal, List, Optional, Type, TypeVar, Union
+from typing import Dict, Generic, Literal, List, Optional, Type, TypeVar, Union
 
 import bs4
 import discord
@@ -28,7 +28,7 @@ class MAL:
         return self._soup
 
 
-class MALObject(MAL):
+class MALObject(MAL, Generic[T]):
     """Represents an anime, manga,... from MyAnimeList."""
 
     __slots__ = (

@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import bs4
 import discord
@@ -31,7 +31,7 @@ class NHentaiSearch:
             return
 
     @property
-    def thumb(self) -> str:
+    def thumb(self) -> Optional[str]:
         return self.thumbnail
 
     @property
@@ -66,14 +66,14 @@ class NHentai:
         return f"https://nhentai.net/g/{self.id}"
 
     @property
-    def thumbnail(self) -> Union[str, discord.embeds._EmptyEmbed]:
+    def thumbnail(self) -> Optional[str]:
         try:
             return self.soup.find("img").get("data-src")
         except AttributeError:
-            return discord.Embed.Empty
+            pass
 
     @property
-    def thumb(self) -> str:
+    def thumb(self) -> Optional[str]:
         return self.thumbnail
 
     @property
@@ -119,5 +119,5 @@ class NHentai:
             value=self.url,
             inline=False,
         )
-        em.set_thumbnail(url=self.thumbnail)
+        em.set_thumbnail(url=self.thumbnail or discord.Embed.Empty)
         return em

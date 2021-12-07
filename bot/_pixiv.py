@@ -143,7 +143,7 @@ class PixivArtwork:
         except discord.HTTPException:
             em.set_image(url=self.thumbnail)
         else:
-            em.set_image(url=f"{bot.host}/image/{self.id}.png")
+            em.set_image(url=f"{bot.HOST}/image/{self.id}.png")
 
         em.add_field(
             name="Tags",
