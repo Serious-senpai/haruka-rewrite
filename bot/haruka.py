@@ -80,7 +80,7 @@ class Haruka(commands.Bot):
         signal.signal(signal.SIGTERM, self.kill)
 
         # Setup logging file
-        self.logfile = open("./log.txt", "a", encoding="utf-8")
+        self.logfile = open("./log.txt", "a", encoding="utf-8", buffering=1)
 
         # Connect to database
         import database
@@ -111,7 +111,6 @@ class Haruka(commands.Bot):
     def log(self, content: Any) -> None:
         content: str = str(content).replace("\n", "\nHARUKA | ")
         self.logfile.write(f"HARUKA | {content}\n")
-        self.logfile.flush()
 
     async def startup(self) -> None:
         # Get bot owner

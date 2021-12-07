@@ -8,20 +8,18 @@ import random
 import shlex
 import time
 import traceback
-from typing import Any, Dict, List, Literal, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import aiohttp
 import asyncpg
 import discord
 from discord.utils import escape_markdown as escape
 
-import asyncfile
 import emoji_ui
 from core import bot
 
 
 TIMEOUT: aiohttp.ClientTimeout = aiohttp.ClientTimeout(total=15)
-SIZE_LIMIT: int = 8 << 20
 
 
 with open("./bot/assets/misc/iv_instances.txt", "r", encoding="utf-8") as f:

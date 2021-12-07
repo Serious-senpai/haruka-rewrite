@@ -9,12 +9,12 @@ import bs4
 import discord
 from discord.utils import escape_markdown as escape
 
-import asyncfile
 from core import bot
 
 
 PIXIV_HEADERS: Dict[str, str] = {"referer": "https://www.pixiv.net/"}
 ID_PATTERN: re.Pattern = re.compile(r"(?<!\d)\d{8,8}(?!\d)")
+CHUNK_SIZE: int = 4 << 10
 
 
 class PixivUser:
@@ -122,11 +122,11 @@ class PixivArtwork:
             headers=PIXIV_HEADERS,
         ) as response:
             if response.ok:
-                with open(f"./server/image/{self.id}.png", "wb") as f:
-                    data: bytes = await response.content.read(2048)
+                with open(f"./server/image/{self.id}.png", "wb", buffering=0) as f:
+                    data: bytes = await response.content.read(CHUNK_SIZE)
                     while data:
-                        await asyncfile.write(f, data)
-                        data = await response.content.read(2048)
+                        f.write(data)
+                        data = await response.content.read(CHUNK_SIZE)
             else:
                 raise discord.HTTPException(response, f"HTTP status code {response.status}")
 

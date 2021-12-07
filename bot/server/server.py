@@ -73,7 +73,7 @@ class WebApp:
         self.runner: web.AppRunner = web.AppRunner(app)
 
         self.loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
-        self.logfile: TextIOWrapper = open("./log.txt", "a", encoding="utf-8")
+        self.logfile: TextIOWrapper = open("./log.txt", "a", encoding="utf-8", buffering=1)
         signal.signal(signal.SIGTERM, self.kill)
         self.reload()
 
@@ -126,7 +126,6 @@ class WebApp:
     def log(self, content: Any) -> None:
         content: str = str(content).replace("\n", "\nSERVER | ")
         self.logfile.write(f"SERVER | {content}\n")
-        self.logfile.flush()
 
     # Web endpoints
 
