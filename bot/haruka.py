@@ -1,7 +1,9 @@
 import asyncio
 import datetime
+import json
 import os
 import signal
+import sys
 import traceback
 from typing import Any, Callable, Coroutine, Deque, Dict, List, Optional, OrderedDict
 
@@ -11,36 +13,40 @@ import topgg
 from discord.ext import commands, tasks
 
 
-class Haruka(commands.Bot):
-    TOKEN: str = os.environ["TOKEN"]
-    HOST: Optional[str] = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
-    TOPGG_TOKEN: Optional[str] = os.environ.get("TOPGG_TOKEN")
-    DATABASE_URL: str = os.environ["DATABASE_URL"]
+SlashCallback = Callable[[discord.Interaction], Coroutine[Any, Any, Any]]
 
-    BASE_URL: str = "https://discord.com/api/v8"
-    headers: Dict[str, str] = {
-        "Authorization": f"Bot {TOKEN}",
-    }
-    slash_commands: Dict[str, Callable[[discord.Interaction], Coroutine[Any, Any, Any]]] = {}
-    json: List[Dict[str, Any]] = []
+
+class Haruka(commands.Bot):
+
+    if sys.platform == "win32":
+        loop: asyncio.ProactorEventLoop
+    else:
+        loop: uvloop.Loop
 
     def __init__(self, *args, **kwargs) -> None:
         self._command_count: Dict[str, int] = {}
         self._slash_command_count: Dict[str, int] = {}
         self.owner: Optional[discord.User] = None
         self._log_lock: asyncio.Lock = asyncio.Lock()
+        self.TOKEN: str = os.environ["TOKEN"]
+        self.HOST: Optional[str] = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
+        self.TOPGG_TOKEN: Optional[str] = os.environ.get("TOPGG_TOKEN")
+        self.DATABASE_URL: str = os.environ["DATABASE_URL"]
+
+        self.slash_commands: Dict[str, SlashCallback] = {}
+        self.json: List[Dict[str, Any]] = []
 
         super().__init__(*args, **kwargs)
 
-    def register_slash_command(self, coro: Callable[[discord.Interaction], Coroutine[Any, Any, Any]], json: Dict[str, Any]) -> None:
+    def register_slash_command(self, coro: SlashCallback, json: Dict[str, Any]) -> None:
         if not asyncio.iscoroutinefunction(coro):
             raise TypeError("Slash commands must be coroutine.")
 
         self.slash_commands[json["name"]] = coro
         self.json.append(json)
 
-    def slash(self, json) -> Callable[[Callable[[discord.Interaction], Coroutine[Any, Any, Any]]], None]:
-        def decorator(coro: Callable[[discord.Interaction], Coroutine[Any, Any, Any]]) -> None:
+    def slash(self, json) -> Callable[[SlashCallback], None]:
+        def decorator(coro: SlashCallback) -> None:
             return self.register_slash_command(coro, json)
         return decorator
 
@@ -50,17 +56,10 @@ class Haruka(commands.Bot):
 
         # Now register all slash commands
         self.log("Overwriting slash commands: " + ", ".join(json["name"] for json in self.json))
-        async with self.session.put(
-            f"{self.BASE_URL}/applications/{self.user.id}/commands",
-            json=self.json,
-            headers=self.headers,
-        ) as response:
-            self.log(f"Slash commands setup returned status code {response.status}.")
-            if not response.ok:
-                print(f"Warning: Slash commands setup returned status code {response.status}.")
-                json = await response.json()
-                self.log(f"JSON type: {json.__class__.__name__}")
-                self.log(json)
+        data: List[Dict[str, Any]] = await self.http.bulk_upsert_global_commands(self.user.id, self.json)
+        with open("./slash_command_data.json", "w") as f:
+            json.dump(data, f)
+        
 
     async def process_slash_commands(self, interaction: discord.Interaction) -> None:
         name: str = interaction.data["name"]
