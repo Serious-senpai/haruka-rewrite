@@ -49,8 +49,8 @@ class Haruka(commands.Bot):
         self.TOPGG_TOKEN: Optional[str] = os.environ.get("TOPGG_TOKEN")
 
     def clear_counter(self) -> None:
-        self._command_count: Dict[str, int] = {}
-        self._slash_command_count: Dict[str, int] = {}
+        self._command_count: Dict[str, List[commands.Context]] = {}
+        self._slash_command_count: Dict[str, List[discord.Interaction]] = {}
 
     def register_slash_command(self, coro: SlashCallback, json: Dict[str, Any]) -> None:
         if not asyncio.iscoroutinefunction(coro):
@@ -77,11 +77,11 @@ class Haruka(commands.Bot):
         name: str = interaction.data["name"]
 
         # Count slash commands
-        if not await self.is_owner(interaction.user):
+        if not interaction.user == self.owner:
             if name not in self._slash_command_count:
-                self._slash_command_count[name] = 0
+                self._slash_command_count[name] = []
 
-            self._slash_command_count[name] += 1
+            self._slash_command_count[name].append(interaction)
 
         # Process command
         await self.slash_commands[name](interaction)
@@ -140,7 +140,7 @@ class Haruka(commands.Bot):
         else:
             self.owner_id: int = app_info.owner.id
 
-        self.owner: discord.User = await self.fetch_user(self.owner_id)
+        self.owner = await self.fetch_user(self.owner_id)
 
         # Run youtube-dl tests
         tasks: List[asyncio.Task] = []
@@ -148,7 +148,6 @@ class Haruka(commands.Bot):
         for url in (
             "https://www.youtube.com/watch?v=Hy9s13hWsoc",
             "https://www.youtube.com/watch?v=n89SKAymNfA",
-            "https://www.youtube.com/watch?v=tsYOZj9qOHQ",
         ):
             task: asyncio.Task = self.loop.create_task(self._ytdl_test(url))
             tasks.append(task)
@@ -157,17 +156,17 @@ class Haruka(commands.Bot):
         self.loop.create_task(self.overwrite_slash_commands())  # Ignore exceptions
 
         # Keep the server alive
-        if self.HOST:
-            try:
-                self._keep_alive.start()
-            except Exception as ex:
-                self.log(f"An exception occured when starting _keep_alive: {ex}")
-            else:
-                self.log("Started _keep_alive task")
+        try:
+            self._keep_alive.start()
+        except:
+            self.log("An exception occured when starting _keep_alive:")
+            self.log(traceback.format_exc())
+        else:
+            self.log("Started _keep_alive task")
 
         # Post server count every 15 minutes
         if self.TOPGG_TOKEN:
-            self.topgg = topgg.DBLClient(
+            self.topgg: topgg.DBLClient = topgg.DBLClient(
                 self,
                 self.TOPGG_TOKEN,
                 autopost=True,
@@ -198,7 +197,7 @@ class Haruka(commands.Bot):
 
         try:
             await self.report("Haruka is ready!", send_state=False)
-        except Exception as ex:
+        except BaseException:
             self.log("Cannot send ready notification:")
             self.log(traceback.format_exc())
 
@@ -221,14 +220,8 @@ class Haruka(commands.Bot):
 
         output, _ = await process.communicate()
 
-        try:
-            content: str = output.decode("utf-8")
-        except BaseException:
-            self.log("Cannot decode output for ytdl test.")
-            self.log(traceback.format_exc())
-            self.log(f"Finished ytdl test on {url}:\nOutput: {output}")
-        else:
-            self.log(f"Finished ytdl test on {url}:\nOutput: {content}")
+        content: str = output.decode("utf-8")
+        self.log(f"Finished ytdl test for {url}:\nOutput: {content}")
 
     def kill(self, *args) -> None:
         print("Received SIGTERM signal. Terminating bot...")
@@ -276,7 +269,7 @@ class Haruka(commands.Bot):
         private_channels: OrderedDict[int, discord.PrivateChannel] = self._connection._private_channels
         messages: Deque[discord.Message] = self._connection._messages
 
-        desc: str = "**Commands usage:** " + escape(", ".join(f"{command}: {uses}" for command, uses in self._command_count.items())) + "\n**Slash commands usage:** " + escape(", ".join(f"{command}: {uses}" for command, uses in self._slash_command_count.items()))
+        desc: str = "**Commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._command_count.items())) + "\n**Slash commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._slash_command_count.items()))
 
         em: discord.Embed = discord.Embed(
             title="Internal status",

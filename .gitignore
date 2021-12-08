@@ -1,10 +1,12 @@
 **/__pycache__
 
+/eval.txt
 /log.txt
 /run.bat
+/source.py
 /ssh.txt
-/thread.txt
-/eval.txt
+/tasks.txt
+/threads.txt
 
 /.idea
 /server

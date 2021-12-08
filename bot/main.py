@@ -20,8 +20,7 @@ if __name__ == "__main__":
     tracemalloc.start()
 
     with open("./log.txt", "w") as f:
-        line: str = "-" * 50
-        f.write(f"{line}\nHARUKA BOT\nRunning on Python {sys.version}\n{line}\n")
+        f.write(f"HARUKA BOT\nRunning on Python {sys.version}\n" + "-" * 50 + "\n")
 
     print(f"Running on {sys.platform}\nPython {sys.version}")
     process: multiprocessing.Process = multiprocessing.Process(target=_run_server)
@@ -48,9 +47,9 @@ if __name__ == "__main__":
 
         name: str = ctx.command.name
         if name not in bot._command_count:
-            bot._command_count[name] = 0
+            bot._command_count[name] = []
 
-        bot._command_count[name] += 1
+        bot._command_count[name].append(ctx)
 
     try:
         bot.loop.run_until_complete(bot.start())

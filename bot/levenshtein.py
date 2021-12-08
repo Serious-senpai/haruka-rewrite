@@ -17,6 +17,8 @@ IGNORE: Tuple[str, ...] = (
     "status",
     "task",
     "tasks",
+    "thread",
+    "threads",
     "trace",
 )
 
