@@ -21,7 +21,12 @@ class Haruka(commands.Bot):
     if sys.platform == "win32":
         loop: asyncio.ProactorEventLoop
     else:
-        loop: uvloop.Loop
+        try:
+            import uvloop
+        except ImportError:
+            loop: asyncio.SelectorEventLoop
+        else:
+            loop: uvloop.Loop
 
     def __init__(self, *args, **kwargs) -> None:
         # Initial state
