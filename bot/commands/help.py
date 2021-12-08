@@ -149,7 +149,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
             args = ["python"]
         args.append("./bot/levenshtein.py")
         args.append(string)
-        args.extend([command.name for command in bot.walk_commands()])
+        args.extend(bot.all_commands.keys())
 
         process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
             *args,

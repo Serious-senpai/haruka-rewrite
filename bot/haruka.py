@@ -71,9 +71,7 @@ class Haruka(commands.Bot):
         # Now register all slash commands
         self.log("Overwriting slash commands: " + ", ".join(json["name"] for json in self.json))
         data: List[Dict[str, Any]] = await self.http.bulk_upsert_global_commands(self.user.id, self.json)
-        with open("./slash_command_data.json", "w") as f:
-            json.dump(data, f)
-        
+        self.log(f"Returned JSON:\n{data}")
 
     async def process_slash_commands(self, interaction: discord.Interaction) -> None:
         name: str = interaction.data["name"]

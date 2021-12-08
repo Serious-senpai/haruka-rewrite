@@ -1,6 +1,24 @@
 import functools
 import sys
-from typing import List
+from typing import List, Tuple
+
+
+IGNORE: Tuple[str, ...] = (
+    "bash",
+    "blacklist",
+    "cancel",
+    "eval",
+    "exec",
+    "log",
+    "sql",
+    "sh",
+    "ssh",
+    "state",
+    "status",
+    "task",
+    "tasks",
+    "trace",
+)
 
 
 @functools.cache
@@ -30,6 +48,9 @@ measure: int
 ret: str
 
 for word in words:
+    if word in IGNORE:
+        continue
+
     measure = lev(string, word)
     if measure < val:
         ret = word

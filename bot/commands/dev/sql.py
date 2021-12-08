@@ -1,7 +1,6 @@
-import time
-
 from discord.ext import commands
 
+import utils
 from core import bot
 
 
@@ -13,10 +12,9 @@ from core import bot
 @commands.is_owner()
 async def _sql_cmd(ctx: commands.Context, *, query):
     try:
-        start: float = time.perf_counter()
-        status: str = await bot.conn.execute(query)
-        end: float = time.perf_counter()
+        with utils.TimingContextManager() as measure:
+            status: str = await bot.conn.execute(query)
     except Exception as ex:
         await ctx.send(f"An exception occured: {ex}")
     else:
-        await ctx.send(f"Process executed in {1000 * (end - start)} ms\n```\n{status}\n```")
+        await ctx.send(f"Process executed in {utils.format(measure.result)}\n```\n{status}\n```")

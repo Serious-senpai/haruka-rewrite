@@ -2,6 +2,7 @@ from typing import Optional
 
 from discord.ext import commands
 
+import utils
 from audio import MusicClient
 from core import bot
 
@@ -18,6 +19,6 @@ async def _vping_cmd(ctx: commands.Context):
 
     if player and player.is_connected():
         await player._operable.wait()
-        await ctx.send(f"🏓 Pong! Connecting to <#{player.channel.id}> at `{player.ws.gateway}` with " + "{:.2f} ms latency".format(1000 * player.latency))
+        await ctx.send(f"🏓 Pong! Connecting to <#{player.channel.id}> at `{player.ws.gateway}` with {utils.format(player.latency)} latency")
     else:
         await ctx.send("No currently connected player.")

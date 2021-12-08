@@ -1,13 +1,13 @@
 import asyncio
 import io
 import textwrap
-import time
 import traceback
 from typing import Any, Dict
 
 import discord
 from discord.ext import commands
 
+import utils
 from core import bot
 
 
@@ -55,17 +55,16 @@ async def _eval_cmd(ctx: commands.Context, *, code: str):
         await ctx.send("Cannot create coroutine:\n```\n" + traceback.format_exc() + "\n```")
         return IN_PROGRESS.set()
 
-    t: float = time.perf_counter()
-    bot._eval_task = bot.loop.create_task(locals()["env"]["__exec"]())
+    with utils.TimingContextManager() as measure:
+        bot._eval_task = bot.loop.create_task(locals()["env"]["__exec"]())
 
-    try:
-        await bot._eval_task
-    except asyncio.CancelledError:
-        pass
-    except BaseException:
-        output.write(traceback.format_exc())
+        try:
+            await bot._eval_task
+        except asyncio.CancelledError:
+            pass
+        except BaseException:
+            output.write(traceback.format_exc())
 
-    _t: float = time.perf_counter()
     IN_PROGRESS.set()
     content: str = output.getvalue()
 
@@ -73,8 +72,8 @@ async def _eval_cmd(ctx: commands.Context, *, code: str):
         await asyncio.to_thread(write, content)
 
         await ctx.send(
-            "Process completed after {:.2f} ms.".format(1000 * (_t - t)),
+            f"Process completed after {utils.format(measure.result)}.",
             file=discord.File("eval.txt"),
         )
     else:
-        await ctx.send("Process completed after {:.2f} ms.".format(1000 * (_t - t)))
+        await ctx.send(f"Process completed after {utils.format(measure.result)}.")

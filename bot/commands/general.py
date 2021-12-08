@@ -8,6 +8,7 @@ from discord.utils import escape_markdown as escape
 
 import info
 import emoji_ui
+import utils
 from core import bot, prefix
 
 
@@ -25,7 +26,7 @@ async def _about_cmd(ctx: commands.Context):
     )
     em.add_field(
         name="Latency",
-        value="{:.2f} ms".format(1000 * bot.latency),
+        value=utils.format(bot.latency),
     )
     em.add_field(
         name="Links",

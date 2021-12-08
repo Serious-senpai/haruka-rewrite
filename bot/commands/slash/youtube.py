@@ -1,6 +1,3 @@
-import io
-import sys
-import time
 from typing import Any, Dict, List, Optional
 
 import discord
@@ -8,6 +5,7 @@ import discord
 import audio
 import slash_utils
 import ui
+import utils
 from core import bot
 
 
@@ -38,9 +36,8 @@ class Menu(discord.ui.Select):
             icon_url=bot.user.avatar.url,
         )
 
-        t: float = time.perf_counter()
-        url: Optional[str] = await audio.fetch(track)
-        done: float = time.perf_counter() - t
+        with utils.TimingContextManager() as measure:
+            url: Optional[str] = await audio.fetch(track)
 
         if not url:
             em.set_footer(text="Cannot fetch audio file")
@@ -51,7 +48,7 @@ class Menu(discord.ui.Select):
             value=f"[Download]({url})",
             inline=False,
         )
-        em.set_footer(text="Fetched data in {:.2f} ms".format(1000 * done))
+        em.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
 
         await interaction.followup.send(embed=em)
 

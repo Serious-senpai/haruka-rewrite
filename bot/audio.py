@@ -16,6 +16,7 @@ import discord
 from discord.utils import escape_markdown as escape
 
 import emoji_ui
+import utils
 from core import bot
 
 
@@ -470,9 +471,8 @@ async def embed_search(
         will be sent to the user
         - The user timed out for the interaction
     """
-    t: float = time.perf_counter()
-    results: List[PartialInvidiousSource] = await PartialInvidiousSource.search(query)
-    done: float = time.perf_counter() - t
+    with utils.TimingContextManager() as measure:
+        results: List[PartialInvidiousSource] = await PartialInvidiousSource.search(query)
 
     if not results:
         await target.send("No matching result was found.")
@@ -485,7 +485,7 @@ async def embed_search(
         name=f"Search results for {query}",
         icon_url=bot.user.avatar.url,
     )
-    embed.set_footer(text="Fetched results in {:.2f} ms".format(1000 * done))
+    embed.set_footer(text=f"Fetched results in {utils.format(measure.result)}")
     for index, result in enumerate(results):
         embed.add_field(
             name=f"{emoji_ui.CHOICES[index]} {escape(result.title)}",

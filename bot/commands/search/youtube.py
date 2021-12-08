@@ -1,10 +1,10 @@
-import time
 from typing import Optional
 
 import discord
 from discord.ext import commands
 
 import audio
+import utils
 from core import bot
 
 
@@ -30,9 +30,8 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
     )
 
     async with ctx.typing():
-        t: float = time.perf_counter()
-        url: Optional[str] = await audio.fetch(source)
-        done: float = time.perf_counter() - t
+        with utils.TimingContextManager() as measure:
+            url: Optional[str] = await audio.fetch(source)
 
         if not url:
             em.set_footer(text="Cannot fetch audio file")
@@ -43,5 +42,5 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
             value=f"[Download]({url})",
             inline=False,
         )
-        em.set_footer(text="Fetched data in {:.2f} ms.".format(1000 * done))
+        em.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
         await ctx.send(embed=em)
