@@ -11,6 +11,7 @@ import aiohttp
 import discord
 import topgg
 from discord.ext import commands, tasks
+from discord.utils import escape_markdown as escape
 
 
 SlashCallback = Callable[[discord.Interaction], Coroutine[Any, Any, Any]]
@@ -277,10 +278,12 @@ class Haruka(commands.Bot):
         private_channels: OrderedDict[int, discord.PrivateChannel] = self._connection._private_channels
         messages: Deque[discord.Message] = self._connection._messages
 
+        desc: str = "**Commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._command_count.items()) + "\n**Slash commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._slash_command_count.items())
+        desc = escape(desc)
+
         em: discord.Embed = discord.Embed(
             title="Internal status",
-            description="**Commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._command_count.items())
-            + "\n**Slash commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._slash_command_count.items()),
+            description=desc,
             color=0x2ECC71,
             timestamp=discord.utils.utcnow(),
         )
