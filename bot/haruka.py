@@ -24,19 +24,27 @@ class Haruka(commands.Bot):
         loop: uvloop.Loop
 
     def __init__(self, *args, **kwargs) -> None:
-        self._command_count: Dict[str, int] = {}
-        self._slash_command_count: Dict[str, int] = {}
+        # Initial state
         self.owner: Optional[discord.User] = None
         self._log_lock: asyncio.Lock = asyncio.Lock()
-        self.TOKEN: str = os.environ["TOKEN"]
-        self.HOST: Optional[str] = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
-        self.TOPGG_TOKEN: Optional[str] = os.environ.get("TOPGG_TOKEN")
-        self.DATABASE_URL: str = os.environ["DATABASE_URL"]
+        self.clear_counter()
+        self._load_env()
 
+        # For slash commands
         self.slash_commands: Dict[str, SlashCallback] = {}
         self.json: List[Dict[str, Any]] = []
 
         super().__init__(*args, **kwargs)
+
+    def _load_env(self) -> None:
+        self.TOKEN: str = os.environ["TOKEN"]
+        self.HOST: str = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
+        self.DATABASE_URL: str = os.environ["DATABASE_URL"]
+        self.TOPGG_TOKEN: Optional[str] = os.environ.get("TOPGG_TOKEN")
+
+    def clear_counter(self) -> None:
+        self._command_count: Dict[str, int] = {}
+        self._slash_command_count: Dict[str, int] = {}
 
     def register_slash_command(self, coro: SlashCallback, json: Dict[str, Any]) -> None:
         if not asyncio.iscoroutinefunction(coro):
