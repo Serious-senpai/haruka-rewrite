@@ -278,8 +278,7 @@ class Haruka(commands.Bot):
         private_channels: OrderedDict[int, discord.PrivateChannel] = self._connection._private_channels
         messages: Deque[discord.Message] = self._connection._messages
 
-        desc: str = "**Commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._command_count.items()) + "\n**Slash commands usage:** " + ", ".join(f"{command}: {uses}" for command, uses in self._slash_command_count.items())
-        desc = escape(desc)
+        desc: str = "**Commands usage:** " + escape(", ".join(f"{command}: {uses}" for command, uses in self._command_count.items())) + "\n**Slash commands usage:** " + escape(", ".join(f"{command}: {uses}" for command, uses in self._slash_command_count.items()))
 
         em: discord.Embed = discord.Embed(
             title="Internal status",
