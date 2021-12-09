@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 import discord
 
 import _pixiv
-import slash_utils
+import slash
 from core import bot
 
 
@@ -24,7 +24,7 @@ json: Dict[str, Any] = {
 @bot.slash(json)
 async def _pixiv_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    args: Dict[str, str] = slash_utils.parse(interaction)
+    args: Dict[str, str] = slash.parse(interaction)
     query: str = args["string"]
 
     id: int

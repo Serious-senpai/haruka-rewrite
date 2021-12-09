@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import discord
 
-import slash_utils
+import slash
 from leech import get_sauce
 from core import bot
 
@@ -23,7 +23,7 @@ json: Dict[str, Any] = {
 @bot.slash(json)
 async def _sauce_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    args: Dict[str, str] = slash_utils.parse(interaction)
+    args: Dict[str, str] = slash.parse(interaction)
     results = await get_sauce(args["url"])
 
     if not results:

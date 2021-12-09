@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 
 import discord
 
-import slash_utils
+import slash
 import urban
 from core import bot
 
@@ -23,7 +23,7 @@ json: Dict[str, Any] = {
 @bot.slash(json)
 async def _urban_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    args: Dict[str, str] = slash_utils.parse(interaction)
+    args: Dict[str, str] = slash.parse(interaction)
     query: str = args["word"]
 
     result: Optional[urban.UrbanSearch] = await urban.UrbanSearch.search(query)

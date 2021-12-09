@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 
 import discord
 
+import slash
 from audio import MusicClient
 from core import bot
 
@@ -15,10 +16,11 @@ json: Dict[str, Any] = {
 
 
 @bot.slash(json)
+@slash.guild_only()
 async def _play_slash(interaction: discord.Interaction):
     await interaction.response.defer()
     if not isinstance(interaction.user, discord.Member):
-        await interaction.followup.send("Cannot start playing music right now.")
+        await interaction.followup.send("Cannot perform this operation.")
 
     elif not interaction.user.voice:
         await interaction.followup.send("Please join a voice channel first.")

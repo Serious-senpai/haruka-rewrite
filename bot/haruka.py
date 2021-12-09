@@ -1,11 +1,10 @@
 import asyncio
 import datetime
-import json
 import os
 import signal
 import sys
 import traceback
-from typing import Any, Callable, Coroutine, Deque, Dict, List, Optional, OrderedDict
+from typing import Any, Deque, Dict, List, Optional, OrderedDict
 
 import aiohttp
 import discord
@@ -13,11 +12,10 @@ import topgg
 from discord.ext import commands, tasks
 from discord.utils import escape_markdown as escape
 
+from slash import SlashMixin
 
-SlashCallback = Callable[[discord.Interaction], Coroutine[Any, Any, Any]]
 
-
-class Haruka(commands.Bot):
+class Haruka(SlashMixin, commands.Bot):
 
     if sys.platform == "win32":
         loop: asyncio.ProactorEventLoop
@@ -36,10 +34,6 @@ class Haruka(commands.Bot):
         self.clear_counter()
         self._load_env()
 
-        # For slash commands
-        self.slash_commands: Dict[str, SlashCallback] = {}
-        self.json: List[Dict[str, Any]] = []
-
         super().__init__(*args, **kwargs)
 
     def _load_env(self) -> None:
@@ -51,40 +45,6 @@ class Haruka(commands.Bot):
     def clear_counter(self) -> None:
         self._command_count: Dict[str, List[commands.Context]] = {}
         self._slash_command_count: Dict[str, List[discord.Interaction]] = {}
-
-    def register_slash_command(self, coro: SlashCallback, json: Dict[str, Any]) -> None:
-        if not asyncio.iscoroutinefunction(coro):
-            raise TypeError("Slash commands must be coroutine.")
-
-        self.slash_commands[json["name"]] = coro
-        self.json.append(json)
-
-    def slash(self, json) -> Callable[[SlashCallback], None]:
-        def decorator(coro: SlashCallback) -> None:
-            return self.register_slash_command(coro, json)
-        return decorator
-
-    async def overwrite_slash_commands(self) -> None:
-        # Wait until ready so that the "user" attribute is available
-        await self.wait_until_ready()
-
-        # Now register all slash commands
-        self.log("Overwriting slash commands: " + ", ".join(json["name"] for json in self.json))
-        data: List[Dict[str, Any]] = await self.http.bulk_upsert_global_commands(self.user.id, self.json)
-        self.log(f"Returned JSON:\n{data}")
-
-    async def process_slash_commands(self, interaction: discord.Interaction) -> None:
-        name: str = interaction.data["name"]
-
-        # Count slash commands
-        if not interaction.user == self.owner:
-            if name not in self._slash_command_count:
-                self._slash_command_count[name] = []
-
-            self._slash_command_count[name].append(interaction)
-
-        # Process command
-        await self.slash_commands[name](interaction)
 
     async def start(self) -> None:
         # Handle SIGTERM signal from Heroku

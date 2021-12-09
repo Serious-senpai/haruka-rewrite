@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import discord
 
-import slash_utils
+import slash
 from core import bot
 
 
@@ -55,7 +55,7 @@ json: Dict[str, Any] = {
 @bot.slash(json)
 async def _test_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    args: Dict[str, Any] = slash_utils.parse(interaction)
+    args: Dict[str, Any] = slash.parse(interaction)
     content: str = "```"
 
     for key, arg in args.items():

@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 import discord
 
 import audio
-import slash_utils
+import slash
 import ui
 import utils
 from core import bot
@@ -56,7 +56,7 @@ class Menu(discord.ui.Select):
 @bot.slash(json)
 async def _youtube_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    args: Dict[str, str] = slash_utils.parse(interaction)
+    args: Dict[str, str] = slash.parse(interaction)
     query: str = args["query"]
     if len(query) < 3:
         return await interaction.followup.send(content="Please provide at least 3 characters in the searching query.")

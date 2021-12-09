@@ -2,6 +2,7 @@ from typing import Any, Dict, Optional
 
 import discord
 
+import slash
 from audio import MusicClient
 from core import bot
 
@@ -14,6 +15,7 @@ json: Dict[str, Any] = {
 
 
 @bot.slash(json)
+@slash.guild_only()
 async def _stop_slash(interaction: discord.Interaction):
     await interaction.response.defer()
     player: Optional[MusicClient] = interaction.guild.voice_client
