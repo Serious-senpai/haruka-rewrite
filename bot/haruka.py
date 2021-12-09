@@ -213,6 +213,7 @@ class Haruka(SlashMixin, commands.Bot):
         send_state: bool = True,
         send_log: bool = True,
     ) -> None:
+        await asyncio.sleep(0)
         async with self._log_lock:
             await self.owner.send(
                 message,
