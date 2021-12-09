@@ -10,6 +10,7 @@ IGNORE: Tuple[str, ...] = (
     "eval",
     "exec",
     "log",
+    "raise",
     "sql",
     "sh",
     "ssh",

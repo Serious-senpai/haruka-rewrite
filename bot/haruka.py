@@ -210,14 +210,15 @@ class Haruka(SlashMixin, commands.Bot):
         self,
         message: str,
         *,
-        send_log: bool = True,
         send_state: bool = True,
+        send_log: bool = True,
     ) -> None:
-        await self.owner.send(
-            message,
-            embed=self.display_status if send_state else None,
-            file=discord.File("./log.txt") if send_log else None,
-        )
+        async with self._log_lock:
+            await self.owner.send(
+                message,
+                embed=self.display_status if send_state else None,
+                file=discord.File("./log.txt") if send_log else None,
+            )
 
     @property
     def display_status(self) -> discord.Embed:

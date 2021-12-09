@@ -804,4 +804,4 @@ class MusicClient(discord.VoiceClient):
         self._event.set()
         if exc is not None:
             bot.log(f"Warning: Voice client in {self.channel}/{self.guild} ({self._player.name}) raised an exception (handled in _set_event method):")
-            bot.log(traceback.format_exception(exc.__class__, exc, exc.__traceback__))
+            bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))

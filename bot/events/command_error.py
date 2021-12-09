@@ -106,5 +106,5 @@ async def on_command_error(ctx: commands.Context, error: Exception):
             bot.log("Notification message was successfully sent.")
 
         bot.log(f"'{ctx.message.content}' in {ctx.guild}/{ctx.channel} from {ctx.author} ({ctx.author.id}):")
-        bot.log("".join(line for line in traceback.format_exception(error.__class__, error, error.__traceback__)))
+        bot.log("".join(traceback.format_exception(error.__class__, error, error.__traceback__)))
         await bot.report("An error has just occured and was handled by `on_command_error`", send_state=False)

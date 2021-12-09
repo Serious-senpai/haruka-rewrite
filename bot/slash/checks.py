@@ -42,6 +42,6 @@ def check(predicate: MaybeCoroutine) -> Callable[[ST], ST]:
 def guild_only() -> Callable[[discord.Interaction], Callable[[ST], ST]]:
     def predicate(interaction: discord.Interaction) -> Any:
         if not interaction.guild_id:
-            raise NoPrivateMessage
+            raise NoPrivateMessage(interaction.data["name"])
 
     return check(predicate)

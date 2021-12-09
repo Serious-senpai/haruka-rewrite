@@ -6,27 +6,16 @@ from typing import (
     Callable,
     Coroutine,
     Dict,
-    Generic,
     List,
     Optional,
-    Protocol,
-    Type,
-    TypeVar,
     Union,
 )
 
 import discord
-from discord.ext import commands
-from discord import http
 
-from .converter import (
-    ChannelConverter,
-    RoleConverter,
-    UserConverter,
-)
-from .types import (
-    CommandOptionPayload,
-)
+from .converter import *
+from .errors import *
+from .types import *
 
 
 __all__ = (
@@ -62,13 +51,6 @@ class Command:
 
     def add_check(self, check: MaybeCoroutine) -> None:
         self.checks.append(check)
-
-
-class _Proto(Protocol):
-    @property
-    def http(self) -> http.HTTPClient: ...
-    def log(self, content: Any) -> None: ...
-    def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None: ...
 
 
 class SlashMixin:
@@ -120,7 +102,7 @@ class SlashMixin:
             return command
         return decorator
 
-    async def overwrite_slash_commands(self: _Proto) -> None:
+    async def overwrite_slash_commands(self) -> None:
         """This function is a coroutine
 
         Perform an API call to bulk update all registered slash commands.
@@ -133,7 +115,7 @@ class SlashMixin:
         data: List[Dict[str, Any]] = await self.http.bulk_upsert_global_commands(self.user.id, self._json)
         self.log(f"Returned JSON:\n{data}")
 
-    async def process_slash_commands(self: _Proto, interaction: discord.Interaction) -> None:
+    async def process_slash_commands(self, interaction: discord.Interaction) -> None:
         """This function is a coroutine
 
         Process a slash command from an interaction
@@ -146,13 +128,23 @@ class SlashMixin:
         name: str = interaction.data["name"]
         command: Command = self._slash_commands[name]
 
+        if not interaction.user == self.owner:
+            if name not in self._slash_command_count:
+                self._slash_command_count[name] = []
+
+            self._slash_command_count[name].append(interaction)
+
         try:
             for check in command.checks:
                 await discord.utils.maybe_coroutine(check, interaction)
-
-            await command.callback(interaction)
         except Exception as exc:
             self.dispatch("slash_command_error", interaction, exc)
+        else:
+            try:
+                await command.callback(interaction)
+            except Exception as exc:
+                wrapped: CommandInvokeError = CommandInvokeError(name, exc)
+                self.dispatch("slash_command_error", interaction, wrapped)
 
 
 def parse(interaction: discord.Interaction) -> Dict[str, Any]:
