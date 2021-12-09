@@ -12,10 +12,10 @@ from typing import (
 )
 
 import discord
+from discord.types import interactions
 
 from .converter import *
 from .errors import *
-from .types import *
 
 
 __all__ = (
@@ -163,7 +163,7 @@ def parse(interaction: discord.Interaction) -> Dict[str, Any]:
     ret: Dict[str, Any] = {}
 
     try:
-        options: List[CommandOptionPayload] = interaction.data["options"]
+        options: List[interactions.ApplicationCommandInteractionDataOption] = interaction.data["options"]
     except KeyError:
         return ret
 
