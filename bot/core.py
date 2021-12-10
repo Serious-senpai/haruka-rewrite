@@ -87,6 +87,7 @@ bot: haruka.Haruka = haruka.Haruka(
     intents=intents,
     case_insensitive=True,
     max_messages=80000,
+    strip_after_prefix=True,
 )
 
 

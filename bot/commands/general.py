@@ -88,6 +88,9 @@ async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
     if not ctx.channel.permissions_for(ctx.author).manage_guild:
         raise commands.MissingPermissions("manage_guild")
 
+    if " " in pref:
+        return await ctx.send("Prefix must not contain any spaces!")
+
     id: int = ctx.guild.id
     await bot.conn.execute(f"DELETE FROM prefix WHERE id = '{id}' OR pref = '$';")
     if not pref == "$":
