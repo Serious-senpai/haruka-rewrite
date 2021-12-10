@@ -554,6 +554,7 @@ class MusicClient(discord.VoiceClient):
     channel: discord.VoiceChannel
 
     def __init__(self, *args, **kwargs) -> None:
+        self._repeat: bool = False
         self._shuffle: bool = False
         self._stopafter: bool = False
         self._operable: asyncio.Event = asyncio.Event()
@@ -647,13 +648,18 @@ class MusicClient(discord.VoiceClient):
         target :class:`discord.abc.Messageable`
             The channel to send audio playing info.
         """
+        repeat_id: Optional[str] = None
         playing_info: Optional[discord.Message] = None
         self.target = target
+
         while True:
-            if self._shuffle:
-                track_id: Optional[str] = await self.remove(self.channel.id)
+            track_id: Optional[str]
+            if self._repeat and repeat_id is not None:
+                track_id = repeat_id  # Warning: not popping from the queue
+            elif self._shuffle:
+                track_id = await self.remove(self.channel.id)
             else:
-                track_id: Optional[str] = await self.remove(self.channel.id, pos=1)
+                track_id = await self.remove(self.channel.id, pos=1)
 
             if not track_id:
                 return await self.disconnect(force=True)
@@ -686,11 +692,7 @@ class MusicClient(discord.VoiceClient):
                         name=f"Playing in {self.channel}",
                         icon_url=bot.user.avatar.url,
                     )
-
-                    if self._shuffle:
-                        em.set_footer(text="Shuffle is ON")
-                    else:
-                        em.set_footer(text="Shuffle is OFF")
+                    em.set_footer(text=f"Shuffle: {self._shuffle} | Repeat one: {self._repeat}")
 
                     if playing_info:
                         try:
@@ -721,7 +723,9 @@ class MusicClient(discord.VoiceClient):
                         pass
                     continue
 
-            await self.add(self.channel.id, track_id)
+            repeat_id = track_id
+            if not self._repeat:
+                await self.add(self.channel.id, track_id)
 
             # The playing loop for a song: divide each track
             # into 30 seconds of audio buffer, when a part
@@ -773,13 +777,13 @@ class MusicClient(discord.VoiceClient):
                     bot.log(f"Warning: audio playing in {self.channel}/{self.guild} delayed for {1000 * delta} ms")
 
                 self._event.clear()
-                self._operable.set()  # Enable pause/resume
+                self._operable.set()  # Enable pause/resume/toggle repeat
 
                 super().play(audio, after=self._set_event)
                 self._player.setName(f"Channel {self.channel.id}/{seq}")
 
                 await self._event.wait()
-                self._operable.clear()  # Disable pause/resume
+                self._operable.clear()  # Disable pause/resume/toggle repeat
                 seq += 1
                 t = time.perf_counter()
 

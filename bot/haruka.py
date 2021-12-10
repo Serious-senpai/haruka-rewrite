@@ -118,7 +118,7 @@ class Haruka(SlashMixin, commands.Bot):
         # Keep the server alive
         try:
             self._keep_alive.start()
-        except:
+        except BaseException:
             self.log("An exception occured when starting _keep_alive:")
             self.log(traceback.format_exc())
         else:

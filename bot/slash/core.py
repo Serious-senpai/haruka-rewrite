@@ -59,6 +59,7 @@ class SlashMixin:
     The bot object inherits from this mixin must also subclass
     :class:`commands.Bot`
     """
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._slash_commands: Dict[str, Command] = {}
         self._json: List[Dict[str, Any]] = []

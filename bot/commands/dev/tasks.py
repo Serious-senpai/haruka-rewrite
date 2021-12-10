@@ -13,7 +13,7 @@ def _display_frame(task: asyncio.Task) -> str:
     if not frames:
         return "None"
 
-    frame: FrameType = frames.pop() # oldest
+    frame: FrameType = frames.pop()  # oldest
     return f"{frame.f_code.co_filename}::{frame.f_code.co_firstlineno}"
 
 
