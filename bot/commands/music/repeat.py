@@ -24,4 +24,5 @@ async def _repeat_cmd(ctx: commands.Context):
         else:
             await ctx.send("Switched to `REPEAT ALL` mode. All songs will be played as normal.")
 
-    await ctx.send("No audio is currently being played to pause.")
+    else:
+        await ctx.send("No audio is currently being played.")
