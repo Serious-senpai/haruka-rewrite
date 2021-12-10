@@ -4,13 +4,13 @@ from typing import List
 import discord
 from discord.ext import commands
 
-from audio import *
+from audio import MusicClient
 from core import bot
 
 
 @bot.command(
     name="play",
-    description="Start playing the queue of the voice channel you are connected to.\nThis always plays the music queue as `Repeat All`. If you want something like `Repeat One`, consider making a queue with only 1 song instead.",
+    description="Start playing the music queue of the voice channel you are connected to.",
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)

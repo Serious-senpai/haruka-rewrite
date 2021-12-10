@@ -24,7 +24,7 @@ nsfw, sfw
 ```
 ### Music
 ```
-add, dashboard, myplaylist, pause, play, playlist, publish, queue, remove, resume, shuffle, skip, stop, stopafter, unpublish, vping
+add, dashboard, myplaylist, pause, play, playlist, publish, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, unpublish, vping
 ```
 ### Moderation
 ```

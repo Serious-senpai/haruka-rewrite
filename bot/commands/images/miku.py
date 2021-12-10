@@ -11,7 +11,7 @@ from core import bot
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _miku_cmd(ctx: commands.Context):
-    return
+    return await ctx.send("This command is deprecated.")
     image_url: str = leech.get_miku()
     em: discord.Embed = discord.Embed(
         color=0x2ECC71,

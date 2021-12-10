@@ -65,7 +65,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         em.add_field(
             name="🎶 Music",
-            value="```\nadd, dashboard, myplaylist, pause, play, playlist, publish, queue, remove, resume, shuffle, skip, stop, stopafter, unpublish, vping\n```",
+            value="```\nadd, dashboard, myplaylist, pause, play, playlist, publish, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, unpublish, vping\n```",
             inline=False,
         )
         em.add_field(
