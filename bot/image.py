@@ -337,9 +337,6 @@ class ImageClient(Generic[IT]):
                     commands.Cooldown(1, 2),
                     commands.BucketType.user,
                 ),
-                checks=[
-
-                ],
             )
             self.bot.add_command(command)
 
