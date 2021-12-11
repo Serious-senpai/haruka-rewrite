@@ -92,6 +92,7 @@ class WaifuPics(ImageSource):
 
     __slots__ = (
         "session",
+        "client",
     )
     endpoints_url: str = "https://api.waifu.pics/endpoints"
 
@@ -120,6 +121,7 @@ class WaifuIm(ImageSource):
 
     __slots__ = (
         "session",
+        "client",
     )
     endpoints_url: str = "https://api.waifu.im/endpoints"
 
@@ -149,6 +151,7 @@ class NekosLife(ImageSource):
 
     __slots__ = (
         "session",
+        "client",
     )
     endpoints_url: str = "https://nekos.life/api/v2/endpoints"
     sfw_converter: Dict[str, str] = {
@@ -222,6 +225,7 @@ class Asuna(ImageSource):
 
     __slots__ = (
         "session",
+        "client",
     )
     endpoints_url: str = "https://asuna.ga/api"
     converter: Dict[str, str] = {
