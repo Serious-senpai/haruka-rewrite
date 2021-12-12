@@ -8,7 +8,7 @@ __all__ = (
 
 class Battleable:
     """An ABC that implement common operations for an entity
-    that can battle.
+    which can battle.
     """
 
     def physical_attack(self, enemy: Battleable) -> int:
@@ -16,7 +16,7 @@ class Battleable:
         enemy.hp -= dmg
         return dmg
 
-    def magical_atk(self, enemy: Battleable) -> int:
+    def magical_attack(self, enemy: Battleable) -> int:
         dmg: int = self.magical_atk
         enemy.hp -= dmg
         return dmg
