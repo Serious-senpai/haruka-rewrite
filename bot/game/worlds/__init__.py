@@ -1,0 +1,1 @@
+#!/bot/game/worlds
