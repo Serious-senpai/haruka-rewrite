@@ -4,7 +4,7 @@ import os
 import signal
 import sys
 import traceback
-from typing import Any, Deque, Dict, List, Optional, OrderedDict
+from typing import Any, Deque, Dict, List, Optional
 
 import aiohttp
 import discord
@@ -30,7 +30,6 @@ class Haruka(SlashMixin, commands.Bot):
     def __init__(self, *args, **kwargs) -> None:
         # Initial state
         self.owner: Optional[discord.User] = None
-        self._log_lock: asyncio.Lock = asyncio.Lock()
         self.clear_counter()
         self._load_env()
 
@@ -51,7 +50,7 @@ class Haruka(SlashMixin, commands.Bot):
         signal.signal(signal.SIGTERM, self.kill)
 
         # Setup logging file
-        self.logfile = open("./log.txt", "a", encoding="utf-8", buffering=1)
+        self.logfile = open("./log.txt", "a", encoding="utf-8")
 
         # Connect to database
         import database
@@ -81,15 +80,8 @@ class Haruka(SlashMixin, commands.Bot):
         self.log("Loaded all external sources.")
 
     def log(self, content: Any) -> None:
-        self.loop.create_task(self._do_log(content))
-
-    async def _do_log(self, content: Any) -> None:
         content: str = str(content).replace("\n", "\nHARUKA | ")
-        async with self._log_lock:
-            await asyncio.to_thread(
-                self.logfile.write,
-                f"HARUKA | {content}\n",
-            )
+        self.logfile.write(f"HARUKA | {content}\n")
 
     async def startup(self) -> None:
         # Get bot owner
@@ -213,22 +205,21 @@ class Haruka(SlashMixin, commands.Bot):
         send_state: bool = True,
         send_log: bool = True,
     ) -> None:
-        await asyncio.sleep(0)
-        async with self._log_lock:
-            await self.owner.send(
-                message,
-                embed=self.display_status if send_state else None,
-                file=discord.File("./log.txt") if send_log else None,
-            )
+        self.logfile.flush()
+        await self.owner.send(
+            message,
+            embed=self.display_status if send_state else None,
+            file=discord.File("./log.txt") if send_log else None,
+        )
 
     @property
     def display_status(self) -> discord.Embed:
-        guilds: Dict[int, discord.Guild] = self._connection._guilds
-        users: Dict[int, discord.User] = self._connection._users
-        emojis: Dict[int, discord.Emoji] = self._connection._emojis
-        stickers: Dict[int, discord.GuildSticker] = self._connection._stickers
-        voice_clients: Dict[int, discord.VoiceProtocol] = self._connection._voice_clients
-        private_channels: OrderedDict[int, discord.PrivateChannel] = self._connection._private_channels
+        guilds: List[discord.Guild] = self.guilds
+        users: List[discord.User] = self.users
+        emojis: List[discord.Emoji] = self.emojis
+        stickers: List[discord.Sticker] = self.stickers
+        voice_clients: List[discord.VoiceProtocol] = self.voice_clients
+        private_channels: List[discord.abc.PrivateChannel] = self.private_channels
         messages: Deque[discord.Message] = self._connection._messages
 
         desc: str = "**Commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._command_count.items())) + "\n**Slash commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._slash_command_count.items()))
