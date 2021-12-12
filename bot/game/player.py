@@ -85,16 +85,16 @@ class BasePlayer(Battleable, Generic[LT, WT]):
                 items = $8, hp = $9
             WHERE id = '{self.id}';
             """,
-                           self.description,
-                           self.world.id,
-                           self.world.locations.index(self.location.__class__),
-                           self.world.ptypes.index(self.__class__),
-                           self.level,
-                           self.xp,
-                           self.money,
-                           [item.id for item in self.items],
-                           self.hp,
-                           )
+            self.description,
+            self.world.id,
+            self.world.locations.index(self.location.__class__),
+            self.world.ptypes.index(self.__class__),
+            self.level,
+            self.xp,
+            self.money,
+            [item.id for item in self.items],
+            self.hp,
+        )
 
     @classmethod
     async def from_user(
