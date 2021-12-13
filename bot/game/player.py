@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 from typing import Any, Generic, List, Optional, Type, TypeVar, Union
 
 import asyncpg
@@ -13,8 +14,10 @@ PT = TypeVar("PT", bound="BasePlayer")
 IT = TypeVar("IT", bound="BaseItem")
 
 
+@dataclasses.dataclass(init=True, repr=True, order=False, frozen=False)
 class BasePlayer(Battleable, Generic[LT, WT]):
     """Base class for players from different worlds"""
+
     __slots__ = (
         "name",
         "id",
@@ -28,32 +31,18 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         "hp",
     )
 
-    def __init__(
-        self,
-        name: str,
-        id: int,
-        description: str,
-        *,
-        world: WT,
-        location: LT,
-        level: int,
-        xp: int,
-        money: int,
-        items: List[IT],
-        hp: int,
-    ) -> None:
-        self.name: str = name
-        self.id: int = id
-        self.description: str = description
-        self.world: WT = world
-        self.location: LT = location
-        self.level: int = level
-        self.xp: int = xp
-        self.money: int = money
-        self.items: List[IT] = items
-        self.hp: int = hp
+    name: str
+    id: int
+    description: str
+    world: Type[WT]
+    location: Type[LT]
+    level: int
+    xp: int
+    money: int
+    items: List[IT]
+    hp: int
 
-    # Possible attributes
+    # Possible attributes, should be determined from level
 
     @property
     def hp_max(self) -> int:
@@ -74,6 +63,13 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     @property
     def magical_res(self) -> int:
         raise NotImplementedError
+
+    # Logical operations
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, self.__class__):
+            return self.id == other.id
+        return NotImplemented
 
     # Save and load operations
 
@@ -106,20 +102,20 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         if not row:
             return
 
-        world: WT = BaseWorld(row["world"])
-        location: LT = world.locations[row["location"]]
+        world: Type[WT] = BaseWorld.from_id(row["world"])
+        location: Type[LT] = world.get_location[row["location"]]
         ptype: Type[PT] = world.ptypes[row["type"]]
 
         return ptype(
-            user.name,
-            user.id,
-            row["description"],
+            name=user.name,
+            id=user.id,
+            description=row["description"],
             world=world,
             location=location,
             level=row["level"],
             xp=row["xp"],
             money=row["money"],
-            items=[BaseItem(item_id) for item_id in row["items"]],
+            items=[BaseItem.from_id(item_id) for item_id in row["items"]],
             hp=row["hp"],
         )
 
