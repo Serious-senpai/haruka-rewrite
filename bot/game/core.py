@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 from collections import namedtuple
 from typing import Generic, List, Optional, Tuple, Type, TypeVar, TYPE_CHECKING
 
@@ -24,6 +25,7 @@ class BaseWorld(Generic[LT]):
     ptypes: List[Type[PT]]
 
     @classmethod
+    @functools.cache
     def from_id(cls: Type[WT], id: int) -> Optional[Type[WT]]:
         for world in cls.__subclasses__:
             if world.id == id:

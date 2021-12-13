@@ -42,28 +42,6 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     items: List[IT]
     hp: int
 
-    # Possible attributes, should be determined from level
-
-    @property
-    def hp_max(self) -> int:
-        raise NotImplementedError
-
-    @property
-    def physical_atk(self) -> int:
-        raise NotImplementedError
-
-    @property
-    def magical_atk(self) -> int:
-        raise NotImplementedError
-
-    @property
-    def physical_res(self) -> int:
-        raise NotImplementedError
-
-    @property
-    def magical_res(self) -> int:
-        raise NotImplementedError
-
     # Logical operations
 
     def __eq__(self, other: Any) -> bool:
@@ -74,13 +52,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     # Save and load operations
 
     async def update(self, conn: Union[asyncpg.Connection, asyncpg.Pool]) -> None:
-        await conn.execute(f"""
-            UPDATE rpg
-            SET description = $1, world = $2, location = $3,
-                type = $4, level = $5, xp = $6, money = $7,
-                items = $8, hp = $9
-            WHERE id = '{self.id}';
-            """,
+        await conn.execute(
+            f"UPDATE rpg\
+            SET description = $1, world = $2, location = $3,\
+                type = $4, level = $5, xp = $6, money = $7,\
+                items = $8, hp = $9\
+            WHERE id = '{self.id}';",
             self.description,
             self.world.id,
             self.world.locations.index(self.location.__class__),
