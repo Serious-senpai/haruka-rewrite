@@ -374,7 +374,7 @@ class ImageClient(Generic[IT]):
             else:
                 self.nsfw[endpoint].append(source)
 
-        self.bot.log(f"Loaded {len(sfw)} SFW endpoints and {len(self.nsfw)} NSFW endpoints from {source.__class__.__name__}")
+        self.bot.log(f"Loaded {len(sfw)} SFW endpoints and {len(nsfw)} NSFW endpoints from {source.__class__.__name__}")
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         """This function is a coroutine
