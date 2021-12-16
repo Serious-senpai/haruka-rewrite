@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import dataclasses
+import datetime
+import math
+import random
+from functools import cached_property
 from typing import Any, Generic, List, Optional, Type, TypeVar, Union
 
 import asyncpg
@@ -10,16 +15,23 @@ from .abc import Battleable
 from .core import LT, WT, BaseWorld
 
 
+__all__ = (
+    "BasePlayer",
+    "BaseItem",
+)
+
+
 PT = TypeVar("PT", bound="BasePlayer")
 IT = TypeVar("IT", bound="BaseItem")
+EXP_SCALE: int = 4
 
 
 @dataclasses.dataclass(init=True, repr=True, order=False, frozen=False)
 class BasePlayer(Battleable, Generic[LT, WT]):
     """Base class for players from different worlds
 
-    Each player is represented with an instance of a subclass of this class, and
-    it is up to the developer to choose whether to cache the player objects or not.
+    Each player is represented with an instance of a subclass of this class and
+    they should be cached efficiently.
 
     Attributes
     -----
@@ -43,20 +55,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         The player's items
     hp: :class:`int`
         The player's current health point
+    display: :class:`str`
+        The emoji to display the player, this does not need
+        to be a Unicode emoji
     """
-
-    __slots__ = (
-        "name",
-        "id",
-        "description",
-        "world",
-        "location",
-        "level",
-        "xp",
-        "money",
-        "items",
-        "hp",
-    )
 
     name: str
     id: int
@@ -68,14 +70,96 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     money: int
     items: List[IT]
     hp: int
-    type_id: int
+    display: str
+
+    @cached_property
+    def type_id(self) -> int:
+        raise NotImplementedError
+
+    @cached_property
+    def travel_lock(self) -> asyncio.Lock:
+        return asyncio.Lock()
+
+    def calc_distance(self, destination: Type[LT]) -> float:
+        """Calculate the moving distance between the player and
+        a location of the same world
+
+        Parameters
+        -----
+        destination: Type[:class:`BaseLocation`]
+            The location to travel to
+
+        Returns
+        -----
+        :class:`float`
+            The distance to travel
+        """
+        _dx: int = self.location.coordination.x - destination.coordination.x
+        _dy: int = self.location.coordination.y - destination.coordination.y
+        distance: float = math.sqrt(_dx ** 2 + _dy ** 2)
+        return distance
+
+    async def travel_to(
+        self,
+        channel: discord.TextChannel,
+        destination: Type[LT],
+    ) -> None:
+        """This function is a coroutine
+
+        Travel to the destination location. There may be
+        certain events happening along the way.
+
+        Parameters
+        -----
+        target: :class:`discord.TextChannel`
+            The target Discord channel to send messages to
+        destination: Type[:class:`BaseLocation`]
+            The location to travel to
+        """
+        async with self.travel_lock:
+            distance: float = self.calc_distance(destination)
+            _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
+
+            for event in self.world.events:
+                if random.random() < event.rate:
+                    await event.run(channel, self)
+
+            await discord.utils.sleep_until(_dest_time)
+
+    def gain_xp(self, exp: int) -> bool:
+        """Increase the player's experience point and handle
+        any calculation logics.
+
+        Parameters
+        -----
+        exp: :class:`int`
+            The amount of experience points to increase
+
+        Returns
+        -----
+        :class:`bool`
+            Returns ``True`` if the player leveled up, ``False``
+            otherwise
+        """
+        self.xp += exp
+        ret: bool = False
+
+        while self.xp >= EXP_SCALE * self.level:
+            self.xp -= EXP_SCALE * self.level
+            self.level += 1
+            ret = True
+
+        return ret
 
     # Logical operations
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, self.__class__):
             return self.id == other.id
-        return NotImplemented
+        return False
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
 
     # Save and load operations
 
@@ -93,7 +177,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             f"UPDATE rpg \
             SET description = $1, world = $2, location = $3, \
                 type = $4, level = $5, xp = $6, money = $7, \
-                items = $8, hp = $9 \
+                items = $8, hp = $9, display = $10 \
             WHERE id = '{self.id}';",
             self.description,
             self.world.id,
@@ -104,6 +188,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             self.money,
             [item.id for item in self.items],
             self.hp,
+            self.display,
         )
 
     @classmethod
@@ -147,7 +232,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             money=row["money"],
             items=[BaseItem.from_id(item_id) for item_id in row["items"]],
             hp=row["hp"],
-            type_id=row["type"],
+            display=row["display"],
         )
 
 
