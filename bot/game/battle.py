@@ -63,3 +63,5 @@ def battle(player: PT, enemy: BaseCreature) -> discord.Embed:
     else:
         embed.color = 0x95a5a6
         embed.set_footer(text="Draw!")
+
+    return embed

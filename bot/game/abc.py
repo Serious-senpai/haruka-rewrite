@@ -74,7 +74,7 @@ class Battleable:
         """Perform a physical attack to another entity.
 
         This method also takes items' effects as well as target's resistance
-        point and returns the damage dealt (minimum 0).
+        point in account and returns the damage dealt (minimum 0).
 
         Parameters
         -----
@@ -96,7 +96,7 @@ class Battleable:
         """Perform a magical attack to another entity.
 
         This method also takes items' effects as well as target's resistance
-        point and returns the damage dealt (minimum 0).
+        point in account and returns the damage dealt (minimum 0).
 
         Parameters
         -----
