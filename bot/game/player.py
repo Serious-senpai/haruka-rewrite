@@ -116,6 +116,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         destination: Type[:class:`BaseLocation`]
             The location to travel to
         """
+        if self.travel_lock.locked():
+            return await channel.send(f"You have already been on a journey, please get to the destination first!")
+
         async with self.travel_lock:
             distance: float = self.calc_distance(destination)
             _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
