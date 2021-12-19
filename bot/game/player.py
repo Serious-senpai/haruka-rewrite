@@ -121,6 +121,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
             await channel.send(f"Travelling to **{destination.name}**. You will arrive after {utils.format(distance)}")
             await discord.utils.sleep_until(_dest_time)
+            self.location = destination
 
     def gain_xp(self, exp: int) -> bool:
         """Increase the player's experience point and handle
