@@ -37,22 +37,30 @@ class _EarthPlayer(BasePlayer):
     pass
 
 
+class _EarthHomeCreature(_EarthCreature):
+    pass
+
+
+class _EarthHighSchoolCreature(_EarthCreature):
+    pass
+
+
 class EarthWorld(BaseWorld):
-    name: str = "Earth"
-    description: str = "The world where we are all living in.\nYour journey starts from here."
-    id: int = 0
-    locations: List[Type[ELT]] = _EarthLocation.__subclasses__()
-    ptypes: List[Type[EPT]] = _EarthPlayer.__subclasses__()
-    events: List[Type[EET]] = _EarthEvent.__subclasses__()
+    name = "Earth"
+    description = "The world where we are all living in.\nYour journey starts from here."
+    id = 0
+    location = _EarthLocation
+    ptype = _EarthPlayer
+    event = _EarthEvent
 
 
 class Home(_EarthLocation):
-    name: str = "Home"
-    description: str = "Your house where you are living alone."
-    id: int = 0
+    name = "Home"
+    description = "Your house where you are living alone."
+    id = 0
     world: Type[EarthWorld] = EarthWorld
     coordination: Coordination = Coordination(x=0, y=0)
-    creatures: List[Type[ECT]] = _EarthCreature.__subclasses__()
+    creature = _EarthHomeCreature
 
 
 class HighSchool(_EarthLocation):
@@ -61,7 +69,7 @@ class HighSchool(_EarthLocation):
     id: int = 1
     world: Type[EarthWorld] = EarthWorld
     coordination: Coordination = Coordination(x=20, y=20)
-    creatures: List[Type[ECT]] = []
+    creature = _EarthHighSchoolCreature
 
 
 class Student(_EarthPlayer):
@@ -99,10 +107,10 @@ class Student(_EarthPlayer):
 
 
 class God(_EarthCreature):
-    name: str = "God"
-    description: str = "An unknown god that appeared out of nowhere and told you to reincarnate into another world"
-    location: Type[ELT] = Home
-    display: str = "😇"
+    name = "God"
+    description = "An unknown god that appeared out of nowhere and told you to reincarnate into another world"
+    display = "😇"
+    rate = 1.0
 
     @property
     def hp_max(self) -> int:
@@ -131,19 +139,3 @@ class God(_EarthCreature):
     @property
     def crit_dmg(self) -> float:
         return 0.0
-
-
-class IsekaiEvent(_EarthEvent):
-    name: str = "The special meeting"
-    description: str = "The beginning of the story"
-    world: Type[EarthWorld] = EarthWorld
-    rate: float = 1.0
-
-    @classmethod
-    async def run(
-        cls: Type[IsekaiEvent],
-        target: discord.TextChannel,
-        player: Student,
-    ) -> None:
-        god: God = God()
-        await target.send(embed=battle(player, god))

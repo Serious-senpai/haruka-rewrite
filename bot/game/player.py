@@ -5,13 +5,13 @@ import dataclasses
 import datetime
 import functools
 import math
-import random
 from functools import cached_property
 from typing import Any, Generic, List, Optional, Type, TypeVar, Union
 
 import asyncpg
 import discord
 
+import utils
 from .abc import Battleable
 from .core import LT, WT, BaseWorld
 
@@ -107,8 +107,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     ) -> None:
         """This function is a coroutine
 
-        Travel to the destination location. There may be
-        certain events happening along the way.
+        Travel to the destination location.
 
         Parameters
         -----
@@ -120,11 +119,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         async with self.travel_lock:
             distance: float = self.calc_distance(destination)
             _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
-
-            for event in self.world.events:
-                if random.random() < event.rate:
-                    await event.run(channel, self)
-
+            await channel.send(f"Travelling to **{destination.name}**. You will arrive after {utils.format(distance)}")
             await discord.utils.sleep_until(_dest_time)
 
     def gain_xp(self, exp: int) -> bool:
@@ -324,7 +319,7 @@ class BaseItem(Generic[PT]):
 
     @classmethod
     @functools.cache
-    def from_id(cls: Type[IT], id: int) -> Optional[Type[IT]]:
+    def from_id(cls: Type[BaseItem], id: int) -> Optional[Type[IT]]:
         """Construct an item from an identification string
 
         Parameters

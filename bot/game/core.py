@@ -58,20 +58,32 @@ class BaseWorld(Generic[LT, PT, ET]):
         The world's description
     id: :class:`int`
         The world's ID
-    locations: List[:class:`BaseLocation`]
-        The locations that this world has
-    ptypes: List[:class:`BasePlayer`]
-        List of occupations that a player can have in this world
-    events: List[:class:`BaseEvent`]
-        List of events that can happened in this world
     """
 
     name: str
     description: str
     id: int
-    locations: List[Type[LT]]
-    ptypes: List[Type[PT]]
-    events: List[Type[ET]]
+    location: Type[LT]
+    ptype: Type[PT]
+    event: Type[ET]
+
+    @classmethod
+    @property
+    def locations(cls: Type[WT]) -> List[Type[LT]]:
+        """List of locations in this world"""
+        return cls.location.__subclasses__()
+
+    @classmethod
+    @property
+    def ptypes(cls: Type[WT]) -> List[Type[PT]]:
+        """List of types that a player can have in this world"""
+        return cls.ptype.__subclasses__()
+
+    @classmethod
+    @property
+    def events(cls: Type[WT]) -> List[Type[ET]]:
+        """List of events that can happened in this world"""
+        return cls.event.__subclasses__()
 
     @classmethod
     @functools.cache
@@ -129,17 +141,20 @@ class BaseLocation(Generic[WT, CT]):
     world: Type[:class:`BaseWorld`]
         The world that this location belongs to
     coordination: :class:`Coordination`
-        The coordination of this location in its world
-    creatures: List[Type[:class:`BaseCreature`]]
-        The list of creatures can found in this location
-    """
+        The coordination of this location in its world    """
 
     name: str
     description: str
     id: int
     world: Type[WT]
     coordination: Coordination
-    creatures: List[Type[CT]]
+    creature: Type[CT]
+
+    @classmethod
+    @property
+    def creatures(cls: Type[LT]) -> List[Type[CT]]:
+        """List of creatures that can be found in this location"""
+        return cls.creature.__subclasses__()
 
     @classmethod
     def from_id(cls: Type[LT], world: Type[WT], id: int) -> Optional[Type[LT]]:
@@ -161,7 +176,7 @@ class BaseLocation(Generic[WT, CT]):
         return world.get_location(id)
 
 
-class BaseEvent(Generic[WT, PT]):
+class BaseEvent(Generic[WT]):
     """Base class for world events
 
     Please note that event objects are represented by the
@@ -212,17 +227,18 @@ class BaseCreature(Battleable, Generic[LT]):
         The creature's name
     description: :class:`str`
         The creature's description
-    location: :class:`BaseLocation`
-        The location where this creature can be found
     display: :class:`str`
         The emoji to display the player, this does not need
         to be a Unicode emoji
+    rate: :class:`float`
+        The rate for a player to encounter this creature
+        (range 0 - 1)
     """
 
     name: str
     description: str
-    location: Type[LT]
     display: str
+    rate: float
 
     def __init__(self) -> None:
         self.hp: int = self.hp_max
