@@ -18,6 +18,9 @@ from core import bot
 async def _myplaylist_cmd(ctx: commands.Context):
     rows: List[asyncpg.Record] = await bot.conn.fetch(f"SELECT * FROM playlist WHERE author_id = '{ctx.author.id}' LIMIT 10;")
     playlists: List[_playlist.Playlist] = [_playlist.Playlist(row, ctx.author) for row in rows]
+    if not playlists:
+        return await ctx.send("You haven't published any playlists!")
+
     length: int = len(playlists)
     embeds: List[discord.Embed] = []
 

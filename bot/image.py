@@ -293,8 +293,6 @@ class ImageClient(Generic[IT]):
     def __init__(self, bot: haruka.Haruka, *sources) -> None:
         self.bot: haruka.Haruka = bot
         self.session: aiohttp.ClientSession = bot.session
-        self.sfw: Dict[str, List[IT]] = {}
-        self.nsfw: Dict[str, List[IT]] = {}
         self.sources: List[Type[IT]] = sources
         asyncio.create_task(self._load())
 
@@ -302,8 +300,14 @@ class ImageClient(Generic[IT]):
         """This function is a coroutine
 
         Register all image categories that this client can listen to.
-        This method is scheduled right then this class is initialized.
+        This method is scheduled right when this class is initialized.
         """
+        self.sfw: Dict[str, List[IT]] = {}
+        self.nsfw: Dict[str, List[IT]] = {}
+        for command in self.bot.walk_commands():
+            if command.name.startswith("*"):
+                bot.remove_command(command.name)
+
         await asyncio.gather(*[self._register(source(self.session, self)) for source in self.sources])
         self.bot.log(f"Loaded {len(self.sources)} ImageSource objects, preparing commands...")
 
@@ -374,7 +378,7 @@ class ImageClient(Generic[IT]):
             else:
                 self.nsfw[endpoint].append(source)
 
-        self.bot.log(f"Loaded {len(sfw)} SFW endpoints and {len(self.nsfw)} NSFW endpoints from {source.__class__.__name__}")
+        self.bot.log(f"Loaded {len(sfw)} SFW endpoints and {len(nsfw)} NSFW endpoints from {source.__class__.__name__}")
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         """This function is a coroutine

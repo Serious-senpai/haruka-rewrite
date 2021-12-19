@@ -155,6 +155,7 @@ class Haruka(SlashMixin, commands.Bot):
 
     async def _ytdl_test(self, url: str) -> None:
         args: List[str] = [
+            "youtube-dl",
             "--get-url",
             "--extract-audio",
             "--audio-format", "opus",
@@ -163,7 +164,6 @@ class Haruka(SlashMixin, commands.Bot):
             url,
         ]
 
-        args.insert(0, "youtube-dl")
         process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
             *args,
             stdout=asyncio.subprocess.PIPE,
@@ -173,7 +173,7 @@ class Haruka(SlashMixin, commands.Bot):
         output, _ = await process.communicate()
 
         content: str = output.decode("utf-8")
-        self.log(f"Finished ytdl test for {url}:\nOutput: {content}")
+        self.log(f"Finished a youtube-dl test:\nArguments: {args}\nOutput: {content}")
 
     def kill(self, *args) -> None:
         print("Received SIGTERM signal. Terminating bot...")

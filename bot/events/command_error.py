@@ -14,9 +14,6 @@ COOLDOWN_NOTIFY: Dict[int, Dict[str, bool]] = {}
 
 @bot.event
 async def on_command_error(ctx: commands.Context, error: Exception):
-    """An event listener for errors regarding
-    commands execution.
-    """
     if isinstance(error, commands.CommandNotFound):
         return
 
@@ -43,7 +40,7 @@ async def on_command_error(ctx: commands.Context, error: Exception):
         COOLDOWN_NOTIFY[ctx.author.id][ctx.command.name] = False
 
     elif isinstance(error, commands.UserInputError):
-        await ctx.send(f"📝 Please check your input again. See `help {ctx.command.name}` for more details.")
+        await ctx.send_help(ctx.command)
 
     # These are the subclasses of commands.CheckFailure
     elif isinstance(error, commands.NotOwner):

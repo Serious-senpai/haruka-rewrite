@@ -35,17 +35,20 @@ async def _nhentai_cmd(ctx: commands.Context, *, query: str):
             return await ctx.send("No matching result was found.")
         rslt = rslt[:6]
 
-        desc: str = "\n".join(f"{CHOICES[index]} **{obj.id}** {obj.title}" for index, obj in enumerate(rslt))
+        desc: str = "\n".join(f"{CHOICES[index]} **{obj.id}** {escape(obj.title)}" for index, obj in enumerate(rslt))
         em: discord.Embed = discord.Embed(
             title=f"Search results for {query}",
-            description=escape(desc),
+            description=desc,
             color=0x2ECC71,
         )
         msg: discord.Message = await ctx.send(embed=em)
         display: emoji_ui.SelectMenu = emoji_ui.SelectMenu(msg, len(rslt))
         choice: Optional[int] = await display.listen(ctx.author.id)
+
         if choice is not None:
             hentai: _nhentai.NHentai = await get_nhentai(rslt[choice].id)
+        else:
+            return
 
     em: discord.Embed = hentai.create_embed()
     em.set_author(
