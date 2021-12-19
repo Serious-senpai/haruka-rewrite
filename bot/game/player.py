@@ -216,7 +216,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             return
 
         world: Type[WT] = BaseWorld.from_id(row["world"])
-        location: Type[LT] = world.get_location[row["location"]]
+        location: Type[LT] = world.get_location(row["location"])
         ptype: Type[PT] = world.ptypes[row["type"]]
 
         return ptype(
