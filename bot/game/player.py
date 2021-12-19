@@ -261,7 +261,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             The player has already existed
         """
         if await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';"):
-            raise ValueError("A player with the same exists")
+            raise ValueError("A player with the same ID exists")
 
         await conn.execute(
             f"INSERT INTO rpg \
