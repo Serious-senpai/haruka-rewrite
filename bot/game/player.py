@@ -337,6 +337,6 @@ class BaseItem(Generic[PT]):
         Optional[Type[:class:`BaseItem`]]
             The item with the given ID, or ``None`` if not found
         """
-        for itype in cls.__subclasses__:
+        for itype in cls.__subclasses__():
             if itype.id == id:
                 return itype

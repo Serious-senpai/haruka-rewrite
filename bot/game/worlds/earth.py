@@ -41,9 +41,9 @@ class EarthWorld(BaseWorld):
     name: str = "Earth"
     description: str = "The world where we are all living in.\nYour journey starts from here."
     id: int = 0
-    locations: List[Type[ELT]] = _EarthLocation.__subclasses__
-    ptypes: List[Type[EPT]] = _EarthPlayer.__subclasses__
-    events: List[Type[EET]] = _EarthEvent.__subclasses__
+    locations: List[Type[ELT]] = _EarthLocation.__subclasses__()
+    ptypes: List[Type[EPT]] = _EarthPlayer.__subclasses__()
+    events: List[Type[EET]] = _EarthEvent.__subclasses__()
 
 
 class Home(_EarthLocation):
@@ -52,7 +52,7 @@ class Home(_EarthLocation):
     id: int = 0
     world: Type[EarthWorld] = EarthWorld
     coordination: Coordination = Coordination(x=0, y=0)
-    creatures: List[Type[ECT]] = _EarthCreature.__subclasses__
+    creatures: List[Type[ECT]] = _EarthCreature.__subclasses__()
 
 
 class HighSchool(_EarthLocation):

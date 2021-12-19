@@ -88,7 +88,7 @@ class BaseWorld(Generic[LT, PT, ET]):
         Optional[Type[:class:`BaseWorld`]]
             The world with the given ID, or ``None`` if not found
         """
-        for world in cls.__subclasses__:
+        for world in cls.__subclasses__():
             if world.id == id:
                 return world
 
