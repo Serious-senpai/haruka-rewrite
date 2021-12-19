@@ -116,7 +116,7 @@ class Battleable:
         :class:`int`
             The damage dealt. This cannot be lower than 0.
         """
-        _dmg: float = self.magical_attack * (1 - target.magical_res)
+        _dmg: float = self.magical_atk * (1 - target.magical_res)
         _dmg = self._criticalize(_dmg)
 
         dmg: int = max(0, int(_dmg))
