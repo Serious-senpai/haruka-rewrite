@@ -37,13 +37,18 @@ ET = TypeVar("ET", bound="BaseEvent")
 CT = TypeVar("CT", bound="BaseCreature")
 
 
+class ClassObject:
+    def __init__(self, *args, **kwargs) -> None:
+        raise TypeError("This object is represented by the class itself")
+
+
 class Coordination(NamedTuple):
     """The coordination of a location"""
     x: int
     y: int
 
 
-class BaseWorld(Generic[LT, PT, ET]):
+class BaseWorld(ClassObject, Generic[LT, PT, ET]):
     """Base class for creating new worlds.
 
     All worlds must inherit from this class. Please note that
@@ -124,7 +129,7 @@ class BaseWorld(Generic[LT, PT, ET]):
             return
 
 
-class BaseLocation(Generic[WT, CT]):
+class BaseLocation(ClassObject, Generic[WT, CT]):
     """Base class for world locations
 
     Please note that location objects are represented by the
@@ -141,7 +146,8 @@ class BaseLocation(Generic[WT, CT]):
     world: Type[:class:`BaseWorld`]
         The world that this location belongs to
     coordination: :class:`Coordination`
-        The coordination of this location in its world    """
+        The coordination of this location in its world
+    """
 
     name: str
     description: str
@@ -176,7 +182,7 @@ class BaseLocation(Generic[WT, CT]):
         return world.get_location(id)
 
 
-class BaseEvent(Generic[WT]):
+class BaseEvent(ClassObject, Generic[WT]):
     """Base class for world events
 
     Please note that event objects are represented by the
@@ -234,7 +240,6 @@ class BaseCreature(Battleable, Generic[LT]):
         The rate for a player to encounter this creature
         (range 0 - 1)
     """
-
     name: str
     description: str
     display: str

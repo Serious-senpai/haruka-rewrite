@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Type, TypeVar
-
-import discord
+from typing import TypeVar
 
 from ..battle import battle
 from ..core import (
@@ -58,17 +56,17 @@ class Home(_EarthLocation):
     name = "Home"
     description = "Your house where you are living alone."
     id = 0
-    world: Type[EarthWorld] = EarthWorld
-    coordination: Coordination = Coordination(x=0, y=0)
+    world = EarthWorld
+    coordination = Coordination(x=0, y=0)
     creature = _EarthHomeCreature
 
 
 class HighSchool(_EarthLocation):
-    name: str = "High School"
-    description: str = "The high school you are going to"
-    id: int = 1
-    world: Type[EarthWorld] = EarthWorld
-    coordination: Coordination = Coordination(x=20, y=20)
+    name = "High School"
+    description = "The high school you are going to"
+    id = 1
+    world = EarthWorld
+    coordination = Coordination(x=20, y=20)
     creature = _EarthHighSchoolCreature
 
 

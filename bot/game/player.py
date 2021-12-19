@@ -13,7 +13,7 @@ import discord
 
 import utils
 from .abc import Battleable
-from .core import LT, WT, BaseWorld
+from .core import LT, WT, ClassObject, BaseWorld
 
 
 __all__ = (
@@ -278,7 +278,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         return cls.from_user(conn, user)
 
 
-class BaseItem(Generic[PT]):
+class BaseItem(ClassObject, Generic[PT]):
     """Base class for player items.
 
     All items must subclass this class. Please note that
