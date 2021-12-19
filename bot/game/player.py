@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import datetime
+import functools
 import math
 import random
 from functools import cached_property
@@ -72,7 +73,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     hp: int
     display: str
 
-    @cached_property
+    @property
     def type_id(self) -> int:
         raise NotImplementedError
 
@@ -235,11 +236,59 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             display=row["display"],
         )
 
+    @classmethod
+    async def make_new(
+        cls: Type[PT],
+        conn: Union[asyncpg.Connection, asyncpg.Pool],
+        user: discord.User,
+    ) -> Optional[PT]:
+        """This function is a coroutine
+
+        Create a new player from a Discord user
+
+        Parameters
+        -----
+        conn: Union[:class:`asyncpg.Connection`, :class:`asyncpg.Pool`]
+            The connection or pool to perform the operation
+        user: :class:`discord.User`
+            The Discord user
+
+        Returns
+        -----
+        :class:`BasePlayer`
+            The newly created player
+
+        Exceptions
+        -----
+        :class:`ValueError`
+            The player has already existed
+        """
+        if await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';"):
+            raise ValueError("A player with the same exists")
+
+        await conn.execute(
+            f"INSERT INTO rpg \
+            VALUES ('{user.id}', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10);",
+            "A new player",  # description
+            0,  # world
+            1,  # location
+            0,  # type
+            1,  # level
+            0,  # exp
+            50,  # money
+            [],  # items
+            100,  # hp
+            "🧍",  # display
+        )
+        return cls.from_user(conn, user)
+
 
 class BaseItem(Generic[PT]):
     """Base class for player items.
 
-    All items must subclass this class.
+    All items must subclass this class. Please note that
+    item objects are represented by the classes themselves,
+    not by their instances.
 
     Attributes
     -----
@@ -259,12 +308,9 @@ class BaseItem(Generic[PT]):
     description: str
     id: int
 
-    def __init__(self, level: int) -> None:
-        self.level: int = level
-
     def effect(self, user: PT, target: Optional[Battleable]) -> Any:
         """Perform calculation for the effect when a user consumes this item.
-\
+
         Subclasses must implement this.
 
         Parameters
@@ -277,21 +323,20 @@ class BaseItem(Generic[PT]):
         raise NotImplementedError
 
     @classmethod
-    def from_id(cls: Type[IT], ident: str) -> Optional[IT]:
+    @functools.cache
+    def from_id(cls: Type[IT], id: int) -> Optional[Type[IT]]:
         """Construct an item from an identification string
 
         Parameters
         -----
-        ident: :class:`str`
-            The identification string
+        id: :class:`int`
+            The item ID
 
         Returns
         -----
-        Optional[:class:`BaseItem`]
-            The constructed item, or ``None`` is the identification string
-            points to an invalid item type ID
+        Optional[Type[:class:`BaseItem`]]
+            The item with the given ID, or ``None`` if not found
         """
-        itype_id, ilevel = [int(s) for s in ident.split(".")]
         for itype in cls.__subclasses__:
-            if itype.id == itype_id:
-                return itype(ilevel)
+            if itype.id == id:
+                return itype

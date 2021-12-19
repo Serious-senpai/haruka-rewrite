@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from typing import List, Type
+from typing import List, Type, TypeVar
 
 import discord
 
-from ..abc import Battleable
 from ..battle import battle
 from ..core import (
-    WT,
-    MISSING,
     BaseWorld,
     BaseLocation,
     BaseEvent,
@@ -16,6 +13,12 @@ from ..core import (
     Coordination,
 )
 from ..player import BasePlayer
+
+
+ELT = TypeVar("ELT", bound="_EarthLocation")
+EET = TypeVar("EET", bound="_EarthEvent")
+ECT = TypeVar("ECT", bound="_EarthCreature")
+EPT = TypeVar("EPT", bound="_EarthPlayer")
 
 
 class _EarthLocation(BaseLocation):
@@ -38,30 +41,34 @@ class EarthWorld(BaseWorld):
     name: str = "Earth"
     description: str = "The world where we are all living in.\nYour journey starts from here."
     id: int = 0
-    locations: List[_EarthLocation] = MISSING
-    ptypes: List[_EarthPlayer] = MISSING
-    events: List[_EarthEvent] = MISSING
+    locations: List[Type[ELT]] = _EarthLocation.__subclasses__
+    ptypes: List[Type[EPT]] = _EarthPlayer.__subclasses__
+    events: List[Type[EET]] = _EarthEvent.__subclasses__
 
 
 class Home(_EarthLocation):
     name: str = "Home"
     description: str = "Your house where you are living alone."
     id: int = 0
-    world: Type[WT] = EarthWorld
+    world: Type[EarthWorld] = EarthWorld
     coordination: Coordination = Coordination(x=0, y=0)
-    creatures: List[Type[_EarthCreature]] = []
+    creatures: List[Type[ECT]] = _EarthCreature.__subclasses__
 
 
 class HighSchool(_EarthLocation):
     name: str = "High School"
     description: str = "The high school you are going to"
     id: int = 1
-    world: Type[WT] = EarthWorld
+    world: Type[EarthWorld] = EarthWorld
     coordination: Coordination = Coordination(x=20, y=20)
-    creatures: List[Type[_EarthCreature]] = MISSING
+    creatures: List[Type[ECT]] = []
 
 
 class Student(_EarthPlayer):
+    @property
+    def type_id(self) -> int:
+        return 0
+
     @property
     def hp_max(self) -> int:
         return 100
@@ -94,7 +101,7 @@ class Student(_EarthPlayer):
 class God(_EarthCreature):
     name: str = "God"
     description: str = "An unknown god that appeared out of nowhere and told you to reincarnate into another world"
-    location: Type[_EarthLocation] = Home
+    location: Type[ELT] = Home
     display: str = "😇"
 
     @property
@@ -129,8 +136,8 @@ class God(_EarthCreature):
 class IsekaiEvent(_EarthEvent):
     name: str = "The special meeting"
     description: str = "The beginning of the story"
-    world: Type[WT] = EarthWorld
-    rate: float = 1
+    world: Type[EarthWorld] = EarthWorld
+    rate: float = 1.0
 
     @classmethod
     async def run(
@@ -140,9 +147,3 @@ class IsekaiEvent(_EarthEvent):
     ) -> None:
         god: God = God()
         await target.send(embed=battle(player, god))
-
-
-EarthWorld.locations = [Home, HighSchool]
-EarthWorld.ptypes = [Student]
-EarthWorld.events = [IsekaiEvent]
-HighSchool.creatures = [God]
