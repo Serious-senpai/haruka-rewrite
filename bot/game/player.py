@@ -277,7 +277,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             100,  # hp
             "🧍",  # display
         )
-        return cls.from_user(conn, user)
+        return await cls.from_user(conn, user)
 
 
 class BaseItem(ClassObject, Generic[PT]):
