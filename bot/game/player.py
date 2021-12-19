@@ -11,6 +11,7 @@ from typing import Any, Generic, List, Optional, Type, TypeVar, Union
 import asyncpg
 import discord
 
+import haruka
 import utils
 from .abc import Battleable, ClassObject
 from .core import LT, WT
@@ -150,6 +151,52 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             ret = True
 
         return ret
+
+    async def create_embed(self, bot: haruka.Haruka) -> discord.Embed:
+        embed: discord.Embed = discord.Embed(
+            description=f"Lv.{self.level} (EXP {self.xp}/{EXP_SCALE * self.level})",
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
+        )
+
+        embed.add_field(
+            name="Class",
+            value=self.__class__.__name__,
+            inline=False,
+        )
+        embed.add_field(
+            name="HP",
+            value=f"{self.hp}/{self.hp_max}",
+        )
+        embed.add_field(
+            name="Physical ATK",
+            value=self.physical_atk,
+        )
+        embed.add_field(
+            name="Magical ATK",
+            value=self.magical_atk,
+        )
+        embed.add_field(
+            name="Physical RES",
+            value="{:.2f}%".format(100 * self.physical_res),
+        )
+        embed.add_field(
+            name="Magical RES",
+            value="{:.2f}%".format(100 * self.magical_res),
+        )
+        embed.add_field(
+            name="CRIT Attack",
+            value="CRIT Rate {:.2f}%".format(100 * self.crit_rate) + "\nCRIT DMG {:.2f}%".format(100 * self.crit_dmg),
+        )
+
+        user: discord.User = await bot.fetch_user(self.id)
+        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+        embed.set_author(
+            name=f"{user} Information",
+            icon_url=bot.user.avatar.url,
+        )
+
+        return embed
 
     # Logical operations
 
