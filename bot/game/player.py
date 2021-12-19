@@ -12,8 +12,8 @@ import asyncpg
 import discord
 
 import utils
-from .abc import Battleable
-from .core import LT, WT, ClassObject, BaseWorld
+from .abc import Battleable, ClassObject
+from .core import LT, WT
 
 
 __all__ = (
@@ -209,6 +209,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         Optional[:class:`BasePlayer`]
             The retrieved player, or ``None`` if not found
         """
+        from .core import BaseWorld
+
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:
             return

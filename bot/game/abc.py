@@ -5,7 +5,16 @@ import random
 
 __all__ = (
     "Battleable",
+    "ClassObject",
 )
+
+
+class ClassObject:
+    """Base class for objects that shouldn't be represented
+    by class instances.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        raise TypeError("This object is represented by the class itself")
 
 
 class Battleable:

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-from collections import namedtuple
 from typing import (
     Any,
     Generic,
@@ -10,15 +9,11 @@ from typing import (
     Optional,
     Type,
     TypeVar,
-    TYPE_CHECKING,
 )
 
 import discord
 
-from .abc import Battleable
-
-if TYPE_CHECKING:
-    from .player import PT
+from .abc import Battleable, ClassObject
 
 
 __all__ = (
@@ -35,11 +30,7 @@ WT = TypeVar("WT", bound="BaseWorld")
 LT = TypeVar("LT", bound="BaseLocation")
 ET = TypeVar("ET", bound="BaseEvent")
 CT = TypeVar("CT", bound="BaseCreature")
-
-
-class ClassObject:
-    def __init__(self, *args, **kwargs) -> None:
-        raise TypeError("This object is represented by the class itself")
+from .player import PT
 
 
 class Coordination(NamedTuple):
