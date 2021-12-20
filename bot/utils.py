@@ -1,7 +1,21 @@
 import contextlib
 import time
 from types import TracebackType
-from typing import List, Optional, Type
+from typing import Callable, List, Optional, Type, TypeVar
+
+from discord.ext import commands
+
+
+T = TypeVar("T")
+
+
+def testing() -> Callable[[T], T]:
+    async def predicate(ctx: commands.Context) -> bool:
+        if ctx.guild and ctx.guild.id == 764494394430193734:
+            return True
+        await ctx.send("This command is under the development phase")
+        return False
+    return commands.check(predicate)
 
 
 def format(time: float) -> str:
