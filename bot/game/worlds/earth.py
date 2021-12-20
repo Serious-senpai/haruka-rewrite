@@ -75,6 +75,7 @@ class HighSchool(_EarthLocation):
 
 
 class Student(_EarthPlayer):
+    @classmethod
     @property
     def type_id(self) -> int:
         return 0

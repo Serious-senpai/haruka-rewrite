@@ -85,6 +85,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     def client_user(self) -> discord.ClientUser:
         return self.user._state.user
 
+    @classmethod
     @property
     def type_id(self) -> int:
         raise NotImplementedError
