@@ -116,7 +116,7 @@ class BaseWorld(ClassObject, Generic[LT, PT, ET]):
             The type with the given ID, or ``None`` if not found
         """
         for player in cls.ptypes:
-            if player.id == id:
+            if player.type_id == id:
                 return player
 
     @classmethod
