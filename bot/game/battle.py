@@ -24,6 +24,7 @@ class BattleStatus(enum.Enum):
 class BattleResult(NamedTuple):
     embed: discord.Embed
     player: PT
+    status: BattleStatus
 
 
 async def battle(player: PT, enemy: BaseCreature) -> BattleResult:
@@ -80,4 +81,4 @@ async def battle(player: PT, enemy: BaseCreature) -> BattleResult:
     else:
         embed._footer["text"] += f" after {turn} turns!"
 
-    return BattleResult(embed, player)
+    return BattleResult(embed, player, status)

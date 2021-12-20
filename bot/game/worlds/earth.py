@@ -5,9 +5,8 @@ from typing import Type, TypeVar
 
 import discord
 
-from ..battle import battle
+from ..battle import battle, BattleStatus
 from ..core import (
-    WT,
     BaseWorld,
     BaseLocation,
     BaseEvent,
@@ -145,9 +144,9 @@ class IsekaiEvent(_EarthEvent):
     ) -> None:
         embed: discord.Embed = cls.create_embed(player)
         message: discord.Message = await target.send(embed=embed)
-        await asyncio.sleep(3.0)
-        embed, player = await battle(player, God())
+        await asyncio.sleep(2.0)
+        embed, player, status = await battle(player, God())
         await message.edit(embed=embed)
 
-        if player.hp == 0:
+        if status == BattleStatus.LOSS:
             await target.send(f"<@!{player.id}> was killed and reincarnated to {player.world.name}")
