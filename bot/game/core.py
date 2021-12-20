@@ -1,5 +1,4 @@
 from __future__ import annotations
-from .player import PT
 
 import functools
 from typing import (
@@ -32,6 +31,7 @@ WT = TypeVar("WT", bound="BaseWorld")
 LT = TypeVar("LT", bound="BaseLocation")
 ET = TypeVar("ET", bound="BaseEvent")
 CT = TypeVar("CT", bound="BaseCreature")
+from .player import PT
 
 
 class Coordination(NamedTuple):
