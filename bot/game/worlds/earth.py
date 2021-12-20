@@ -7,6 +7,7 @@ import discord
 
 from ..battle import battle, BattleStatus
 from ..core import (
+    MISSING,
     BaseWorld,
     BaseLocation,
     BaseEvent,
@@ -146,7 +147,7 @@ class IsekaiEvent(_EarthEvent):
         message: discord.Message = await target.send(embed=embed)
         await asyncio.sleep(2.0)
         embed, player, status = await battle(player, God())
-        await message.edit(embed=embed)
-
-        if status == BattleStatus.LOSS:
-            await target.send(f"<@!{player.id}> was killed and reincarnated to {player.world.name}")
+        await message.edit(
+            content=f"<@!{player.id}> was killed and reincarnated to {player.world.name}" if status.is_dead() else MISSING,
+            embed=embed,
+        )

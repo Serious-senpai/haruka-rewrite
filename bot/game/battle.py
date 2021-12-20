@@ -20,6 +20,11 @@ class BattleStatus(enum.Enum):
     LOSS: int = 1
     DRAW: int = 2
 
+    def is_dead(self) -> bool:
+        if self == self.WIN:
+            return False
+        return True
+
 
 class BattleResult(NamedTuple):
     embed: discord.Embed
@@ -67,14 +72,18 @@ async def battle(player: PT, enemy: BaseCreature) -> BattleResult:
     if status == BattleStatus.WIN:
         embed.color = 0x2ECC71
         embed.set_footer(text=f"{player.name} won")
-        player.gain_xp(enemy.exp)
     elif status == BattleStatus.LOSS:
         embed.color = 0xED4245
         embed.set_footer(text=f"{enemy.name} won")
-        player = await player.isekai()
     else:
         embed.color = 0x95a5a6
         embed.set_footer(text="Draw")
+
+    if status.is_dead():
+        player = await player.isekai()
+    else:
+        player.gain_xp(enemy.exp)
+        await player.update()
 
     if turn == 1:
         embed._footer["text"] += f" after {turn} turn!"

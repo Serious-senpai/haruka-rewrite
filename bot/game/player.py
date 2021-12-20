@@ -208,6 +208,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             inline=False,
         )
         embed.add_field(
+            name="Location",
+            value=f"{self.location.name}, {self.world.name} (World ID {self.world.id})",
+            inline=False,
+        )
+        embed.add_field(
             name="HP",
             value=f"{self.hp}/{self.hp_max}",
         )
