@@ -5,13 +5,14 @@ import dataclasses
 import datetime
 import functools
 import math
+import random
 from functools import cached_property
 from typing import Any, Generic, List, Optional, Type, TypeVar, Union
 
 import asyncpg
 import discord
+from discord.state import ConnectionState
 
-import haruka
 import utils
 from .abc import Battleable, ClassObject
 from .core import LT, WT
@@ -127,6 +128,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             await discord.utils.sleep_until(_dest_time)
             self.location = destination
 
+            for event in self.world.events:
+                if event.location.id == self.location.id:
+                    if random.random() < event.rate:
+                        await event.run(channel, self)
+
     def gain_xp(self, exp: int) -> bool:
         """Increase the player's experience point and handle
         any calculation logics.
@@ -152,7 +158,25 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         return ret
 
-    async def create_embed(self, bot: haruka.Haruka) -> discord.Embed:
+    def isekai(self) -> Type[WT]:
+        """Transfer this player to another world
+
+        Returns
+        -----
+        :class:`BaseWorld`
+            The new world
+        """
+        from .core import BaseWorld
+        from .worlds import EarthWorld
+
+        worlds: List[Type[WT]] = BaseWorld.__subclasses__()
+        worlds.remove(EarthWorld)  # Imagine isekai back to earth
+        world: Type[WT] = random.choice(worlds)
+        self.world = world
+        self.location = world.locations[0]
+        return world
+
+    async def create_embed(self, state: ConnectionState) -> discord.Embed:
         embed: discord.Embed = discord.Embed(
             description=f"Lv.{self.level} (EXP {self.xp}/{EXP_SCALE * self.level})",
             color=0x2ECC71,
@@ -161,7 +185,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         embed.add_field(
             name="Class",
-            value=self.__class__.__name__,
+            value=f"{self.display} {self.__class__.__name__}",
             inline=False,
         )
         embed.add_field(
@@ -189,13 +213,36 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             value="CRIT Rate {:.2f}%".format(100 * self.crit_rate) + "\nCRIT DMG {:.2f}%".format(100 * self.crit_dmg),
         )
 
-        user: discord.User = await bot.fetch_user(self.id)
+        user: discord.User = discord.User(state=state, data=await state.http.get_user(self.id))
         embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
         embed.set_author(
             name=f"{user} Information",
-            icon_url=bot.user.avatar.url,
+            icon_url=state.user.avatar.url,
         )
 
+        return embed
+
+    async def map_world(self, state: ConnectionState) -> discord.Embed:
+        user: discord.User = discord.User(state=state, data=await state.http.get_user(self.id))
+        embed: discord.Embed = discord.Embed(
+            title=self.world.name,
+            description=self.world.description,
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.add_field(
+            name="World ID",
+            value=self.world.id,
+        )
+        embed.add_field(
+            name="Locations",
+            value="\n".join(f"{location.name} ({location.coordination.x}, {location.coordination.y})" for location in self.world.locations),
+        )
+        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+        embed.set_author(
+            name="World Information",
+            icon_url=state.user.avatar.url if user.avatar else discord.Embed.Empty,
+        )
         return embed
 
     # Logical operations
@@ -239,19 +286,13 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         )
 
     @classmethod
-    async def from_user(
-        cls: Type[PT],
-        conn: Union[asyncpg.Connection, asyncpg.Pool],
-        user: discord.User,
-    ) -> Optional[PT]:
+    async def from_user(cls: Type[PT], user: discord.User) -> Optional[PT]:
         """This function is a coroutine
 
         Get a player object from a Discord user
 
         Parameters
         -----
-        conn: Union[:class:`asyncpg.Connection`, :class:`asyncpg.Pool`]
-            The connection or pool to perform the operation
         user: :class:`discord.User`
             The Discord user
 
@@ -262,6 +303,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         """
         from .core import BaseWorld
 
+        conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:
             return
@@ -287,7 +329,6 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     @classmethod
     async def make_new(
         cls: Type[PT],
-        conn: Union[asyncpg.Connection, asyncpg.Pool],
         user: discord.User,
     ) -> Optional[PT]:
         """This function is a coroutine
@@ -296,8 +337,6 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        conn: Union[:class:`asyncpg.Connection`, :class:`asyncpg.Pool`]
-            The connection or pool to perform the operation
         user: :class:`discord.User`
             The Discord user
 
@@ -311,6 +350,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         :class:`ValueError`
             The player has already existed
         """
+        conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         if await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';"):
             raise ValueError("A player with the same ID exists")
 
@@ -328,7 +368,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             100,  # hp
             "🧍",  # display
         )
-        return await cls.from_user(conn, user)
+        return await cls.from_user(user)
 
 
 class BaseItem(ClassObject, Generic[PT]):

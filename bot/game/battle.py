@@ -35,10 +35,14 @@ def battle(player: PT, enemy: BaseCreature) -> discord.Embed:
             if player.hp <= 0 or enemy.hp <= 0:  # The damage may be reflected somehow
                 if player.hp > 0:
                     status = BattleStatus.WIN
+                    enemy.hp = 0
                 elif enemy.hp > 0:
                     status = BattleStatus.LOSS
+                    player.hp = 0
                 else:
                     status = BattleStatus.DRAW
+                    player.hp = 0
+                    enemy.hp = 0
                 break
 
     embed: discord.Embed = discord.Embed()
@@ -56,12 +60,17 @@ def battle(player: PT, enemy: BaseCreature) -> discord.Embed:
 
     if status == BattleStatus.WIN:
         embed.color = 0x2ECC71
-        embed.set_footer(text=f"{player.name} won!")
+        embed.set_footer(text=f"{player.name} won")
     elif status == BattleStatus.LOSS:
         embed.color = 0xED4245
-        embed.set_footer(text=f"{enemy.name} won!")
+        embed.set_footer(text=f"{enemy.name} won")
     else:
         embed.color = 0x95a5a6
-        embed.set_footer(text="Draw!")
+        embed.set_footer(text="Draw")
+
+    if turn == 1:
+        embed._footer["text"] += f" after {turn} turn!"
+    else:
+        embed._footer["text"] += f" after {turn} turns!"
 
     return embed

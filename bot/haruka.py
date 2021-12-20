@@ -56,6 +56,9 @@ class Haruka(SlashMixin, commands.Bot):
         import database
 
         async with database.Database(self, self.DATABASE_URL) as self.conn:
+            # Attach database connection pool to ConnectionState
+            self._connection.conn = self.conn
+
             # Initialize state
             asyncio.current_task().set_name("Haruka main task")
             self.session: aiohttp.ClientSession = aiohttp.ClientSession()

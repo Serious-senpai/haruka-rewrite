@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import TypeVar
+import asyncio
+from typing import Type, TypeVar
+
+import discord
 
 from ..battle import battle
 from ..core import (
@@ -10,7 +13,7 @@ from ..core import (
     BaseCreature,
     Coordination,
 )
-from ..player import BasePlayer
+from ..player import PT, BasePlayer
 
 
 ELT = TypeVar("ELT", bound="_EarthLocation")
@@ -137,3 +140,32 @@ class God(_EarthCreature):
     @property
     def crit_dmg(self) -> float:
         return 0.0
+
+
+class IsekaiEvent(_EarthEvent):
+    name = "Isekai Event"
+    description = "The beginning of the story"
+    location = Home
+    rate = 1.0
+
+    @classmethod
+    async def run(
+        cls: Type[IsekaiEvent],
+        target: discord.TextChannel,
+        player: PT,
+    ) -> None:
+        user: discord.User = discord.User(state=target._state, data=await target._state.http.get_user(player.id))
+        embed: discord.Embed = cls.create_embed(target._state)
+        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+        message: discord.Message = await target.send(embed=embed)
+        await asyncio.sleep(3.0)
+        await message.edit(embed=battle(player, God()))
+
+        if player.hp == 0:
+            player.isekai()
+        else:
+            level_up: bool = player.gain_xp(9999999)
+            if level_up:
+                await target.send(f"<@!{player.id}> leveled up to Lv.{player.level}")
+
+        await player.update(target._state.conn)

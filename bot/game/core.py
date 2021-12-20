@@ -1,4 +1,5 @@
 from __future__ import annotations
+from .player import PT
 
 import functools
 from typing import (
@@ -12,6 +13,7 @@ from typing import (
 )
 
 import discord
+from discord.state import ConnectionState
 
 from .abc import Battleable, ClassObject
 
@@ -30,7 +32,6 @@ WT = TypeVar("WT", bound="BaseWorld")
 LT = TypeVar("LT", bound="BaseLocation")
 ET = TypeVar("ET", bound="BaseEvent")
 CT = TypeVar("CT", bound="BaseCreature")
-from .player import PT
 
 
 class Coordination(NamedTuple):
@@ -185,15 +186,20 @@ class BaseEvent(ClassObject, Generic[WT]):
         The event's name
     description: :class:`str`
         The event's description
-    world: Type[:class:`BaseWorld`]
-        The world that this event belongs to
+    location: Type[:class:`BaseLocation`]
+        The location that this event belongs to
     rate: :class:`float`
         The rate at which this event can happen (range 0 - 1)
     """
     name: str
     description: str
-    world: Type[WT]
+    location: Type[LT]
     rate: float
+
+    @classmethod
+    @property
+    def world(cls: Type[ET]) -> Type[WT]:
+        return cls.location.world
 
     @classmethod
     async def run(
@@ -213,6 +219,20 @@ class BaseEvent(ClassObject, Generic[WT]):
             The player that encounters the event
         """
         raise NotImplementedError
+
+    @classmethod
+    async def create_embed(cls: Type[ET], state: ConnectionState) -> discord.Embed:
+        embed: discord.Embed = discord.Embed(
+            title=cls.name,
+            description=cls.description,
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.set_author(
+            name="An event occured",
+            icon_url=state.user.avatar.url,
+        )
+        return embed
 
 
 class BaseCreature(Battleable, Generic[LT]):
