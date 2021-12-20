@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import enum
-from typing import Tuple, TYPE_CHECKING
+from typing import NamedTuple, Tuple, TYPE_CHECKING
 
 import discord
 
@@ -21,7 +21,12 @@ class BattleStatus(enum.Enum):
     DRAW: int = 2
 
 
-def battle(player: PT, enemy: BaseCreature) -> discord.Embed:
+class BattleResult(NamedTuple):
+    embed: discord.Embed
+    player: PT
+
+
+async def battle(player: PT, enemy: BaseCreature) -> BattleResult:
     turn: int = 0
     status: BattleStatus
     entities: Tuple[PT, BaseCreature] = (player, enemy)
@@ -61,9 +66,11 @@ def battle(player: PT, enemy: BaseCreature) -> discord.Embed:
     if status == BattleStatus.WIN:
         embed.color = 0x2ECC71
         embed.set_footer(text=f"{player.name} won")
+        player.gain_xp(enemy.exp)
     elif status == BattleStatus.LOSS:
         embed.color = 0xED4245
         embed.set_footer(text=f"{enemy.name} won")
+        player = await player.isekai()
     else:
         embed.color = 0x95a5a6
         embed.set_footer(text="Draw")
@@ -73,4 +80,4 @@ def battle(player: PT, enemy: BaseCreature) -> discord.Embed:
     else:
         embed._footer["text"] += f" after {turn} turns!"
 
-    return embed
+    return BattleResult(embed, player)

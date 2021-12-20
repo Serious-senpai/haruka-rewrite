@@ -157,6 +157,9 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
         The world that this location belongs to
     coordination: :class:`Coordination`
         The coordination of this location in its world
+    level_limit: :class:`int`
+        The minimum level for the player to get access to
+        this location, default to ``0`` and can be overriden
     """
 
     name: str
@@ -165,6 +168,7 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
     world: Type[WT]
     coordination: Coordination
     creature: Type[CT]
+    level_limit: int = 0
 
     @classmethod
     @property
@@ -266,14 +270,14 @@ class BaseCreature(Battleable):
     display: :class:`str`
         The emoji to display the player, this does not need
         to be a Unicode emoji
-    rate: :class:`float`
-        The rate for a player to encounter this creature
-        (range 0 - 1)
+    exp: :class:`int`
+        The amount of experience points that the player can
+        gain from defeating this creature
     """
     name: str
     description: str
     display: str
-    rate: float
+    exp: int
 
     def __init__(self) -> None:
         self.hp: int = self.hp_max

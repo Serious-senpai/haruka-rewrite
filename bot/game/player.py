@@ -87,7 +87,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     @classmethod
     @property
-    def type_id(self) -> int:
+    def type_id(cls: Type[PT]) -> int:
         raise NotImplementedError
 
     @cached_property
@@ -129,6 +129,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         destination: Type[:class:`BaseLocation`]
             The location to travel to
         """
+        if self.level < destination.level_limit:
+            return await channel.send(f"You must reach Lv.`{destination.level_limit}` to get access to this location!")
+
         if self.travel_lock.locked():
             return await channel.send(f"You have already been on a journey, please get to the destination first!")
 
@@ -169,23 +172,25 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         return ret
 
-    def isekai(self) -> Type[WT]:
+    async def isekai(self) -> PT:
         """Transfer this player to another world
 
         Returns
         -----
-        :class:`BaseWorld`
-            The new world
+        :class:`BasePlayer`
+            The player with updated attributes
         """
         from .core import BaseWorld
-        from .worlds import EarthWorld
+        from .worlds.earth import EarthWorld
 
         worlds: List[Type[WT]] = BaseWorld.__subclasses__()
         worlds.remove(EarthWorld)  # Imagine isekai back to earth
         world: Type[WT] = random.choice(worlds)
         self.world = world
-        self.location = world.locations[0]
-        return world
+        self.location = world.get_location(0)
+        self.hp = -1  # A workaround way to set hp = hp_max
+        await self.update(isekai=True)
+        return await self.from_user(self.user)
 
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
@@ -272,10 +277,15 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     # Save and load operations
 
-    async def update(self) -> None:
+    async def update(self, *, isekai: bool = False) -> None:
         """This function is a coroutine
 
         Save this player's data to the database.
+
+        Parameters
+        -----
+        isekai: :class:`bool`
+            Whether to set type_id back to ``0``, default to ``False``
         """
         conn: Union[asyncpg.Connection, asyncpg.Pool] = self.user._state.conn
         await conn.execute(
@@ -287,7 +297,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             self.description,
             self.world.id,
             self.location.id,
-            self.type_id,
+            0 if isekai else self.type_id,
             self.level,
             self.xp,
             self.money,
@@ -323,7 +333,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         location: Type[LT] = world.get_location(row["location"])
         ptype: Type[PT] = world.get_player(row["type"])
 
-        return ptype(
+        player: PT = ptype(
             user=user,
             description=row["description"],
             world=world,
@@ -335,6 +345,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             hp=row["hp"],
             display=row["display"],
         )
+        if player.hp == -1:
+            player.hp = player.hp_max
+        return player
 
     @classmethod
     async def make_new(cls: Type[PT], user: discord.User) -> Optional[PT]:
@@ -372,7 +385,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             0,  # exp
             50,  # money
             [],  # items
-            100,  # hp
+            -1,  # hp
             "🧍",  # display
         )
         return await cls.from_user(user)

@@ -23,28 +23,15 @@ ECT = TypeVar("ECT", bound="_EarthCreature")
 EPT = TypeVar("EPT", bound="_EarthPlayer")
 
 
-class _EarthLocation(BaseLocation):
-    pass
+class _EarthLocation(BaseLocation): ...
 
+class _EarthEvent(BaseEvent): ...
 
-class _EarthEvent(BaseEvent):
-    pass
+class _EarthPlayer(BasePlayer): ...
 
-
-class _EarthCreature(BaseCreature):
-    pass
-
-
-class _EarthPlayer(BasePlayer):
-    pass
-
-
-class _EarthHomeCreature(_EarthCreature):
-    pass
-
-
-class _EarthHighSchoolCreature(_EarthCreature):
-    pass
+class _EarthCreature(BaseCreature): ...
+class _EarthHomeCreature(_EarthCreature): ...
+class _EarthHighSchoolCreature(_EarthCreature): ...
 
 
 class EarthWorld(BaseWorld):
@@ -82,7 +69,7 @@ class Student(_EarthPlayer):
 
     @property
     def hp_max(self) -> int:
-        return 100
+        return 100 + self.level
 
     @property
     def physical_atk(self) -> int:
@@ -113,7 +100,7 @@ class God(_EarthCreature):
     name = "God"
     description = "An unknown god that appeared out of nowhere and told you to reincarnate into another world"
     display = "😇"
-    rate = 1.0
+    exp = 9999999
 
     @property
     def hp_max(self) -> int:
@@ -159,14 +146,8 @@ class IsekaiEvent(_EarthEvent):
         embed: discord.Embed = cls.create_embed(player)
         message: discord.Message = await target.send(embed=embed)
         await asyncio.sleep(3.0)
-        await message.edit(embed=battle(player, God()))
+        embed, player = await battle(player, God())
+        await message.edit(embed=embed)
 
         if player.hp == 0:
-            w: Type[WT] = player.isekai()
-            await target.send(f"<@!{player.id}> reincarnated to {w.name}")
-        else:
-            level_up: bool = player.gain_xp(9999999)
-            if level_up:
-                await target.send(f"<@!{player.id}> leveled up to Lv.{player.level}")
-
-        await player.update()
+            await target.send(f"<@!{player.id}> was killed and reincarnated to {player.world.name}")
