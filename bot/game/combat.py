@@ -6,13 +6,8 @@ from typing import NamedTuple, Tuple, TYPE_CHECKING
 import discord
 
 if TYPE_CHECKING:
-    from .core import BaseCreature
+    from .core import CT
     from .player import PT
-
-
-__all__ = (
-    "battle",
-)
 
 
 class BattleStatus(enum.Enum):
@@ -30,12 +25,29 @@ class BattleResult(NamedTuple):
     embed: discord.Embed
     player: PT
     status: BattleStatus
+    leveled_up: bool
 
 
-async def battle(player: PT, enemy: BaseCreature) -> BattleResult:
+async def battle(player: PT, enemy: CT) -> BattleResult:
+    """This function is a coroutine
+
+    Calculate battle results
+
+    Parameters
+    -----
+    player: :class:`BasePlayer`
+        The player engaging the battle
+    enemy: :class:`BaseCreature`
+        The opponent
+
+    Returns
+    -----
+    :class:`BattleResult`
+        The result of the battle
+    """
     turn: int = 0
     status: BattleStatus
-    entities: Tuple[PT, BaseCreature] = (player, enemy)
+    entities: Tuple[PT, CT] = (player, enemy)
 
     while player.hp > 0 and enemy.hp > 0:
         turn += 1
@@ -77,17 +89,36 @@ async def battle(player: PT, enemy: BaseCreature) -> BattleResult:
         embed.set_footer(text=f"{enemy.name} won")
     else:
         embed.color = 0x95a5a6
-        embed.set_footer(text="Draw")
-
-    if status.is_dead():
-        player = await player.isekai()
-    else:
-        player.gain_xp(enemy.exp)
-        await player.update()
+        embed.set_footer(text="Both of you died")
 
     if turn == 1:
         embed._footer["text"] += f" after {turn} turn!"
     else:
         embed._footer["text"] += f" after {turn} turns!"
 
-    return BattleResult(embed, player, status)
+    leveled_up: bool = False
+    if status.is_dead():
+        player = await player.isekai()
+    else:
+        leveled_up = player.gain_xp(enemy.exp)
+        if leveled_up:
+            player.hp = player.hp_max
+        await player.update()
+
+    return BattleResult(embed, player, status, leveled_up)
+
+
+async def handler(target: discord.TextChannel, *, player: PT, enemy: CT) -> None:
+    """This function is a coroutine
+
+    A higher level function than :func:`battle` that handles
+    the battle results.
+    """
+    embed, player, status, leveled_up = await battle(player, enemy)
+
+    if status.is_dead():
+        await player.isekai_notify(target, embed=embed)
+    elif leveled_up:
+        await player.leveled_up_notify(target, embed=embed)
+    else:
+        await target.send(embed=embed)

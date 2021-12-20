@@ -5,9 +5,8 @@ from typing import Type, TypeVar
 
 import discord
 
-from ..battle import battle, BattleStatus
+from ..combat import handler
 from ..core import (
-    MISSING,
     BaseWorld,
     BaseLocation,
     BaseEvent,
@@ -23,15 +22,28 @@ ECT = TypeVar("ECT", bound="_EarthCreature")
 EPT = TypeVar("EPT", bound="_EarthPlayer")
 
 
-class _EarthLocation(BaseLocation): ...
+class _EarthLocation(BaseLocation):
+    ...
 
-class _EarthEvent(BaseEvent): ...
 
-class _EarthPlayer(BasePlayer): ...
+class _EarthEvent(BaseEvent):
+    ...
 
-class _EarthCreature(BaseCreature): ...
-class _EarthHomeCreature(_EarthCreature): ...
-class _EarthHighSchoolCreature(_EarthCreature): ...
+
+class _EarthPlayer(BasePlayer):
+    ...
+
+
+class _EarthCreature(BaseCreature):
+    ...
+
+
+class _EarthHomeCreature(_EarthCreature):
+    ...
+
+
+class _EarthHighSchoolCreature(_EarthCreature):
+    ...
 
 
 class EarthWorld(BaseWorld):
@@ -143,11 +155,10 @@ class IsekaiEvent(_EarthEvent):
         target: discord.TextChannel,
         player: PT,
     ) -> None:
-        embed: discord.Embed = cls.create_embed(player)
-        message: discord.Message = await target.send(embed=embed)
+        await target.send(embed=cls.create_embed(player))
         await asyncio.sleep(2.0)
-        embed, player, status = await battle(player, God())
-        await message.edit(
-            content=f"<@!{player.id}> was killed and reincarnated to {player.world.name}" if status.is_dead() else MISSING,
-            embed=embed,
+        await handler(
+            target,
+            player=player,
+            enemy=God(),
         )

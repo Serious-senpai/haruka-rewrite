@@ -349,3 +349,30 @@ class SelectMenu(EmojiUI):
 
             choice: int = self.allowed_emojis.index(str(payload.emoji))
             return choice
+
+
+class YesNoSelection(EmojiUI):
+    __slots__ = (
+        # Subclass requirements
+        "message",
+        "user_id",
+        "allowed_emojis",
+    )
+
+    def __init__(self, message: discord.Message) -> None:
+        self.message: discord.Message = message
+        self.allowed_emojis: Tuple[str, ...] = CHECKER
+
+    async def listen(self, user_id: Optional[int] = None) -> Optional[bool]:
+        self.user_id = user_id
+        for emoji in self.allowed_emojis:
+            await self.message.add_reaction(emoji)
+
+        try:
+            payload: discord.RawReactionActionEvent = await bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
+        except asyncio.TimeoutError:
+            await self.timeout()
+            return
+        else:
+            choice: int = self.allowed_emojis.index(str(payload.emoji))
+            return choice == 1

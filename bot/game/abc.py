@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import random
 
+import discord
+
 
 __all__ = (
     "Battleable",
@@ -15,11 +17,11 @@ class ClassObject:
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        raise TypeError("This object is represented by the class itself")
+        raise NotImplementedError("This object is represented by the class itself")
 
 
 class Battleable:
-    """An ABC that implement common operations for an entity which can battle."""
+    """An ABC that implements common operations for an entity which can battle."""
 
     @property
     def hp_max(self) -> int:
@@ -123,3 +125,30 @@ class Battleable:
         dmg: int = max(0, int(_dmg))
         target.hp -= dmg
         return dmg
+
+    def append_status(self, embed: discord.Embed) -> discord.Embed:
+        embed.add_field(
+            name="Physical ATK",
+            value=self.physical_atk,
+        )
+        embed.add_field(
+            name="Magical ATK",
+            value=self.magical_atk,
+        )
+        embed.add_field(
+            name="Physical RES",
+            value="{:.2f}%".format(100 * self.physical_res),
+        )
+        embed.add_field(
+            name="Magical RES",
+            value="{:.2f}%".format(100 * self.magical_res),
+        )
+        embed.add_field(
+            name="CRIT Rate",
+            value="{:.2f}%".format(100 * self.crit_rate),
+        )
+        embed.add_field(
+            name="CRIT DMG",
+            value="{:.2f}%".format(100 * self.crit_dmg),
+        )
+        return embed

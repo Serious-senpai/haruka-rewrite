@@ -281,3 +281,24 @@ class BaseCreature(Battleable):
 
     def __init__(self) -> None:
         self.hp: int = self.hp_max
+
+    def create_embed(self) -> discord.Embed:
+        embed: discord.Embed = discord.Embed(
+            title=self.name,
+            description=self.description,
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.add_field(
+            name="HP",
+            value=self.hp_max,
+            inline=False,
+        )
+        embed.add_field(
+            name="EXP per defeat",
+            value=self.exp,
+            inline=False,
+        )
+        embed = super().append_status(embed)
+        embed.set_author(name="Creature Information")
+        return embed

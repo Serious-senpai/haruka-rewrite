@@ -12,9 +12,11 @@ from typing import Any, Generic, List, Optional, Type, TypeVar, Union
 import asyncpg
 import discord
 
+import emoji_ui
 import utils
 from .abc import Battleable, ClassObject
-from .core import LT, WT
+from .combat import handler
+from .core import CT, LT, WT
 
 
 __all__ = (
@@ -138,14 +140,43 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         async with self.travel_lock:
             distance: float = self.calc_distance(destination)
             _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
-            await channel.send(f"Travelling to **{destination.name}**. You will arrive after {utils.format(distance)}")
+            await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
             await discord.utils.sleep_until(_dest_time)
             self.location = destination
+            await self.update()
 
             for event in self.world.events:
                 if event.location.id == self.location.id:
                     if random.random() < event.rate:
                         await event.run(channel, self)
+
+    async def battle(self, channel: discord.TextChannel) -> Any:
+        if not self.location.creatures:
+            return await channel.send("The current location has no enemy to battle")
+
+        enemy_type: Type[CT] = random.choice(self.location.creatures)
+        enemy: CT = enemy_type()
+        message: discord.Message = await channel.send("Do you want to fight this opponent?", embed=enemy.create_embed())
+        display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
+        choice: Optional[bool] = await display.listen(self.id)
+
+        if choice is None:
+            return
+
+        if not choice:
+            return await channel.send("Retreated")
+
+        await handler(
+            channel,
+            player=self,
+            enemy=enemy,
+        )
+
+    async def leveled_up_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
+        return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**. HP was fully recovered.", **kwargs)
+
+    async def isekai_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
+        return await target.send(f"<@!{self.id}> was killed and reincarnated to {self.world.name}", **kwargs)
 
     def gain_xp(self, exp: int) -> bool:
         """Increase the player's experience point and handle
@@ -215,28 +246,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         embed.add_field(
             name="HP",
             value=f"{self.hp}/{self.hp_max}",
+            inline=False,
         )
-        embed.add_field(
-            name="Physical ATK",
-            value=self.physical_atk,
-        )
-        embed.add_field(
-            name="Magical ATK",
-            value=self.magical_atk,
-        )
-        embed.add_field(
-            name="Physical RES",
-            value="{:.2f}%".format(100 * self.physical_res),
-        )
-        embed.add_field(
-            name="Magical RES",
-            value="{:.2f}%".format(100 * self.magical_res),
-        )
-        embed.add_field(
-            name="CRIT Attack",
-            value="CRIT Rate {:.2f}%".format(100 * self.crit_rate) + "\nCRIT DMG {:.2f}%".format(100 * self.crit_dmg),
-        )
-
+        embed = super().append_status(embed)
         embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
         embed.set_author(
             name=f"{self.user} Information",
@@ -310,6 +322,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             self.hp,
             self.display,
         )
+
+    async def delete(self) -> None:
+        conn: Union[asyncpg.Connection, asyncpg.Pool] = self.user._state.conn
+        await conn.execute(f"DELETE FROM rpg WHERE id = '{self.id}';")
 
     @classmethod
     async def from_user(cls: Type[PT], user: discord.User) -> Optional[PT]:
