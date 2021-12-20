@@ -11,7 +11,6 @@ from typing import Any, Generic, List, Optional, Type, TypeVar, Union
 
 import asyncpg
 import discord
-from discord.state import ConnectionState
 
 import utils
 from .abc import Battleable, ClassObject
@@ -63,8 +62,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         to be a Unicode emoji
     """
 
-    name: str
-    id: int
+    user: discord.User
     description: str
     world: Type[WT]
     location: Type[LT]
@@ -74,6 +72,18 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     items: List[IT]
     hp: int
     display: str
+
+    @property
+    def name(self) -> str:
+        return self.user.name
+
+    @property
+    def id(self) -> int:
+        return self.user.id
+
+    @property
+    def client_user(self) -> discord.ClientUser:
+        return self.user._state.user
 
     @property
     def type_id(self) -> int:
@@ -176,7 +186,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         self.location = world.locations[0]
         return world
 
-    async def create_embed(self, state: ConnectionState) -> discord.Embed:
+    def create_embed(self) -> discord.Embed:
+        """Create an embed represents basic information about
+        this player
+        """
         embed: discord.Embed = discord.Embed(
             description=f"Lv.{self.level} (EXP {self.xp}/{EXP_SCALE * self.level})",
             color=0x2ECC71,
@@ -213,17 +226,18 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             value="CRIT Rate {:.2f}%".format(100 * self.crit_rate) + "\nCRIT DMG {:.2f}%".format(100 * self.crit_dmg),
         )
 
-        user: discord.User = discord.User(state=state, data=await state.http.get_user(self.id))
-        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+        embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
         embed.set_author(
-            name=f"{user} Information",
-            icon_url=state.user.avatar.url,
+            name=f"{self.user} Information",
+            icon_url=self.client_user.avatar.url,
         )
 
         return embed
 
-    async def map_world(self, state: ConnectionState) -> discord.Embed:
-        user: discord.User = discord.User(state=state, data=await state.http.get_user(self.id))
+    def map_world(self) -> discord.Embed:
+        """Create an embed represents basic information about
+        the player's world
+        """
         embed: discord.Embed = discord.Embed(
             title=self.world.name,
             description=self.world.description,
@@ -238,10 +252,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             name="Locations",
             value="\n".join(f"{location.name} ({location.coordination.x}, {location.coordination.y})" for location in self.world.locations),
         )
-        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+        embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
         embed.set_author(
             name="World Information",
-            icon_url=state.user.avatar.url if user.avatar else discord.Embed.Empty,
+            icon_url=self.client_user.avatar.url,
         )
         return embed
 
@@ -257,16 +271,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     # Save and load operations
 
-    async def update(self, conn: Union[asyncpg.Connection, asyncpg.Pool]) -> None:
+    async def update(self) -> None:
         """This function is a coroutine
 
         Save this player's data to the database.
-
-        Parameters
-        -----
-        conn: Union[:class:`asyncpg.Connection`, :class:`asyncpg.Pool`]
-            The connection or pool to perform the operation
         """
+        conn: Union[asyncpg.Connection, asyncpg.Pool] = self.user._state.conn
         await conn.execute(
             f"UPDATE rpg \
             SET description = $1, world = $2, location = $3, \
@@ -310,11 +320,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         world: Type[WT] = BaseWorld.from_id(row["world"])
         location: Type[LT] = world.get_location(row["location"])
-        ptype: Type[PT] = world.ptypes[row["type"]]
+        ptype: Type[PT] = world.get_player(row["type"])
 
         return ptype(
-            name=user.name,
-            id=user.id,
+            user=user,
             description=row["description"],
             world=world,
             location=location,
@@ -327,10 +336,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         )
 
     @classmethod
-    async def make_new(
-        cls: Type[PT],
-        user: discord.User,
-    ) -> Optional[PT]:
+    async def make_new(cls: Type[PT], user: discord.User) -> Optional[PT]:
         """This function is a coroutine
 
         Create a new player from a Discord user

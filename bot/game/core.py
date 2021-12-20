@@ -12,7 +12,6 @@ from typing import (
 )
 
 import discord
-from discord.state import ConnectionState
 
 from .abc import Battleable, ClassObject
 
@@ -31,7 +30,7 @@ WT = TypeVar("WT", bound="BaseWorld")
 LT = TypeVar("LT", bound="BaseLocation")
 ET = TypeVar("ET", bound="BaseEvent")
 CT = TypeVar("CT", bound="BaseCreature")
-from .player import PT
+from .player import PT  # noqa
 
 
 class Coordination(NamedTuple):
@@ -102,6 +101,26 @@ class BaseWorld(ClassObject, Generic[LT, PT, ET]):
                 return world
 
     @classmethod
+    @functools.cache
+    def get_player(cls: Type[WT], id: int) -> Optional[Type[PT]]:
+        """Get a player type that belongs to this world from a given ID
+
+        Parameters
+        -----
+        id: :class:`int`
+            The player type ID
+
+        Returns
+        -----
+        Optional[Type[:class:`BaseLocation`]]
+            The type with the given ID, or ``None`` if not found
+        """
+        for player in cls.ptypes:
+            if player.id == id:
+                return player
+
+    @classmethod
+    @functools.cache
     def get_location(cls: Type[WT], id: int) -> Optional[Type[LT]]:
         """Get a location that belongs to this world from a given ID
 
@@ -115,10 +134,9 @@ class BaseWorld(ClassObject, Generic[LT, PT, ET]):
         Optional[Type[:class:`BaseLocation`]]
             The location with the given ID, or ``None`` if not found
         """
-        try:
-            return cls.locations[id]
-        except IndexError:
-            return
+        for location in cls.locations:
+            if location.id == id:
+                return location
 
 
 class BaseLocation(ClassObject, Generic[WT, CT]):
@@ -174,7 +192,7 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
         return world.get_location(id)
 
 
-class BaseEvent(ClassObject, Generic[WT]):
+class BaseEvent(ClassObject, Generic[LT]):
     """Base class for world events
 
     Please note that event objects are represented by the
@@ -221,7 +239,7 @@ class BaseEvent(ClassObject, Generic[WT]):
         raise NotImplementedError
 
     @classmethod
-    async def create_embed(cls: Type[ET], state: ConnectionState) -> discord.Embed:
+    def create_embed(cls: Type[ET], player: PT) -> discord.Embed:
         embed: discord.Embed = discord.Embed(
             title=cls.name,
             description=cls.description,
@@ -230,12 +248,13 @@ class BaseEvent(ClassObject, Generic[WT]):
         )
         embed.set_author(
             name="An event occured",
-            icon_url=state.user.avatar.url,
+            icon_url=player.client_user.avatar.url,
         )
+        embed.set_thumbnail(url=player.user.avatar.url if player.user.avatar else discord.Embed.Empty)
         return embed
 
 
-class BaseCreature(Battleable, Generic[LT]):
+class BaseCreature(Battleable):
     """Base class for creatures appearing in worlds
 
     Attributes

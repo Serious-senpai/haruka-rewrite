@@ -7,6 +7,7 @@ import discord
 
 from ..battle import battle
 from ..core import (
+    WT,
     BaseWorld,
     BaseLocation,
     BaseEvent,
@@ -154,18 +155,17 @@ class IsekaiEvent(_EarthEvent):
         target: discord.TextChannel,
         player: PT,
     ) -> None:
-        user: discord.User = discord.User(state=target._state, data=await target._state.http.get_user(player.id))
-        embed: discord.Embed = cls.create_embed(target._state)
-        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+        embed: discord.Embed = cls.create_embed(player)
         message: discord.Message = await target.send(embed=embed)
         await asyncio.sleep(3.0)
         await message.edit(embed=battle(player, God()))
 
         if player.hp == 0:
-            player.isekai()
+            w: Type[WT] = player.isekai()
+            await target.send(f"<@!{player.id}> reincarnated to {w.name}")
         else:
             level_up: bool = player.gain_xp(9999999)
             if level_up:
                 await target.send(f"<@!{player.id}> leveled up to Lv.{player.level}")
 
-        await player.update(target._state.conn)
+        await player.update()
