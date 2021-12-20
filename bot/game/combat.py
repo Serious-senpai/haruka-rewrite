@@ -108,7 +108,7 @@ async def battle(player: PT, enemy: CT) -> BattleResult:
     return BattleResult(embed, player, status, leveled_up)
 
 
-async def handler(target: discord.TextChannel, *, player: PT, enemy: CT) -> None:
+async def handler(target: discord.TextChannel, *, player: PT, enemy: CT) -> PT:
     """This function is a coroutine
 
     A higher level function than :func:`battle` that handles
@@ -122,3 +122,5 @@ async def handler(target: discord.TextChannel, *, player: PT, enemy: CT) -> None
         await player.leveled_up_notify(target, embed=embed)
     else:
         await target.send(embed=embed)
+
+    return player
