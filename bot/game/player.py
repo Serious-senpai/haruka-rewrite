@@ -141,15 +141,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         sessions.
 
         This lock should be released before sleeping operations
-        and the player should be updated again afterwards.
+        and the player should be updated again afterwards (a bit
+        similar to the GIL)
         """
         locks[self.id] = locks.get(self.id, asyncio.Lock())
         return locks[self.id]
-
-    @classmethod
-    @property
-    def type_id(cls: Type[PT]) -> int:
-        raise NotImplementedError
 
     def release(self) -> None:
         """Release the internal lock"""
@@ -157,6 +153,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             self.lock.release()
         except RuntimeError:
             pass
+
+    @classmethod
+    @property
+    def type_id(cls: Type[PT]) -> int:
+        raise NotImplementedError
 
     def calc_distance(self, destination: Type[LT]) -> float:
         """Calculate the moving distance between the player and
@@ -512,8 +513,14 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         """
         from .core import BaseWorld
 
-        locks[user.id] = locks.get(user.id, asyncio.Lock())
-        await locks[user.id].acquire()
+        lock: asyncio.Lock
+        try:
+            lock = locks[user.id]
+        except KeyError:
+            locks[user.id] = asyncio.Lock()
+            lock = locks[user.id]
+        await lock.acquire()
+
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:

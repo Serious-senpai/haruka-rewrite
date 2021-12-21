@@ -5,7 +5,7 @@ from typing import Type, TypeVar
 
 import discord
 
-from ..combat import handler
+from ..combat import BattleResult, battle
 from ..core import (
     BaseWorld,
     BaseLocation,
@@ -157,8 +157,8 @@ class IsekaiEvent(_EarthEvent):
     ) -> None:
         async with player.prepare_battle():
             await target.send(embed=cls.create_embed(player))
+            result: BattleResult = await battle(player, God())
             async with target.typing():
                 player.release()
                 await asyncio.sleep(2.0)
-                player = await player.from_user(player.user)
-                await handler(target, player=player, enemy=God())
+                await result.send(target)

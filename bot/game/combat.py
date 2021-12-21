@@ -27,6 +27,25 @@ class BattleResult(NamedTuple):
     status: BattleStatus
     leveled_up: bool
 
+    async def send(self, target: discord.TextChannel) -> None:
+        """This function is a coroutine
+        
+        Send the battle result to a :class:`discord.TextChannel`
+
+        Parameters
+        -----
+        target: :class:`discord.TextChannel`
+            The target channel
+        """
+        embed, player, status, leveled_up = self
+
+        if status.is_dead():
+            await player.isekai_notify(target, embed=embed)
+        elif leveled_up:
+            await player.leveled_up_notify(target, embed=embed)
+        else:
+            await target.send(embed=embed)
+
 
 async def battle(player: PT, enemy: CT) -> BattleResult:
     """This function is a coroutine
@@ -111,16 +130,9 @@ async def battle(player: PT, enemy: CT) -> BattleResult:
 async def handler(target: discord.TextChannel, *, player: PT, enemy: CT) -> PT:
     """This function is a coroutine
 
-    A higher level function than :func:`battle` that handles
-    the battle results.
+    A high-level function than handles the battle results
+    for you.
     """
-    embed, player, status, leveled_up = await battle(player, enemy)
-
-    if status.is_dead():
-        await player.isekai_notify(target, embed=embed)
-    elif leveled_up:
-        await player.leveled_up_notify(target, embed=embed)
-    else:
-        await target.send(embed=embed)
-
-    return player
+    result: BattleResult = await battle(player, enemy)
+    await result.send(target)
+    return result.player
