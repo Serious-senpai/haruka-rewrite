@@ -360,13 +360,8 @@ class InvidiousSource(PartialInvidiousSource):
     async def get_source(self) -> Optional[str]:
         """This function is a coroutine
 
-        Get the video/audio URL of the source. This method
-        launches an asynchronous subprocess to ``youtube-dl``.
-
-        Parameters
-        -----
-        format: Literal[``video``, ``audio``]
-            Whether a video or an audio URL should be returned.
+        Get the audio URL of the source. This method launches
+        an asynchronous subprocess to ``youtube-dl``.
 
         Returns
         -----
@@ -807,5 +802,5 @@ class MusicClient(discord.VoiceClient):
     def _set_event(self, exc: Optional[BaseException] = None) -> None:
         self._event.set()
         if exc is not None:
-            bot.log(f"Warning: Voice client in {self.channel}/{self.guild} ({self._player.name}) raised an exception (handled in _set_event method):")
+            bot.log(f"Warning: Voice client in {self.channel}/{self.guild} ({self._player.name}) raised an exception (ignored in _set_event method):")
             bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))
