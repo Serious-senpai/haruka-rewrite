@@ -5,6 +5,7 @@ from typing import Dict, List, Mapping, Optional
 import discord
 from discord.ext import commands
 
+import utils
 import emoji_ui
 from core import bot, prefix
 
@@ -112,8 +113,10 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
 
         cooldown: commands.CooldownMapping = command._buckets
         cooldown_notify: str = "**Cooldown**\nNo cooldown"
+
+        _cd_time: float = cooldown._cooldown.per
         if cooldown._cooldown:
-            cooldown_notify = f"**Cooldown**\n{cooldown._cooldown.per} seconds per {cooldown._type.name}"
+            cooldown_notify = f"**Cooldown**\n{utils.format(_cd_time)} per {cooldown._type.name}"
 
         if command.name == "sfw":
             description += ", ".join(f"`{key}`" for key in self.sfw_keys)

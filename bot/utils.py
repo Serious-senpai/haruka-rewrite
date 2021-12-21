@@ -51,7 +51,8 @@ def format(time: float) -> str:
             ret.append(f"{hours}h")
         if minutes > 0:
             ret.append(f"{minutes}m")
-        ret.append("{:.2f}s".format(time))
+        if time > 0:
+            ret.append("{:.2f}s".format(time))
 
         return " ".join(ret)
 
