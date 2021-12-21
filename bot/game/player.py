@@ -248,7 +248,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
             message: discord.Message = await channel.send("Do you want to fight this opponent?", embed=embed)
             display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
-            await self.release()
+            self.release()
             choice: Optional[bool] = await display.listen(self.id)
             self = await self.from_user(self.user)
 
