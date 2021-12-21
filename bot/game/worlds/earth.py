@@ -155,10 +155,8 @@ class IsekaiEvent(_EarthEvent):
         target: discord.TextChannel,
         player: PT,
     ) -> None:
-        await target.send(embed=cls.create_embed(player))
-        await asyncio.sleep(2.0)
-        await handler(
-            target,
-            player=player,
-            enemy=God(),
-        )
+        async with player.prepare_battle():
+            await target.send(embed=cls.create_embed(player))
+            async with target.typing():
+                await asyncio.sleep(2.0)
+                await handler(target, player=player, enemy=God())
