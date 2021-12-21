@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import asyncio
 import dataclasses
 import datetime
 import functools
+import json
 import math
 import random
-from typing import Any, Callable, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 import asyncpg
 import discord
@@ -61,9 +61,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         The player's items
     hp: :class:`int`
         The player's current health point
-    display: :class:`str`
-        The emoji to display the player, this should be a
-        Unicode emoji
+    state: Dict[:class:`str`, Any]
+        The player status
     """
 
     user: discord.User
@@ -75,7 +74,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     money: int
     items: List[IT]
     hp: int
-    display: str
+    state: Dict[str, Any]
 
     @property
     def name(self) -> str:
@@ -86,6 +85,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         return self.user.id
 
     @property
+    def display(self) -> str:
+        return self.state["display"]
+
+    @property
     def client_user(self) -> discord.ClientUser:
         return self.user._state.user
 
@@ -93,12 +96,6 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     @property
     def type_id(cls: Type[PT]) -> int:
         raise NotImplementedError
-
-    @property
-    def travel_lock(self) -> asyncio.Lock:
-        if not hasattr(self, "__travel_lock"):
-            self.__travel_lock: asyncio.Lock = asyncio.Lock()
-        return self.__travel_lock
 
     def calc_distance(self, destination: Type[LT]) -> float:
         """Calculate the moving distance between the player and
@@ -144,28 +141,34 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         if self.location.id == destination.id:
             return await channel.send(f"You have been in **{destination.name}** already!")
 
-        if self.travel_lock.locked():
+        if self.state.get("travelling", False):
             return await channel.send("You have already been on a journey, please get to the destination first!")
 
-        async with self.travel_lock:
-            distance: float = self.calc_distance(destination)
-            _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
-            notify: discord.Message = await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
-            await discord.utils.sleep_until(_dest_time)
-            self.location = destination
-            await self.update()
+        self.state["travelling"] = True
+        await self.update()
+        distance: float = self.calc_distance(destination)
+        _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
+        notify: discord.Message = await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
+        await discord.utils.sleep_until(_dest_time)
+        self.location = destination
+        await self.update()
 
-            try:
-                await notify.edit(f"<@!{self.id}> arrived at **{destination.name}**")
-            except discord.HTTPException:
-                pass
+        try:
+            await notify.edit(f"<@!{self.id}> arrived at **{destination.name}**")
+        except discord.HTTPException:
+            pass
 
-            for event in self.world.events:
-                if event.location.id == self.location.id:
-                    if random.random() < event.rate:
-                        await event.run(channel, self)
+        self.state["travelling"] = False
+        await self.update()
+        for event in self.world.events:
+            if event.location.id == self.location.id:
+                if random.random() < event.rate:
+                    await event.run(channel, self)
 
     async def battle(self, channel: discord.TextChannel) -> PT:
+        if self.state.get("travelling", False):
+            return await channel.send("You are currently travelling, cannot initiate battle!")
+
         if not self.location.creatures:
             return await channel.send("The current location has no enemy to battle")
 
@@ -327,7 +330,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             f"UPDATE rpg \
             SET description = $1, world = $2, location = $3, \
                 type = $4, level = $5, xp = $6, money = $7, \
-                items = $8, hp = $9, display = $10 \
+                items = $8, hp = $9, state = $10 \
             WHERE id = '{self.id}';",
             self.description,
             self.world.id,
@@ -338,7 +341,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             self.money,
             [item.id for item in self.items],
             self.hp,
-            self.display,
+            json.dumps(self.state),
         )
 
     async def delete(self) -> None:
@@ -382,7 +385,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             money=row["money"],
             items=[BaseItem.from_id(item_id) for item_id in row["items"]],
             hp=row["hp"],
-            display=row["display"],
+            state=json.loads(row["state"]),
         )
         if player.hp == -1:
             player.hp = player.hp_max
@@ -425,7 +428,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             50,  # money
             [],  # items
             -1,  # hp
-            "🧍",  # display
+            json.dumps({"display": "🧍"}),  # state
         )
         return await cls.from_user(user)
 
