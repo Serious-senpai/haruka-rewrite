@@ -7,10 +7,11 @@ import functools
 import math
 import random
 from functools import cached_property
-from typing import Any, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Generic, List, Optional, Type, TypeVar, Union
 
 import asyncpg
 import discord
+from discord.ext import commands
 
 import emoji_ui
 import utils
@@ -20,11 +21,13 @@ from .core import CT, LT, WT
 
 
 __all__ = (
+    "rpg_check",
     "BasePlayer",
     "BaseItem",
 )
 
 
+T = TypeVar("T")
 PT = TypeVar("PT", bound="BasePlayer")
 IT = TypeVar("IT", bound="BaseItem")
 EXP_SCALE: int = 4
@@ -60,8 +63,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     hp: :class:`int`
         The player's current health point
     display: :class:`str`
-        The emoji to display the player, this does not need
-        to be a Unicode emoji
+        The emoji to display the player, this should be a
+        Unicode emoji
     """
 
     user: discord.User
@@ -150,7 +153,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
                     if random.random() < event.rate:
                         await event.run(channel, self)
 
-    async def battle(self, channel: discord.TextChannel) -> Any:
+    async def battle(self, channel: discord.TextChannel) -> PT:
         if not self.location.creatures:
             return await channel.send("The current location has no enemy to battle")
 
@@ -161,12 +164,13 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         choice: Optional[bool] = await display.listen(self.id)
 
         if choice is None:
-            return
+            return self
 
         if not choice:
-            return await channel.send("Retreated")
+            await channel.send("Retreated")
+            return self
 
-        await handler(
+        return await handler(
             channel,
             player=self,
             enemy=enemy,
@@ -236,12 +240,14 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         embed.add_field(
             name="Class",
             value=f"{self.display} {self.__class__.__name__}",
-            inline=False,
+        )
+        embed.add_field(
+            name="Cash",
+            value=f"`💲{self.money}`",
         )
         embed.add_field(
             name="Location",
-            value=f"{self.location.name}, {self.world.name} (World ID {self.world.id})",
-            inline=False,
+            value=f"{self.location.name}, {self.world.name} `ID {self.world.id}`",
         )
         embed.add_field(
             name="HP",
@@ -273,7 +279,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         )
         embed.add_field(
             name="Locations",
-            value="\n".join(f"{location.name} ({location.coordination.x}, {location.coordination.y})" for location in self.world.locations),
+            value="\n".join(f"`ID {location.id}` {location.name}" for location in self.world.locations),
         )
         embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
         embed.set_author(
@@ -469,3 +475,14 @@ class BaseItem(ClassObject, Generic[PT]):
         for itype in cls.__subclasses__():
             if itype.id == id:
                 return itype
+
+
+def rpg_check() -> Callable[[T], T]:
+    async def predicate(ctx: commands.Context) -> bool:
+        player: Optional[PT] = await BasePlayer.from_user(ctx.author)
+        if player:
+            return True
+
+        await ctx.send(f"In order to use RPG commands, you have to invoke `{ctx.prefix}daily` first!")
+        return False
+    return commands.check(predicate)

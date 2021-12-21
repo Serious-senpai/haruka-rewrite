@@ -11,7 +11,7 @@ T = TypeVar("T")
 
 def testing() -> Callable[[T], T]:
     async def predicate(ctx: commands.Context) -> bool:
-        if ctx.guild and ctx.guild.id == 764494394430193734:
+        if ctx.guild and ctx.guild.id in (764494394430193734, 886311355211190372):
             return True
         await ctx.send("This command is under the development phase")
         return False

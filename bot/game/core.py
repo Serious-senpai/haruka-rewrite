@@ -228,7 +228,7 @@ class BaseEvent(ClassObject, Generic[LT]):
         cls: Type[ET],
         target: discord.TextChannel,
         player: PT,
-    ) -> None:
+    ) -> Any:
         """This function is a coroutine
 
         This is called when the event happens to a player
