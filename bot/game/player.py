@@ -224,6 +224,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         for event in self.world.events:
             if event.location.id == self.location.id:
                 if random.random() < event.rate:
+                    self.release()
+                    self = await self.from_user(self.user)
                     await event.run(channel, self)
 
     def prepare_travel(self) -> TravelContext:
@@ -499,7 +501,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     async def from_user(cls: Type[PT], user: discord.User) -> Optional[PT]:
         """This function is a coroutine
 
-        Get a player object from a Discord user
+        Acquire the lock and get a player object from
+        a Discord user.
 
         Parameters
         -----
