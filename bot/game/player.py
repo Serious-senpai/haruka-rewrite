@@ -318,6 +318,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         self.state["battle"] = False
 
         await self.update(isekai=True)
+        self.release()
         return await self.from_user(self.user)
 
     def create_embed(self) -> discord.Embed:
