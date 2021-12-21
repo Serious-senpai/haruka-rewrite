@@ -195,7 +195,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**. HP was fully recovered.", **kwargs)
 
     async def isekai_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
-        return await target.send(f"<@!{self.id}> was killed and reincarnated to {self.world.name}", **kwargs)
+        return await target.send(f"<@!{self.id}> was killed and reincarnated to **{self.world.name}**", **kwargs)
 
     def gain_xp(self, exp: int) -> bool:
         """Increase the player's experience point and handle

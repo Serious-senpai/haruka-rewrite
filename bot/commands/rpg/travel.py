@@ -19,4 +19,7 @@ from game.core import LT, PT
 async def _travel_cmd(ctx: commands.Context, wid: int):
     player: PT = await game.BasePlayer.from_user(ctx.author)
     location: Optional[LT] = player.world.get_location(wid)
+    if not location:
+        return await ctx.send(f"No location with ID `{wid}`!")
+
     await player.travel_to(ctx.channel, location)
