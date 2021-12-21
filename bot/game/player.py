@@ -135,10 +135,13 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             The location to travel to
         """
         if self.level < destination.level_limit:
-            return await channel.send(f"You must reach Lv.`{destination.level_limit}` to get access to this location!")
+            return await channel.send(f"You must reach `Lv.{destination.level_limit}` to get access to this location!")
+
+        if self.location.id == destination.id:
+            return await channel.send(f"You have been in **{destination.name}** already!")
 
         if self.travel_lock.locked():
-            return await channel.send(f"You have already been on a journey, please get to the destination first!")
+            return await channel.send("You have already been on a journey, please get to the destination first!")
 
         async with self.travel_lock:
             distance: float = self.calc_distance(destination)
