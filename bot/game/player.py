@@ -417,6 +417,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         if isekai:
             updates.append("type = 0")
+            kwargs.pop("type", None)
         elif kwargs.pop("type", None):
             counter += 1
             updates.append(f"type = ${counter}")
