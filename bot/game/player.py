@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 import datetime
 import functools
@@ -32,6 +33,7 @@ T = TypeVar("T")
 PT = TypeVar("PT", bound="BasePlayer")
 IT = TypeVar("IT", bound="BaseItem")
 EXP_SCALE: int = 4
+locks: Dict[int, asyncio.Lock] = {}
 
 
 class BattleContext(AbstractAsyncContextManager):
@@ -128,12 +130,33 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     @property
     def client_user(self) -> discord.ClientUser:
+        """The bot user, acquired from the interal
+        :class:`discord.state.ConnectionState`
+        """
         return self.user._state.user
+
+    @property
+    def lock(self) -> asyncio.Lock:
+        """A lock to avoid race conditions among different game
+        sessions.
+
+        This lock should be released before sleeping operations
+        and the player should be updated again afterwards.
+        """
+        locks[self.id] = locks.get(self.id, asyncio.Lock())
+        return locks[self.id]
 
     @classmethod
     @property
     def type_id(cls: Type[PT]) -> int:
         raise NotImplementedError
+
+    def release(self) -> None:
+        """Release the internal lock"""
+        try:
+            self.lock.release()
+        except RuntimeError:
+            pass
 
     def calc_distance(self, destination: Type[LT]) -> float:
         """Calculate the moving distance between the player and
@@ -186,9 +209,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             distance: float = self.calc_distance(destination)
             _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
             notify: discord.Message = await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
+            self.release()
             await discord.utils.sleep_until(_dest_time)
+            self = await self.from_user(self.user)
             self.location = destination
-            await self.update()
+            await self.save(location=True)
 
             try:
                 await notify.edit(f"<@!{self.id}> arrived at **{destination.name}**")
@@ -363,6 +388,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     # Save and load operations
 
+    def __del__(self) -> None:
+        self.release()
+
     async def update(self, *, isekai: bool = False) -> None:
         await self.save(
             isekai=isekai,
@@ -432,7 +460,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             counter += 1
             updates.append(f"xp = ${counter}")
             args.append(self.xp)
-    
+
         if kwargs.pop("money", None):
             counter += 1
             updates.append(f"money = ${counter}")
@@ -482,6 +510,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         """
         from .core import BaseWorld
 
+        locks[user.id] = locks.get(user.id, asyncio.Lock())
+        await locks[user.id].acquire()
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:

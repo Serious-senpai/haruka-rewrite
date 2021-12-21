@@ -158,5 +158,7 @@ class IsekaiEvent(_EarthEvent):
         async with player.prepare_battle():
             await target.send(embed=cls.create_embed(player))
             async with target.typing():
+                player.release()
                 await asyncio.sleep(2.0)
+                player = await player.from_user(player.user)
                 await handler(target, player=player, enemy=God())
