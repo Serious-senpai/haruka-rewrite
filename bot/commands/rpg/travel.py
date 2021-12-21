@@ -10,7 +10,7 @@ from game.core import LT, PT
 
 @bot.command(
     name="travel",
-    description="Travel to a location of the same world. You can get a list of location IDs from `world`",
+    description="Travel to a location of the same world.\nYou can get a list of location IDs with `{0}world`",
     usage="travel <location ID>",
 )
 @utils.testing()

@@ -263,8 +263,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             value=f"`💲{self.money}`",
         )
         embed.add_field(
-            name="Location",
-            value=f"{self.location.name}, {self.world.name} `ID {self.world.id}`",
+            name="Current location",
+            value=f"{self.location.name}, {self.world.name}",
         )
         embed.add_field(
             name="HP",
@@ -292,7 +292,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         )
         embed.add_field(
             name="World ID",
-            value=self.world.id,
+            value=f"`ID {self.world.id}`",
         )
         embed.add_field(
             name="Locations",

@@ -109,7 +109,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         command.usage = command.usage if command.usage else command.qualified_name
         usage: str = command.usage.replace("\n", f"\n{pref}")
 
-        description: str = command.description
+        description: str = command.description.format(pref)
 
         cooldown: commands.CooldownMapping = command._buckets
         cooldown_notify: str = "**Cooldown**\nNo cooldown"

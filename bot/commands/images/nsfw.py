@@ -9,7 +9,7 @@ from core import bot
 
 @bot.command(
     name="nsfw",
-    description="Send a NSFW image.\nImages from this command may not have the highest quality, use `sauce` to grab their original sources.\nPossible values for `category` are: ",  # Will be filled from help
+    description="Send a NSFW image.\nImages from this command may not have the highest quality, use `{0}sauce` to grab their original sources.\nPossible values for `category` are: ",  # Will be filled from help
     usage="nsfw <category>",
 )
 @commands.is_nsfw()
