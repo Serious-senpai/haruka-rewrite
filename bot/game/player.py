@@ -174,7 +174,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         enemy_type: Type[CT] = random.choice(self.location.creatures)
         enemy: CT = enemy_type()
-        message: discord.Message = await channel.send("Do you want to fight this opponent?", embed=enemy.create_embed())
+        embed: discord.Embed = enemy.create_embed()
+        embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
+        message: discord.Message = await channel.send("Do you want to fight this opponent?", embed=embed)
         display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
         choice: Optional[bool] = await display.listen(self.id)
 
