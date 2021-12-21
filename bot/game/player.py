@@ -134,6 +134,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         destination: Type[:class:`BaseLocation`]
             The location to travel to
         """
+        if not self.world.id == destination.world.id:
+            raise ValueError("Destination is in another world")
+
         if self.level < destination.level_limit:
             return await channel.send(f"You must reach `Lv.{destination.level_limit}` to get access to this location!")
 
@@ -146,10 +149,15 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         async with self.travel_lock:
             distance: float = self.calc_distance(destination)
             _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
-            await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
+            notify: discord.Message = await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
             await discord.utils.sleep_until(_dest_time)
             self.location = destination
             await self.update()
+
+            try:
+                await notify.edit(f"<@!{self.id}> arrived at **{destination.name}**")
+            except discord.HTTPException:
+                pass
 
             for event in self.world.events:
                 if event.location.id == self.location.id:
