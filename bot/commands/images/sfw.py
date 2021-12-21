@@ -10,7 +10,7 @@ from core import bot
 @bot.command(
     name="sfw",
     aliases=["image"],
-    description="Send a SFW image.\nImages from this command may not have the highest quality, use `sauce` to grab their original sources.\nPossible values for `category` are: ",  # Will be filled from help
+    description="Send a SFW image.\nImages from this command may not have the highest quality, use `{0}sauce` to grab their original sources.\nPossible values for `category` are: ",  # Will be filled from help
     usage="sfw <category>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)

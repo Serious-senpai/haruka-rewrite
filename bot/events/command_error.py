@@ -5,6 +5,7 @@ from typing import Dict
 import discord
 from discord.ext import commands
 
+import utils
 from core import bot
 
 
@@ -30,31 +31,8 @@ async def on_command_error(ctx: commands.Context, error: Exception):
             else:
                 return
 
-        time: str = ""
-        seconds: float = error.retry_after
-
-        days: int = int(seconds / 86400)
-        seconds -= days * 86400
-
-        hours: int = int(seconds / 3600)
-        seconds -= hours * 3600
-
-        minutes: int = int(seconds / 60)
-        seconds -= minutes * 60
-
-        if days > 0:
-            time += f" {days}d"
-        if hours > 0:
-            time += f" {hours}h"
-        if minutes > 0:
-            time += f" {minutes}m"
-        if seconds > 0:
-            time += " {:.2f}s".format(seconds)
-
-        time: str = time.strip()
-
         await ctx.send(
-            f"⏱️ <@!{ctx.author.id}> This command is on cooldown!\nYou can use it after **{time}**!",
+            f"⏱️ <@!{ctx.author.id}> This command is on cooldown!\nYou can use it after **{utils.format(error.retry_after)}**!",
             delete_after=max(1.0, error.retry_after) if error.retry_after < 600 else None,
         )
 

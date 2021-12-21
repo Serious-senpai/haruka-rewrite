@@ -7,7 +7,7 @@ from core import bot
 
 @bot.command(
     name="miku",
-    description="HATSUNE MIKU NUMBER ONE!\nImages from this command may not have the highest quality, use `sauce` to grab their original sources.",
+    description="HATSUNE MIKU NUMBER ONE!\nImages from this command may not have the highest quality, use `{0}sauce` to grab their original sources.",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _miku_cmd(ctx: commands.Context):

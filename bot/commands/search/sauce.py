@@ -18,8 +18,8 @@ async def _sauce_cmd(ctx: commands.Context, src: Optional[str] = None):
     if src is None:
         try:
             src = ctx.message.attachments[0].url
-        except BaseException:
-            return await ctx.send("Please attach or provide a URL to the image.")
+        except IndexError:
+            raise commands.UserInputError
 
     results: List[discord.Embed] = await get_sauce(src)
 
