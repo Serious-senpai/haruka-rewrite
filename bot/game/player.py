@@ -524,6 +524,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:
+            lock.release()
             return
 
         world: Type[WT] = BaseWorld.from_id(row["world"])
