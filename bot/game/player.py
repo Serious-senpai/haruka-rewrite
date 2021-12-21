@@ -6,7 +6,6 @@ import datetime
 import functools
 import math
 import random
-from functools import cached_property
 from typing import Any, Callable, Generic, List, Optional, Type, TypeVar, Union
 
 import asyncpg
@@ -95,9 +94,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     def type_id(cls: Type[PT]) -> int:
         raise NotImplementedError
 
-    @cached_property
+    @property
     def travel_lock(self) -> asyncio.Lock:
-        return asyncio.Lock()
+        if not hasattr(self, "__travel_lock"):
+            self.__travel_lock: asyncio.Lock = asyncio.Lock()
+        return self.__travel_lock
 
     def calc_distance(self, destination: Type[LT]) -> float:
         """Calculate the moving distance between the player and
