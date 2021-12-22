@@ -417,7 +417,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             updates.append(f"description = ${counter}")
             args.append(description)
 
-        world: Optional[Type[WT]] = kwargs.pop("world")
+        world: Optional[Type[WT]] = kwargs.pop("world", None)
         if world is not None:
             counter += 1
             updates.append(f"world = ${counter}")
