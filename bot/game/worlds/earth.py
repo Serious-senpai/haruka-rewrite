@@ -160,8 +160,7 @@ class IsekaiEvent(_EarthEvent):
             result: BattleResult = await battle(player, God())
 
             async with target.typing():
-                player.release()
                 await asyncio.sleep(2.0)
                 await result.send(target)
 
-            return await player.from_user(player.user, bypass=True)
+            return await player.from_user(player.user)

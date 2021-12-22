@@ -33,7 +33,6 @@ T = TypeVar("T")
 PT = TypeVar("PT", bound="BasePlayer")
 IT = TypeVar("IT", bound="BaseItem")
 EXP_SCALE: int = 4
-locks: Dict[int, asyncio.Lock] = {}
 
 
 class BattleContext(AbstractAsyncContextManager):
@@ -47,11 +46,11 @@ class BattleContext(AbstractAsyncContextManager):
 
     async def __aenter__(self) -> None:
         self.player.state["battle"] = True
-        await self.player.save(state=True)
+        await self.player.save(state=self.player.state)
 
     async def __aexit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
         self.player.state["battle"] = False
-        await self.player.save(state=True)
+        await self.player.save(state=self.player.state)
 
 
 class TravelContext(AbstractAsyncContextManager):
@@ -65,11 +64,11 @@ class TravelContext(AbstractAsyncContextManager):
 
     async def __aenter__(self) -> None:
         self.player.state["travel"] = True
-        await self.player.save(state=True)
+        await self.player.save(state=self.player.state)
 
     async def __aexit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
         self.player.state["travel"] = False
-        await self.player.save(state=True)
+        await self.player.save(state=self.player.state)
 
 
 @dataclasses.dataclass(init=True, repr=True, order=False, frozen=False)
@@ -135,29 +134,18 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         """
         return self.user._state.user
 
-    @property
-    def lock(self) -> asyncio.Lock:
-        """A lock to avoid race conditions among different game
-        sessions.
-
-        This lock should be released before sleeping operations
-        and the player should be updated again afterwards (a bit
-        similar to the GIL)
-        """
-        locks[self.id] = locks.get(self.id, asyncio.Lock())
-        return locks[self.id]
-
-    def release(self) -> None:
-        """Release the internal lock"""
-        try:
-            self.lock.release()
-        except RuntimeError:
-            pass
-
     @classmethod
     @property
     def type_id(cls: Type[PT]) -> int:
         raise NotImplementedError
+
+    def traveling(self) -> bool:
+        """Whether the player is traveling"""
+        return self.state.get("travel", False)
+
+    def battling(self) -> bool:
+        """Whether the player is battling"""
+        return self.state.get("battle", False)
 
     def calc_distance(self, destination: Type[LT]) -> float:
         """Calculate the moving distance between the player and
@@ -203,28 +191,29 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         if self.location.id == destination.id:
             return await channel.send(f"You have been in **{destination.name}** already!")
 
-        if self.state.get("travel", False):
+        if self.battling():
+            return await channel.send("Please complete your ongoing battle first!")
+
+        if self.traveling():
             return await channel.send("You have already been on a journey, please get to the destination first!")
 
         async with self.prepare_travel():
             distance: float = self.calc_distance(destination)
             _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
             notify: discord.Message = await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
-            self.release()
             await discord.utils.sleep_until(_dest_time)
-            self = await self.from_user(self.user)
-            self.location = destination
-            await self.save(location=True)
+            await self.save(location=destination)
 
             try:
                 await notify.edit(f"<@!{self.id}> arrived at **{destination.name}**")
             except discord.HTTPException:
                 pass
 
-        for event in self.world.events:
-            if event.location.id == self.location.id:
+        _self = await self.from_user(self.user)
+        for event in _self.world.events:
+            if event.location.id == _self.location.id:
                 if random.random() < event.rate:
-                    self = await event.run(channel, self)
+                    _self = await event.run(channel, _self)
 
     def prepare_travel(self) -> TravelContext:
         return TravelContext(self)
@@ -233,11 +222,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         return BattleContext(self)
 
     async def battle(self, channel: discord.TextChannel) -> PT:
-        if self.state.get("travel", False):
-            return await channel.send("You are currently travelling, cannot initiate battle!")
-
-        if self.state.get("battle", False):
+        if self.battling():
             return await channel.send("Please complete your ongoing battle first!")
+
+        if self.traveling():
+            return await channel.send("You are currently travelling, cannot initiate battle!")
 
         if not self.location.creatures:
             return await channel.send("The current location has no enemy to battle")
@@ -249,7 +238,6 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
             message: discord.Message = await channel.send("Do you want to fight this opponent?", embed=embed)
 
-            self.release()
             display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
             choice: Optional[bool] = await display.listen(self.id)
             self = await self.from_user(self.user)
@@ -308,16 +296,15 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         worlds: List[Type[WT]] = BaseWorld.__subclasses__()
         worlds.remove(EarthWorld)  # Imagine isekai back to earth
         world: Type[WT] = random.choice(worlds)
+        location: Type[LT] = world.get_location(0)
+        hp: int = -1  # A workaround way to set hp = hp_max
+        state: Dict[str, Any] = {
+            "travel": False,
+            "battle": False,
+        }
 
-        self.world = world
-        self.location = world.get_location(0)
-        self.hp = -1  # A workaround way to set hp = hp_max
-
-        self.state["travel"] = False
-        self.state["battle"] = False
-
-        await self.update(isekai=True)
-        return await self.from_user(self.user, bypass=True)
+        await self.save(world=world, location=location, hp=hp, state=state)
+        return await self.from_user(self.user)
 
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
@@ -392,38 +379,27 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     # Save and load operations
 
-    def __del__(self) -> None:
-        self.release()
-
-    async def update(self, *, isekai: bool = False) -> None:
+    async def update(self) -> None:
         await self.save(
-            isekai=isekai,
-            description=True,
-            world=True,
-            location=True,
-            type=True,
-            level=True,
-            xp=True,
-            money=True,
-            items=True,
-            hp=True,
-            state=True,
+            description=self.description,
+            world=self.world,
+            location=self.location,
+            type=self.type_id,
+            level=self.level,
+            xp=self.xp,
+            money=self.money,
+            items=self.items,
+            hp=self.hp,
+            state=self.state,
         )
 
-    async def save(
-        self,
-        *,
-        isekai: bool = False,
-        **kwargs,
-    ) -> None:
+    async def save(self, **kwargs) -> None:
         """This function is a coroutine
 
         Save this player's data to the database.
 
         Parameters
         -----
-        isekai: :class:`bool`
-            Whether to set type_id back to ``0``, default to ``False``
         **kwargs:
             The attributes to save
         """
@@ -432,58 +408,55 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         args: List[Any] = []
         conn: Union[asyncpg.Connection, asyncpg.Pool] = self.user._state.conn
 
-        if kwargs.pop("description", None):
+        if description := kwargs.pop("description", None) is not None:
             counter += 1
             updates.append(f"description = ${counter}")
-            args.append(self.description)
+            args.append(description)
 
-        if kwargs.pop("world", None):
+        if world := kwargs.pop("world", None) is not None:
             counter += 1
             updates.append(f"world = ${counter}")
-            args.append(self.world.id)
+            args.append(world.id)
 
-        if kwargs.pop("location", None):
+        if location := kwargs.pop("location", None) is not None:
             counter += 1
             updates.append(f"location = ${counter}")
-            args.append(self.location.id)
+            args.append(location.id)
 
-        if isekai:
-            updates.append("type = 0")
-            kwargs.pop("type", None)
-        elif kwargs.pop("type", None):
+        if type_id := kwargs.pop("type", None) is not None:
             counter += 1
             updates.append(f"type = ${counter}")
-            args.append(self.type_id)
+            args.append(type_id)
 
-        if kwargs.pop("level", None):
+        if level := kwargs.pop("level", None) is not None:
             counter += 1
             updates.append(f"level = ${counter}")
-            args.append(self.level)
+            args.append(level)
 
-        if kwargs.pop("xp", None):
+        if xp := kwargs.pop("xp", None) is not None:
             counter += 1
             updates.append(f"xp = ${counter}")
-            args.append(self.xp)
+            args.append(xp)
 
-        if kwargs.pop("money", None):
+        if money := kwargs.pop("money", None) is not None:
             counter += 1
             updates.append(f"money = ${counter}")
-            args.append(self.money)
+            args.append(money)
 
-        if kwargs.pop("items", None):
+        if items := kwargs.pop("items", None) is not None:
             counter += 1
             updates.append(f"items = ${counter}")
-            args.append([item.id for item in self.items])
+            args.append([item.id for item in items])
 
-        if kwargs.pop("hp", None):
+        if hp := kwargs.pop("hp", None) is not None:
             counter += 1
             updates.append(f"hp = ${counter}")
-            args.append(self.hp)
+            args.append(hp)
 
-        if kwargs.pop("state", None):
+        if state := kwargs.pop("state", None) is not None:
             counter += 1
             updates.append(f"state = ${counter}")
-            args.append(json.dumps(self.state))
+            args.append(json.dumps(state))
 
         if kwargs:
             raise ValueError("Unrecognized attributes: " + ", ".join(kwargs.keys()))
@@ -497,19 +470,15 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         await conn.execute(f"DELETE FROM rpg WHERE id = '{self.id}';")
 
     @classmethod
-    async def from_user(cls: Type[PT], user: discord.User, *, bypass: bool = False) -> Optional[PT]:
+    async def from_user(cls: Type[PT], user: discord.User) -> Optional[PT]:
         """This function is a coroutine
 
-        Acquire the lock and get a player object from
-        a Discord user.
+        Get a player object from a Discord user.
 
         Parameters
         -----
         user: :class:`discord.User`
             The Discord user
-        bypass: :class:`bool`
-            Whether to bypass the lock. Default to
-            ``False``
 
         Returns
         -----
@@ -518,20 +487,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         """
         from .core import BaseWorld
 
-        if not bypass:
-            lock: asyncio.Lock
-            try:
-                lock = locks[user.id]
-            except KeyError:
-                locks[user.id] = asyncio.Lock()
-                lock = locks[user.id]
-            await lock.acquire()
-
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:
-            if not bypass:
-                lock.release()
             return
 
         world: Type[WT] = BaseWorld.from_id(row["world"])
@@ -657,7 +615,7 @@ class BaseItem(ClassObject, Generic[PT]):
 
 def rpg_check() -> Callable[[T], T]:
     async def predicate(ctx: commands.Context) -> bool:
-        player: Optional[PT] = await BasePlayer.from_user(ctx.author, bypass=True)
+        player: Optional[PT] = await BasePlayer.from_user(ctx.author)
         if player:
             return True
 
