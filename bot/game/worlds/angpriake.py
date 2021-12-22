@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import datetime
-from typing import Optional, Type, TypeVar
+import asyncio
+from typing import Dict, Type, TypeVar
 
+import asyncpg
 import discord
 
 from ..abc import Battleable
@@ -71,24 +72,21 @@ class Village(_AngpriakeLocation):
     coordination = Coordination(x=0, y=0)
     creature = _AngpriakeVillageCreature
 
-    _time_key: str = "Angpriake_VillageSince"
+    tasks: Dict[int, asyncio.Task] = {}
+
+    @classmethod
+    async def _stonks(cls: Type[Village], conn: asyncpg.Pool, id: int) -> None:
+        while await asyncio.sleep(3600, True):
+            await conn.execute(f"UPDATE rpg SET money = money + 10 WHERE id = '{id}';")
 
     @classmethod
     async def on_leaving(cls: Type[Village], player: PT) -> PT:
-        since_: Optional[str] = player.state.get(cls._time_key)
-        if not since_:
-            return player
-
-        since: datetime.datetime = datetime.datetime.fromisoformat(since_)
-        stayed: datetime.timedelta = discord.utils.utcnow() - since
-        player.money += 10 * int(stayed.total_seconds() / 3600)
-        await player.save(money=player.money)
+        cls.tasks[player.id].cancel()
         return player
 
     @classmethod
     async def on_arrival(cls: Type[Village], player: PT) -> PT:
-        player.state[cls._time_key] = discord.utils.utcnow().isoformat()
-        await player.save(state=player.state)
+        cls.tasks[player.id] = asyncio.create_task(cls._stonks(player.user._state.conn, player.id))
         return player
 
 
