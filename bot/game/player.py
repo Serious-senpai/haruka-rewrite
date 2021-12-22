@@ -300,10 +300,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         worlds.remove(EarthWorld)  # Imagine isekai back to earth
         self.world = random.choice(worlds)
         self.location = self.world.get_location(0)
-        self.state: Dict[str, Any] = {
-            "travel": False,
-            "battle": False,
-        }
+        self.state.update(travel=False, battle=False)
         player: PT = await self.location.on_arrival(self)
         player.hp = -1  # A workaround way to set hp = hp_max
 
