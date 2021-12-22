@@ -49,5 +49,5 @@ async def _daily_cmd(ctx: commands.Context):
         await ctx.send(embed=embed)
 
     player.money += DAILY_REWARD
-    await player.update()
+    await player.save(money=player.money)
     await ctx.send(f"Claimed `💲{DAILY_REWARD}` daily reward!")

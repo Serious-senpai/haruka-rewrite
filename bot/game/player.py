@@ -403,57 +403,70 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         **kwargs:
             The attributes to save
         """
+        if not kwargs:
+            return
+
         counter: int = 0
         updates: List[str] = []
         args: List[Any] = []
         conn: Union[asyncpg.Connection, asyncpg.Pool] = self.user._state.conn
 
-        if description := kwargs.pop("description", None) is not None:
+        description: Optional[str] = kwargs.pop("description", None)
+        if description is not None:
             counter += 1
             updates.append(f"description = ${counter}")
             args.append(description)
 
-        if world := kwargs.pop("world", None) is not None:
+        world: Optional[Type[WT]] = kwargs.pop("world")
+        if world is not None:
             counter += 1
             updates.append(f"world = ${counter}")
             args.append(world.id)
 
-        if location := kwargs.pop("location", None) is not None:
+        location: Optional[Type[LT]] = kwargs.pop("location", None)
+        if location is not None:
             counter += 1
             updates.append(f"location = ${counter}")
             args.append(location.id)
 
-        if type_id := kwargs.pop("type", None) is not None:
+        type_id: Optional[int] = kwargs.pop("type", None)
+        if type_id is not None:
             counter += 1
             updates.append(f"type = ${counter}")
             args.append(type_id)
 
-        if level := kwargs.pop("level", None) is not None:
+        level: Optional[int] = kwargs.pop("level", None)
+        if level is not None:
             counter += 1
             updates.append(f"level = ${counter}")
             args.append(level)
 
-        if xp := kwargs.pop("xp", None) is not None:
+        xp: Optional[int] = kwargs.pop("xp", None)
+        if xp is not None:
             counter += 1
             updates.append(f"xp = ${counter}")
             args.append(xp)
 
-        if money := kwargs.pop("money", None) is not None:
+        money: Optional[int] = kwargs.pop("money", None)
+        if money is not None:
             counter += 1
             updates.append(f"money = ${counter}")
             args.append(money)
 
-        if items := kwargs.pop("items", None) is not None:
+        items: List[Type[IT]] = kwargs.pop("items", None)
+        if items is not None:
             counter += 1
             updates.append(f"items = ${counter}")
             args.append([item.id for item in items])
 
-        if hp := kwargs.pop("hp", None) is not None:
+        hp: Optional[int] = kwargs.pop("hp", None)
+        if hp is not None:
             counter += 1
             updates.append(f"hp = ${counter}")
             args.append(hp)
 
-        if state := kwargs.pop("state", None) is not None:
+        state: Optional[Dict[str, Any]] = kwargs.pop("state", None)
+        if state is not None:
             counter += 1
             updates.append(f"state = ${counter}")
             args.append(json.dumps(state))
