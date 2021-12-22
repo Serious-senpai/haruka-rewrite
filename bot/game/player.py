@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import dataclasses
 import datetime
 import functools
@@ -200,20 +199,24 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         async with self.prepare_travel():
             distance: float = self.calc_distance(destination)
             _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
+            self = await self.location.on_leaving(self)
             notify: discord.Message = await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
+
             await discord.utils.sleep_until(_dest_time)
+
+            self.location = destination
             await self.save(location=destination)
+
+            player: PT = await destination.on_arrival(self)
+            for event in player.world.events:
+                if event.location.id == player.location.id:
+                    if random.random() < event.rate:
+                        player = await event.run(channel, player)
 
             try:
                 await notify.edit(f"<@!{self.id}> arrived at **{destination.name}**")
             except discord.HTTPException:
                 pass
-
-        _self = await self.from_user(self.user)
-        for event in _self.world.events:
-            if event.location.id == _self.location.id:
-                if random.random() < event.rate:
-                    _self = await event.run(channel, _self)
 
     def prepare_travel(self) -> TravelContext:
         return TravelContext(self)
@@ -252,7 +255,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             return await handler(channel, player=self, enemy=enemy)
 
     async def leveled_up_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
-        return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**. HP was fully recovered.", **kwargs)
+        return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**.\nHP was fully recovered.", **kwargs)
 
     async def isekai_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
         return await target.send(f"<@!{self.id}> was killed and reincarnated to **{self.world.name}**", **kwargs)
@@ -295,16 +298,17 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         worlds: List[Type[WT]] = BaseWorld.__subclasses__()
         worlds.remove(EarthWorld)  # Imagine isekai back to earth
-        world: Type[WT] = random.choice(worlds)
-        location: Type[LT] = world.get_location(0)
-        hp: int = -1  # A workaround way to set hp = hp_max
-        state: Dict[str, Any] = {
+        self.world = random.choice(worlds)
+        self.location = self.world.get_location(0)
+        self.state: Dict[str, Any] = {
             "travel": False,
             "battle": False,
         }
+        player: PT = await self.location.on_arrival(self)
+        player.hp = -1  # A workaround way to set hp = hp_max
 
-        await self.save(world=world, location=location, hp=hp, state=state)
-        return await self.from_user(self.user)
+        await player.update()
+        return player
 
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about

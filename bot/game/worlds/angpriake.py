@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import TypeVar
+import datetime
+from typing import Optional, Type, TypeVar
+
+import discord
 
 from ..abc import Battleable
 from ..core import (
@@ -10,7 +13,7 @@ from ..core import (
     BaseCreature,
     Coordination,
 )
-from ..player import BasePlayer
+from ..player import PT, BasePlayer
 
 
 ALT = TypeVar("ALT", bound="_AngpriakeLocation")
@@ -62,11 +65,31 @@ class AngpriakeWorld(BaseWorld):
 
 class Village(_AngpriakeLocation):
     name = "Village"
-    description = "The village where you were born"
+    description = "The village where you were born. You can earn `💲10`/h here"
     id = 0
     world = AngpriakeWorld
     coordination = Coordination(x=0, y=0)
     creature = _AngpriakeVillageCreature
+
+    _time_key: str = "Angpriake_VillageSince"
+
+    @classmethod
+    async def on_leaving(cls: Type[Village], player: PT) -> PT:
+        since_: Optional[str] = player.state.get(cls._time_key)
+        if not since_:
+            return player
+
+        since: datetime.datetime = datetime.datetime.fromisoformat(since_)
+        stayed: datetime.timedelta = discord.utils.utcnow() - since
+        player.money += 10 * int(stayed.total_seconds() / 3600)
+        await player.save(money=player.money)
+        return player
+
+    @classmethod
+    async def on_arrival(cls: Type[Village], player: PT) -> PT:
+        player.state[cls._time_key] = discord.utils.utcnow().isoformat()
+        await player.save(state=player.state)
+        return player
 
 
 class Church(_AngpriakeLocation):

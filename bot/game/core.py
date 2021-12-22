@@ -195,6 +195,14 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
         """
         return world.get_location(id)
 
+    @classmethod
+    async def on_leaving(cls: Type[LT], player: PT) -> PT:
+        return player
+
+    @classmethod
+    async def on_arrival(cls: Type[LT], player: PT) -> PT:
+        return player
+
 
 class BaseEvent(ClassObject, Generic[LT]):
     """Base class for world events
