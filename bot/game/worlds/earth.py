@@ -154,12 +154,14 @@ class IsekaiEvent(_EarthEvent):
         cls: Type[IsekaiEvent],
         target: discord.TextChannel,
         player: PT,
-    ) -> None:
+    ) -> PT:
         async with player.prepare_battle():
             await target.send(embed=cls.create_embed(player))
             result: BattleResult = await battle(player, God())
 
-        async with target.typing():
-            player.release()
-            await asyncio.sleep(2.0)
-            await result.send(target)
+            async with target.typing():
+                player.release()
+                await asyncio.sleep(2.0)
+                await result.send(target)
+
+            return await player.from_user(player.user, bypass=True)

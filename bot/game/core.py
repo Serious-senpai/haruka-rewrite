@@ -228,7 +228,7 @@ class BaseEvent(ClassObject, Generic[LT]):
         cls: Type[ET],
         target: discord.TextChannel,
         player: PT,
-    ) -> Any:
+    ) -> PT:
         """This function is a coroutine
 
         This is called when the event happens to a player
@@ -239,6 +239,11 @@ class BaseEvent(ClassObject, Generic[LT]):
             The target Discord channel to send messages to
         player: :class:`BasePlayer`
             The player that encounters the event
+
+        Returns
+        -----
+        :class:`BasePlayer`
+            The player after the event
         """
         raise NotImplementedError
 

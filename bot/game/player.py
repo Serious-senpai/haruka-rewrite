@@ -224,9 +224,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         for event in self.world.events:
             if event.location.id == self.location.id:
                 if random.random() < event.rate:
-                    self.release()
-                    self = await self.from_user(self.user)
-                    await event.run(channel, self)
+                    self = await event.run(channel, self)
 
     def prepare_travel(self) -> TravelContext:
         return TravelContext(self)
@@ -250,8 +248,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             embed: discord.Embed = enemy.create_embed()
             embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
             message: discord.Message = await channel.send("Do you want to fight this opponent?", embed=embed)
-            display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
+
             self.release()
+            display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
             choice: Optional[bool] = await display.listen(self.id)
             self = await self.from_user(self.user)
 
@@ -318,8 +317,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         self.state["battle"] = False
 
         await self.update(isekai=True)
-        self.release()
-        return await self.from_user(self.user)
+        return await self.from_user(self.user, bypass=True)
 
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
@@ -499,7 +497,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         await conn.execute(f"DELETE FROM rpg WHERE id = '{self.id}';")
 
     @classmethod
-    async def from_user(cls: Type[PT], user: discord.User) -> Optional[PT]:
+    async def from_user(cls: Type[PT], user: discord.User, *, bypass: bool = False) -> Optional[PT]:
         """This function is a coroutine
 
         Acquire the lock and get a player object from
@@ -509,6 +507,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         -----
         user: :class:`discord.User`
             The Discord user
+        bypass: :class:`bool`
+            Whether to bypass the lock. Default to
+            ``False``
 
         Returns
         -----
@@ -517,18 +518,20 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         """
         from .core import BaseWorld
 
-        lock: asyncio.Lock
-        try:
-            lock = locks[user.id]
-        except KeyError:
-            locks[user.id] = asyncio.Lock()
-            lock = locks[user.id]
-        await lock.acquire()
+        if not bypass:
+            lock: asyncio.Lock
+            try:
+                lock = locks[user.id]
+            except KeyError:
+                locks[user.id] = asyncio.Lock()
+                lock = locks[user.id]
+            await lock.acquire()
 
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:
-            lock.release()
+            if not bypass:
+                lock.release()
             return
 
         world: Type[WT] = BaseWorld.from_id(row["world"])
@@ -654,7 +657,7 @@ class BaseItem(ClassObject, Generic[PT]):
 
 def rpg_check() -> Callable[[T], T]:
     async def predicate(ctx: commands.Context) -> bool:
-        player: Optional[PT] = await BasePlayer.from_user(ctx.author)
+        player: Optional[PT] = await BasePlayer.from_user(ctx.author, bypass=True)
         if player:
             return True
 
