@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import random
 import traceback
 from typing import Any, List, Optional
@@ -197,7 +196,6 @@ class TravelTask(Task):
                         if random.random() < event.rate:
                             player = await event.run(channel, player)
 
-            with contextlib.suppress(BaseException):
                 await channel.send(f"<@!{self.id}> arrived at **{player.location.name}**")
 
         finally:
