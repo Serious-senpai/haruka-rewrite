@@ -215,6 +215,7 @@ class TaskManager:
         "bot",
         "remind",
         "unmute",
+        "travel",
     )
 
     def __init__(self, bot: haruka.Haruka) -> None:
