@@ -7,6 +7,7 @@ import traceback
 from typing import Any, Deque, Dict, List, Optional
 
 import aiohttp
+import asyncpg
 import discord
 import topgg
 from discord.ext import commands, tasks
@@ -87,8 +88,12 @@ class Haruka(SlashMixin, commands.Bot):
         self.logfile.write(f"HARUKA | {content}\n")
 
     async def startup(self) -> None:
-        # Get bot owner
         await self.wait_until_ready()
+
+        import game
+        from game.core import PT
+
+        # Get bot owner
         app_info: discord.AppInfo = await self.application_info()
         if app_info.team:
             self.owner_id: int = app_info.team.owner_id
@@ -109,6 +114,16 @@ class Haruka(SlashMixin, commands.Bot):
 
         self._get_external_source()
         self.loop.create_task(self.overwrite_slash_commands())  # Ignore exceptions
+
+        # Schedule all on_arrival tasks for RPG players
+        rows: List[asyncpg.Record] = await self.conn.fetch("SELECT * FROM rpg;")
+        user: discord.User
+        player: PT
+        for row in rows:
+            user = await self.fetch_user(row["id"])  # Union[str, int]
+            player = await game.BasePlayer.from_user(user)
+            self.loop.create_task(player.location.on_arrival(player))
+            await asyncio.sleep(0.1)
 
         # Keep the server alive
         try:

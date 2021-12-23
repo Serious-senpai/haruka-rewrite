@@ -203,6 +203,33 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
     async def on_arrival(cls: Type[LT], player: PT) -> PT:
         return player
 
+    @classmethod
+    def create_embed(cls: Type[LT]) -> discord.Embed:
+        embed: discord.Embed = discord.Embed(
+            title=cls.name,
+            description=cls.description,
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.add_field(
+            name="Location ID",
+            value=f"`ID {cls.id}`",
+        )
+        embed.add_field(
+            name="Coordination",
+            value=f"x = {cls.coordination.x}\ny = {cls.coordination.y}",
+        )
+        embed.add_field(
+            name="Creatures",
+            value=", ".join(creature.name for creature in cls.creatures) or "*None*",
+            inline=False,
+        )
+        embed.add_field(
+            name="Level restriction",
+            value=f"`Lv.{cls.level_limit}`",
+        )
+        return embed
+
 
 class BaseEvent(ClassObject, Generic[LT]):
     """Base class for world events

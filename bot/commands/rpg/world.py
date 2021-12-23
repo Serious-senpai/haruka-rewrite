@@ -8,6 +8,7 @@ from game.core import PT
 
 @bot.command(
     name="world",
+    aliases=["map"],
     description="View the current world you are in",
 )
 @utils.testing()

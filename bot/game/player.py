@@ -345,7 +345,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     def map_world(self) -> discord.Embed:
         """Create an embed represents basic information about
-        the player's world
+        the player's world.
+
+        Returns
+        -----
+        :class:`discord.Embed`
+            The created embed
         """
         embed: discord.Embed = discord.Embed(
             title=self.world.name,
@@ -363,7 +368,29 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         )
         embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
         embed.set_author(
-            name="World Information",
+            name="You are currently in",
+            icon_url=self.client_user.avatar.url,
+        )
+        return embed
+
+    def map_location(self, location: Type[LT]) -> discord.Embed:
+        """Create an embed represents basic information about
+        a location.
+
+        Parameters
+        -----
+        location: Type[:class:`BaseLocation`]
+            The location to create an embed for
+
+        Returns
+        -----
+        :class:`discord.Embed`
+            The created embed
+        """
+        embed: discord.Embed = location.create_embed()
+        embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
+        embed.set_author(
+            name="Location information",
             icon_url=self.client_user.avatar.url,
         )
         return embed

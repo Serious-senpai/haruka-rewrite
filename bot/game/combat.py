@@ -29,7 +29,7 @@ class BattleResult(NamedTuple):
 
     async def send(self, target: discord.TextChannel) -> None:
         """This function is a coroutine
-        
+
         Send the battle result to a :class:`discord.TextChannel`
 
         Parameters
