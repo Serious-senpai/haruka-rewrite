@@ -200,7 +200,7 @@ class TravelTask(Task):
             player.location = player.world.get_location(player.state[game.player.TRAVEL_DESTINATION_KEY])
             channel: discord.PartialMessageable = self.bot.get_partial_messageable(player.state[game.player.TRAVEL_CHANNEL_KEY], type=discord.TextChannel)
 
-            await channel.send(f"<@!{player.id}> arrived at **{player.location.name}**", embed=player.map_location(self.location))
+            await channel.send(f"<@!{player.id}> arrived at **{player.location.name}**", embed=player.map_location(player.location))
             await player.update()
             player = await player.location.on_arrival(player)
             for event in player.world.events:
