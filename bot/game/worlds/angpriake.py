@@ -224,3 +224,41 @@ class Eagle(_AngpriakeForestCreature):
 
     def attack(self, target: Battleable) -> int:
         return self.physical_attack(target)
+
+
+class Elephant(_AngpriakeForestCreature):
+    name = "Elephant"
+    description = "A giant animal with great HP."
+    display = "🐘"
+    exp = 30
+
+    @property
+    def hp_max(self) -> int:
+        return 100
+
+    @property
+    def physical_atk(self) -> int:
+        return 25
+
+    @property
+    def magical_atk(self) -> int:
+        return 0
+
+    @property
+    def physical_res(self) -> float:
+        return 0.7
+
+    @property
+    def magical_res(self) -> float:
+        return 0.5
+
+    @property
+    def crit_rate(self) -> float:
+        return 0.3
+
+    @property
+    def crit_dmg(self) -> float:
+        return 1.2
+
+    def attack(self, target: Battleable) -> int:
+        return self.physical_attack(target)

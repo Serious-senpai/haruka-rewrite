@@ -22,7 +22,7 @@ async def _daily_cmd(ctx: commands.Context):
         player = await game.BasePlayer.make_new(ctx.author)
         pref: str = await prefix(bot, ctx.message)
         embed: discord.Embed = discord.Embed(
-            description="It looks like this is the first time you have played this game. Here are some commands to help you get started!",
+            description=f"It looks like this is the first time you have played this game. Here are some commands to help you get started!\nYou can still use `{pref}help <command>` to get help as usual.\n\nYou are currently in school, use `{pref}travel 0` to go back home!",
             color=0x2ECC71,
         )
         embed.set_author(
@@ -36,12 +36,17 @@ async def _daily_cmd(ctx: commands.Context):
         )
         embed.add_field(
             name="View locations you can travel to",
-            value=f"`{pref}world`",
+            value=f"`{pref}world` or `{pref}map`",
             inline=False,
         )
         embed.add_field(
             name="Travel to a location",
             value=f"`{pref}travel <location ID>`",
+            inline=False,
+        )
+        embed.add_field(
+            name="How to get isekai'd?",
+            value="You will be transfered to another world if ~~you get hit by truck-kun~~ your HP reaches 0",
             inline=False,
         )
 

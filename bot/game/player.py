@@ -7,7 +7,6 @@ import functools
 import json
 import math
 import random
-import tracemalloc
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
 from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Type, TypeVar, Union
@@ -245,16 +244,16 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
             self.clear()
             choice: Optional[bool] = await display.listen(self.id)
-            self = await self.from_user(self.user)
+            player: PT = await self.from_user(self.user)
 
             if choice is None:
-                return self
+                return player
 
             if not choice:
                 await channel.send("Retreated")
-                return self
+                return player
 
-            return await handler(channel, player=self, enemy=enemy)
+            return await handler(channel, player=player, enemy=enemy)
 
     async def leveled_up_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
         return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**.\nHP was fully recovered.", **kwargs)
@@ -407,12 +406,6 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
-
-    # Debugging methods
-
-    def traceback(self) -> None:
-        tb: tracemalloc.Traceback = tracemalloc.get_object_traceback(self)
-        print("\n".join(tb.format()))
 
     # Save and load operations
 
