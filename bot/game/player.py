@@ -59,7 +59,7 @@ class PlayerCache(dict):
         self[id] = None
         self.event.set()
 
-    def __setitem__(self, k: int, v: Optional[PT]) -> None:
+    def __setitem__(self, k: int, v: Optional[Ellipsis]) -> None:
         super().__setitem__(k, v)
         self.event.set()
 
@@ -584,7 +584,6 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         if player.hp == -1:
             player.hp = player.hp_max
 
-        cache[user.id] = player
         return player
 
     @classmethod
@@ -693,7 +692,6 @@ def rpg_check() -> Callable[[T], T]:
     async def predicate(ctx: commands.Context) -> bool:
         player: Optional[PT] = await BasePlayer.from_user(ctx.author)
         if player:
-            player.clear()
             return True
 
         await ctx.send(f"In order to use RPG commands, you have to invoke `{ctx.prefix}daily` first!")
