@@ -197,7 +197,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         self = await self.location.on_leaving(self)
         await self.update()
         await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
-        await self.user._state.task.travel.restart()
+        self.user._state.task.travel.restart()
 
     def prepare_battle(self) -> BattleContext:
         return BattleContext(self)
