@@ -181,7 +181,7 @@ class TravelTask(Task):
             player.location = player.world.get_location(player.state[game.player.TRAVEL_DESTINATION_KEY])
             player.state[game.player.TRAVEL_KEY] = False
             player.travel = None
-            channel: Optional[discord.TextChannel] = self.bot.get_channel(row[game.player.TRAVEL_CHANNEL_KEY])
+            channel: Optional[discord.TextChannel] = self.bot.get_channel(player.state[game.player.TRAVEL_CHANNEL_KEY])
 
             player = await player.location.on_arrival(player)
             if channel is not None:
