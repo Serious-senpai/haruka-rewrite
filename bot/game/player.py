@@ -143,7 +143,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     @property
     def client_user(self) -> discord.ClientUser:
-        """The bot user, acquired from the interal
+        """The bot user acquired from the internal
         :class:`discord.state.ConnectionState`
         """
         return self.user._state.user

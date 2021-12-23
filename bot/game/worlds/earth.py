@@ -157,8 +157,7 @@ class IsekaiEvent(_EarthEvent):
         player: PT,
     ) -> PT:
         async with player.prepare_battle():
-            with contextlib.suppress(discord.HTTPException):
-                await target.send(embed=cls.create_embed(player))
+            await super().run(target, player)
 
             result: BattleResult = await battle(player, God())
             with contextlib.suppress(discord.HTTPException):

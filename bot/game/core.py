@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 from typing import (
     Any,
@@ -280,7 +281,9 @@ class BaseEvent(ClassObject, Generic[LT]):
         :class:`BasePlayer`
             The player after the event
         """
-        raise NotImplementedError
+        with contextlib.suppress(discord.HTTPException):
+            await target.send(embed=cls.create_embed(player))
+        return player
 
     @classmethod
     def create_embed(cls: Type[ET], player: PT) -> discord.Embed:
