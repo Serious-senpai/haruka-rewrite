@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import random
+import traceback
 from typing import Any, List, Optional
 
 import asyncpg
@@ -39,6 +40,12 @@ class Task:
     @run.before_loop
     async def prepare(self) -> None:
         await self.bot.wait_until_ready()
+
+    @run.error
+    async def _error_handler(self, exc: Exception) -> None:
+        self.bot.log(f"Exception occured in module \"task\": {self.__class__.__name__}")
+        self.bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))
+        await self.bot.report("An exception has just occurred in the `task` module", send_state=False)
 
     async def cleanup(self) -> Any:
         return
