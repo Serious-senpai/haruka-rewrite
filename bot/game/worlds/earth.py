@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from typing import Type, TypeVar
 
 import discord
@@ -152,15 +153,17 @@ class IsekaiEvent(_EarthEvent):
     @classmethod
     async def run(
         cls: Type[IsekaiEvent],
-        target: discord.TextChannel,
+        target: discord.PartialMessageable,
         player: PT,
     ) -> PT:
         async with player.prepare_battle():
-            await target.send(embed=cls.create_embed(player))
+            with contextlib.suppress(discord.HTTPException):
+                await target.send(embed=cls.create_embed(player))
+    
             result: BattleResult = await battle(player, God())
-
-            async with target.typing():
-                await asyncio.sleep(2.0)
-                await result.send(target)
+            with contextlib.suppress(discord.HTTPException):
+                async with target.typing():
+                    await asyncio.sleep(2.0)
+                    await result.send(target)
 
             return await player.from_user(player.user)

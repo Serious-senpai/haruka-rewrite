@@ -261,7 +261,7 @@ class BaseEvent(ClassObject, Generic[LT]):
     @classmethod
     async def run(
         cls: Type[ET],
-        target: discord.TextChannel,
+        target: discord.PartialMessageable,
         player: PT,
     ) -> PT:
         """This function is a coroutine
@@ -270,7 +270,7 @@ class BaseEvent(ClassObject, Generic[LT]):
 
         Parameters
         -----
-        target: :class:`discord.TextChannel`
+        target: :class:`discord.PartialMessageable`
             The target Discord channel to send messages to
         player: :class:`BasePlayer`
             The player that encounters the event
