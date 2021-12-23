@@ -180,23 +180,23 @@ class TravelTask(Task):
             player: Optional[PT] = None
             user: discord.User = await self.bot.fetch_user(row["id"])  # Union[str, int]
         except discord.HTTPException:
-            pass
-
+            self.bot.log("Warning in TravelTask:")
+            self.bot.log(traceback.format_exc())
+            self.bot.log("Most likely the user was deleted.")
         else:
             player = await game.BasePlayer.from_user(user)
-            player.location = player.world.get_location(player.state[game.player.TRAVEL_DESTINATION_KEY])
             player.state[game.player.TRAVEL_KEY] = False
             player.travel = None
-            channel: Optional[discord.TextChannel] = self.bot.get_channel(player.state[game.player.TRAVEL_CHANNEL_KEY])
+            player.location = player.world.get_location(player.state[game.player.TRAVEL_DESTINATION_KEY])
+            channel: discord.PartialMessageable = self.bot.get_partial_messageable(player.state[game.player.TRAVEL_CHANNEL_KEY], type=discord.TextChannel)
 
             player = await player.location.on_arrival(player)
-            if channel is not None:
-                for event in player.world.events:
-                    if event.location.id == player.location.id:
-                        if random.random() < event.rate:
-                            player = await event.run(channel, player)
+            for event in player.world.events:
+                if event.location.id == player.location.id:
+                    if random.random() < event.rate:
+                        player = await event.run(channel, player)
 
-                await channel.send(f"<@!{self.id}> arrived at **{player.location.name}**")
+            await channel.send(f"<@!{self.id}> arrived at **{player.location.name}**")
 
         finally:
             if player:
