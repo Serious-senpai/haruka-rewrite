@@ -244,6 +244,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
             display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
             choice: Optional[bool] = await display.listen(self.id)
+            self.clear()
             self = await self.from_user(self.user)
 
             if choice is None:
@@ -307,7 +308,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         await player.update()
         player.clear()
-        return await self.from_user(self.user)
+        return await player.from_user(player.user)
 
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
