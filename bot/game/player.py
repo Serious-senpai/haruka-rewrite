@@ -305,7 +305,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         player.hp = -1  # A workaround way to set hp = hp_max
 
         await player.update()
-        return player
+        player.clear()
+        return await self.from_user(self.user)
 
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
@@ -685,6 +686,7 @@ def rpg_check() -> Callable[[T], T]:
     async def predicate(ctx: commands.Context) -> bool:
         player: Optional[PT] = await BasePlayer.from_user(ctx.author)
         if player:
+            player.clear()
             return True
 
         await ctx.send(f"In order to use RPG commands, you have to invoke `{ctx.prefix}daily` first!")
