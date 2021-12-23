@@ -540,7 +540,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         cache: PlayerCache = user._state.players
         async with cache.cond:
-            await cache.cond.wait_for(lambda: cache.get(user.id) is not None)
+            await cache.cond.wait_for(lambda: cache.get(user.id) is None)
 
         cache[user.id] = ...  # Must be a non-None object (act as a placeholder)
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
