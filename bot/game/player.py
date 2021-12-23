@@ -66,7 +66,11 @@ class PlayerCache(dict):
     cond: asyncio.Condition = asyncio.Condition()
 
     def __delitem__(self, id: int) -> None:
-        super().__delitem__(id)
+        self[id] = None
+        self.cond.notify_all()
+
+    def __setitem__(self, k: int, v: Optional[PT]) -> None:
+        super().__setitem__(k, v)
         self.cond.notify_all()
 
 
@@ -397,11 +401,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     # Save and load operations
 
     def clear(self) -> None:
-        try:
-            cache: PlayerCache = self.user._state.players
-            del cache[self.id]
-        except KeyError:
-            pass
+        cache: PlayerCache = self.user._state.players
+        cache[self.id] = None
 
     def __del__(self) -> None:
         self.clear()
