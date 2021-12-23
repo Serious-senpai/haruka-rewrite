@@ -1,3 +1,5 @@
+from typing import Optional
+
 import discord
 from discord.ext import commands
 
@@ -20,5 +22,8 @@ async def _account_cmd(ctx: commands.Context, user: discord.User = None):
     if user is None:
         user = ctx.author
 
-    player: PT = await game.BasePlayer.from_user(user)
+    player: Optional[PT] = await game.BasePlayer.from_user(user)
+    if not player:
+        return await ctx.send(f"**{user}** doesn't have a RPG account!")
+
     await ctx.send(embed=player.create_embed())
