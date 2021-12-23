@@ -196,7 +196,7 @@ class TravelTask(Task):
                     if random.random() < event.rate:
                         player = await event.run(channel, player)
 
-            await channel.send(f"<@!{self.id}> arrived at **{player.location.name}**")
+            await channel.send(f"<@!{player.id}> arrived at **{player.location.name}**")
 
         finally:
             if player:
