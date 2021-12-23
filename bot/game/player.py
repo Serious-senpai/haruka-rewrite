@@ -7,6 +7,7 @@ import functools
 import json
 import math
 import random
+import tracemalloc
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
 from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Type, TypeVar, Union
@@ -405,6 +406,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
+
+    # Debugging methods
+
+    def traceback(self) -> None:
+        tb: tracemalloc.Traceback = tracemalloc.get_object_traceback(self)
+        print("\n".join(tb.format()))
 
     # Save and load operations
 
