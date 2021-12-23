@@ -4,7 +4,6 @@ import asyncio
 from typing import Dict, Type, TypeVar
 
 import asyncpg
-import discord
 
 from ..abc import Battleable
 from ..core import (
@@ -76,8 +75,8 @@ class Village(_AngpriakeLocation):
 
     @classmethod
     async def _stonks(cls: Type[Village], conn: asyncpg.Pool, id: int) -> None:
-        while await asyncio.sleep(3600, True):
-            await conn.execute(f"UPDATE rpg SET money = money + 10 WHERE id = '{id}';")
+        while await asyncio.sleep(360, True):
+            await conn.execute(f"UPDATE rpg SET money = money + 1 WHERE id = '{id}';")
 
     @classmethod
     async def on_leaving(cls: Type[Village], player: PT) -> PT:
