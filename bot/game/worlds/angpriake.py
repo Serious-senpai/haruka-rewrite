@@ -339,9 +339,9 @@ class ClassChangeEvent(_AngpriakeEvent):
                 await target.send("You do not have enough money!")
                 return player
 
-            _type: Type[APT] = random.choice(_AngpriakePlayer)
+            _type: Type[APT] = random.choice(_AngpriakeWorld.ptypes)
             while _type == Villager:
-                _type = random.choice(_AngpriakePlayer)
+                _type = random.choice(_AngpriakeWorld.ptypes)
             await player.save(
                 money=player.money - 1000,
                 type=_type.id,
