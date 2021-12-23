@@ -165,7 +165,7 @@ class TravelTask(Task):
     async def run(self) -> None:
         asyncio.current_task().set_name("TravelTask")
         row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM rpg ORDER BY travel NULLS LAST;")
-        if not row:
+        if row is None or row["travel"] is None:
             await asyncio.sleep(3600)
             return
 
