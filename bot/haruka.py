@@ -47,24 +47,21 @@ class Haruka(SlashMixin, commands.Bot):
         self._slash_command_count: Dict[str, List[discord.Interaction]] = {}
 
     async def start(self) -> None:
-        # Handle SIGTERM signal from Heroku
-        signal.signal(signal.SIGTERM, self.kill)
-
-        # Setup logging file
-        self.logfile = open("./log.txt", "a", encoding="utf-8")
-
-        # Connect to database
         import database
+        import game
 
+        self.logfile = open("./log.txt", "a", encoding="utf-8")
+        signal.signal(signal.SIGTERM, self.kill)
         async with database.Database(self, self.DATABASE_URL) as self.conn:
-            # Attach database connection pool to ConnectionState
             self._connection.conn = self.conn
 
-            # Initialize state
             asyncio.current_task().set_name("Haruka main task")
             self.session: aiohttp.ClientSession = aiohttp.ClientSession()
             self.loop.create_task(self.startup())
             self.uptime: datetime.datetime = datetime.datetime.now()
+
+            self.players: game.PlayerCache = game.PlayerCache()
+            self._connection.players = self.players
 
             # Start the bot
             await super().start(self.TOKEN)

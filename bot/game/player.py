@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 import datetime
 import functools
@@ -25,6 +26,7 @@ __all__ = (
     "rpg_check",
     "BasePlayer",
     "BaseItem",
+    "PlayerCache",
 )
 
 
@@ -57,6 +59,15 @@ class BattleContext(AbstractAsyncContextManager):
     async def __aexit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
         self.player.state[BATTLE_KEY] = False
         await self.player.save(state=self.player.state)
+
+
+class PlayerCache(dict):
+
+    cond: asyncio.Condition = asyncio.Condition()
+
+    def __delitem__(self, id: int) -> None:
+        super().__delitem__(id)
+        self.cond.notify_all()
 
 
 @dataclasses.dataclass(init=True, repr=True, order=False, frozen=False)
@@ -385,6 +396,16 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     # Save and load operations
 
+    def clear(self) -> None:
+        try:
+            cache: PlayerCache = self.user._state.players
+            del cache[self.id]
+        except KeyError:
+            pass
+
+    def __del__(self) -> None:
+        self.clear()
+
     async def update(self) -> None:
         """This function is a coroutine
 
@@ -517,9 +538,15 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         """
         from .core import BaseWorld
 
+        cache: PlayerCache = user._state.players
+        async with cache.cond:
+            await cache.cond.wait_for(lambda: cache.get(user.id) is not None)
+
+        cache[user.id] = ...  # Must be a non-None object (act as a placeholder)
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:
+            cache[user.id] = None
             return
 
         world: Type[WT] = BaseWorld.from_id(row["world"])
@@ -541,6 +568,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         )
         if player.hp == -1:
             player.hp = player.hp_max
+
+        cache[user.id] = player
         return player
 
     @classmethod
