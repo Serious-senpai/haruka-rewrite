@@ -164,7 +164,7 @@ class TravelTask(Task):
     @tasks.loop()
     async def run(self) -> None:
         asyncio.current_task().set_name("TravelTask")
-        row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM rpg ORDER BY travel;")
+        row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM rpg ORDER BY travel NULLS LAST;")
         if not row:
             await asyncio.sleep(3600)
             return
