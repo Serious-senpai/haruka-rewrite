@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import random
 from typing import Any, List, Optional
 
 import asyncpg
 import discord
 from discord.ext import tasks
 
+import game
 import haruka
+from game.core import PT
 
 
 class Task:
@@ -156,6 +160,44 @@ class UnmuteTask(Task):
         )
 
 
+class TravelTask(Task):
+    @tasks.loop()
+    async def run(self) -> None:
+        asyncio.current_task().set_name("TravelTask")
+        row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM rpg ORDER BY travel;")
+        if not row:
+            await asyncio.sleep(3600)
+            return
+
+        await discord.utils.sleep_until(row["travel"])
+        try:
+            player: Optional[PT] = None
+            user: discord.User = await self.bot.fetch_user(row["id"])  # Union[str, int]
+        except discord.HTTPException:
+            pass
+
+        else:
+            player = await game.BasePlayer.from_user(user)
+            player.location = player.world.get_location(player.state[game.player.TRAVEL_DESTINATION_KEY])
+            player.state[game.player.TRAVEL_KEY] = False
+            player.travel = None
+            channel: Optional[discord.TextChannel] = self.bot.get_channel(row[game.player.TRAVEL_CHANNEL_KEY])
+
+            player = await player.location.on_arrival(player)
+            if channel is not None:
+                for event in player.world.events:
+                    if event.location.id == player.location.id:
+                        if random.random() < event.rate:
+                            player = await event.run(channel, player)
+
+            with contextlib.suppress(BaseException):
+                await channel.send(f"<@!{self.id}> arrived at **{player.location.name}**")
+
+        finally:
+            if player:
+                await player.update()
+
+
 class TaskManager:
     """Represents the object that is
     responsible for managing all Tasks.
@@ -179,6 +221,7 @@ class TaskManager:
         self.bot: haruka.Haruka = bot
         self.remind: ReminderTask = ReminderTask(self)
         self.unmute: UnmuteTask = UnmuteTask(self)
+        self.travel: TravelTask = TravelTask(self)
 
     @property
     def conn(self) -> asyncpg.Pool:

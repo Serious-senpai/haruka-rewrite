@@ -8,7 +8,7 @@ import math
 import random
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
-from typing import Any, Callable, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Type, TypeVar, Union
 
 import asyncpg
 import discord
@@ -18,7 +18,7 @@ import emoji_ui
 import utils
 from .abc import Battleable, ClassObject
 from .combat import handler
-from .core import CT, LT, WT
+from .core import CT, LT, WT, MISSING
 
 
 __all__ = (
@@ -34,6 +34,13 @@ IT = TypeVar("IT", bound="BaseItem")
 EXP_SCALE: int = 4
 
 
+# These keys are inside player.state
+BATTLE_KEY: Literal["battle"] = "battle"
+TRAVEL_KEY: Literal["travel"] = "travel"
+TRAVEL_DESTINATION_KEY: Literal["travel_destination"] = "travel_destination"
+TRAVEL_CHANNEL_KEY: Literal["travel_channel_id"] = "travel_channel_id"
+
+
 class BattleContext(AbstractAsyncContextManager):
 
     __slots__ = (
@@ -44,29 +51,11 @@ class BattleContext(AbstractAsyncContextManager):
         self.player: PT = player
 
     async def __aenter__(self) -> None:
-        self.player.state["battle"] = True
+        self.player.state[BATTLE_KEY] = True
         await self.player.save(state=self.player.state)
 
     async def __aexit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
-        self.player.state["battle"] = False
-        await self.player.save(state=self.player.state)
-
-
-class TravelContext(AbstractAsyncContextManager):
-
-    __slots__ = (
-        "player",
-    )
-
-    def __init__(self, player: PT) -> None:
-        self.player: PT = player
-
-    async def __aenter__(self) -> None:
-        self.player.state["travel"] = True
-        await self.player.save(state=self.player.state)
-
-    async def __aexit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
-        self.player.state["travel"] = False
+        self.player.state[BATTLE_KEY] = False
         await self.player.save(state=self.player.state)
 
 
@@ -97,6 +86,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         The player's money
     items: List[:class:`BaseItem`]
         The player's items
+    travel: Optional[:class:`datetime.datetime`]
+        The datetime when the player will arrive at the destination if he is
+        traveling
     hp: :class:`int`
         The player's current health point
     state: Dict[:class:`str`, Any]
@@ -112,6 +104,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     money: int
     items: List[IT]
     hp: int
+    travel: Optional[datetime.datetime]
     state: Dict[str, Any]
 
     @property
@@ -140,11 +133,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     def traveling(self) -> bool:
         """Whether the player is traveling"""
-        return self.state.get("travel", False)
+        return self.state.get(TRAVEL_KEY, False)
 
     def battling(self) -> bool:
         """Whether the player is battling"""
-        return self.state.get("battle", False)
+        return self.state.get(BATTLE_KEY, False)
 
     def calc_distance(self, destination: Type[LT]) -> float:
         """Calculate the moving distance between the player and
@@ -196,30 +189,15 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         if self.traveling():
             return await channel.send("You have already been on a journey, please get to the destination first!")
 
-        async with self.prepare_travel():
-            distance: float = self.calc_distance(destination)
-            _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
-            self = await self.location.on_leaving(self)
-            notify: discord.Message = await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
-
-            await discord.utils.sleep_until(_dest_time)
-
-            self.location = destination
-            await self.save(location=destination)
-
-            player: PT = await destination.on_arrival(self)
-            for event in player.world.events:
-                if event.location.id == player.location.id:
-                    if random.random() < event.rate:
-                        player = await event.run(channel, player)
-
-            try:
-                await notify.edit(f"<@!{self.id}> arrived at **{destination.name}**")
-            except discord.HTTPException:
-                pass
-
-    def prepare_travel(self) -> TravelContext:
-        return TravelContext(self)
+        distance: float = self.calc_distance(destination)
+        self.travel = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
+        self.state[TRAVEL_KEY] = True
+        self.state[TRAVEL_DESTINATION_KEY] = destination.id
+        self.state[TRAVEL_CHANNEL_KEY] = channel.id
+        self = await self.location.on_leaving(self)
+        await self.update()
+        await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
+        await self.user._state.task.travel.restart()
 
     def prepare_battle(self) -> BattleContext:
         return BattleContext(self)
@@ -408,6 +386,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     # Save and load operations
 
     async def update(self) -> None:
+        """This function is a coroutine
+
+        Save the instance attributes to the database.
+        """
         await self.save(
             description=self.description,
             world=self.world,
@@ -418,6 +400,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             money=self.money,
             items=self.items,
             hp=self.hp,
+            travel=self.travel,
             state=self.state,
         )
 
@@ -439,62 +422,68 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         args: List[Any] = []
         conn: Union[asyncpg.Connection, asyncpg.Pool] = self.user._state.conn
 
-        description: Optional[str] = kwargs.pop("description", None)
-        if description is not None:
+        description: Optional[str] = kwargs.pop("description", MISSING)
+        if description is not MISSING:
             counter += 1
             updates.append(f"description = ${counter}")
             args.append(description)
 
-        world: Optional[Type[WT]] = kwargs.pop("world", None)
-        if world is not None:
+        world: Optional[Type[WT]] = kwargs.pop("world", MISSING)
+        if world is not MISSING:
             counter += 1
             updates.append(f"world = ${counter}")
             args.append(world.id)
 
-        location: Optional[Type[LT]] = kwargs.pop("location", None)
-        if location is not None:
+        location: Optional[Type[LT]] = kwargs.pop("location", MISSING)
+        if location is not MISSING:
             counter += 1
             updates.append(f"location = ${counter}")
             args.append(location.id)
 
-        type_id: Optional[int] = kwargs.pop("type", None)
-        if type_id is not None:
+        type_id: Optional[int] = kwargs.pop("type", MISSING)
+        if type_id is not MISSING:
             counter += 1
             updates.append(f"type = ${counter}")
             args.append(type_id)
 
-        level: Optional[int] = kwargs.pop("level", None)
-        if level is not None:
+        level: Optional[int] = kwargs.pop("level", MISSING)
+        if level is not MISSING:
             counter += 1
             updates.append(f"level = ${counter}")
             args.append(level)
 
-        xp: Optional[int] = kwargs.pop("xp", None)
-        if xp is not None:
+        xp: Optional[int] = kwargs.pop("xp", MISSING)
+        if xp is not MISSING:
             counter += 1
             updates.append(f"xp = ${counter}")
             args.append(xp)
 
-        money: Optional[int] = kwargs.pop("money", None)
-        if money is not None:
+        money: Optional[int] = kwargs.pop("money", MISSING)
+        if money is not MISSING:
             counter += 1
             updates.append(f"money = ${counter}")
             args.append(money)
 
-        items: List[Type[IT]] = kwargs.pop("items", None)
-        if items is not None:
+        items: List[Type[IT]] = kwargs.pop("items", MISSING)
+        if items is not MISSING:
             counter += 1
             updates.append(f"items = ${counter}")
             args.append([item.id for item in items])
 
-        hp: Optional[int] = kwargs.pop("hp", None)
-        if hp is not None:
+        hp: Optional[int] = kwargs.pop("hp", MISSING)
+        if hp is not MISSING:
             counter += 1
             updates.append(f"hp = ${counter}")
             args.append(hp)
 
-        state: Optional[Dict[str, Any]] = kwargs.pop("state", None)
-        if state is not None:
+        travel: Optional[datetime.datetime] = kwargs.pop("travel", MISSING)
+        if travel is not MISSING:
+            counter += 1
+            updates.append(f"travel = ${counter}")
+            args.append(travel)
+
+        state: Optional[Dict[str, Any]] = kwargs.pop("state", MISSING)
+        if state is not MISSING:
             counter += 1
             updates.append(f"state = ${counter}")
             args.append(json.dumps(state))
@@ -547,6 +536,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             money=row["money"],
             items=[BaseItem.from_id(item_id) for item_id in row["items"]],
             hp=row["hp"],
+            travel=row["travel"],
             state=json.loads(row["state"]),
         )
         if player.hp == -1:
@@ -580,7 +570,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         await conn.execute(
             f"INSERT INTO rpg \
-            VALUES ('{user.id}', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10);",
+            VALUES ('{user.id}', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);",
             "A new player",  # description
             0,  # world
             1,  # location
@@ -590,6 +580,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             50,  # money
             [],  # items
             -1,  # hp
+            None,  # travel
             json.dumps({"display": "🧍"}),  # state
         )
         return await cls.from_user(user)

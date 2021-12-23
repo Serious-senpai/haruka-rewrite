@@ -81,6 +81,7 @@ class Haruka(SlashMixin, commands.Bot):
             image.Asuna,
         )
         self.task: task.TaskManager = task.TaskManager(self)
+        self._connection.task = self.task
         self.log("Loaded all external sources.")
 
     def log(self, content: Any) -> None:
