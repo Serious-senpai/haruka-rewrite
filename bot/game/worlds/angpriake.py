@@ -322,7 +322,7 @@ class ClassChangeEvent(_AngpriakeEvent):
         )
         embed.set_author(
             name="Class changing",
-            icon_url=player.client_user,
+            icon_url=player.client_user.avatar.url,
         )
         embed.set_thumbnail(url=player.user.avatar.url if player.user.avatar else discord.Embed.Empty)
         message: discord.Message = await target.send(embed=embed)
