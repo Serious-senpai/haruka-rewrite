@@ -243,8 +243,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             message: discord.Message = await channel.send("Do you want to fight this opponent?", embed=embed)
 
             display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
-            choice: Optional[bool] = await display.listen(self.id)
             self.clear()
+            choice: Optional[bool] = await display.listen(self.id)
             self = await self.from_user(self.user)
 
             if choice is None:
