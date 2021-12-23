@@ -43,6 +43,26 @@ TRAVEL_DESTINATION_KEY: Literal["travel_destination"] = "travel_destination"
 TRAVEL_CHANNEL_KEY: Literal["travel_channel_id"] = "travel_channel_id"
 
 
+class Event(asyncio.Event):
+    async def wait_for(self, predicate: Callable[..., bool], *args, **kwargs) -> None:
+        while not predicate(*args, **kwargs):
+            self.clear()
+            await self.wait()
+
+
+class PlayerCache(dict):
+
+    event: Event = Event()
+
+    def __delitem__(self, id: int) -> None:
+        self[id] = None
+        self.event.set()
+
+    def __setitem__(self, k: int, v: Optional[PT]) -> None:
+        super().__setitem__(k, v)
+        self.event.set()
+
+
 class BattleContext(AbstractAsyncContextManager):
 
     __slots__ = (
@@ -59,19 +79,6 @@ class BattleContext(AbstractAsyncContextManager):
     async def __aexit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
         self.player.state[BATTLE_KEY] = False
         await self.player.save(state=self.player.state)
-
-
-class PlayerCache(dict):
-
-    cond: asyncio.Condition = asyncio.Condition()
-
-    def __delitem__(self, id: int) -> None:
-        self[id] = None
-        self.cond.notify_all()
-
-    def __setitem__(self, k: int, v: Optional[PT]) -> None:
-        super().__setitem__(k, v)
-        self.cond.notify_all()
 
 
 @dataclasses.dataclass(init=True, repr=True, order=False, frozen=False)
@@ -540,10 +547,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         from .core import BaseWorld
 
         cache: PlayerCache = user._state.players
-        async with cache.cond:
-            await cache.cond.wait_for(lambda: cache.get(user.id) is None)
-
+        await cache.event.wait_for(lambda: cache.get(user.id) is None)
         cache[user.id] = ...  # Must be a non-None object (act as a placeholder)
+
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:
