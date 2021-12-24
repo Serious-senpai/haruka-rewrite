@@ -43,7 +43,6 @@ class Database(contextlib.AbstractAsyncContextManager):
             CREATE TABLE IF NOT EXISTS misc (title text, id text[]);
             CREATE TABLE IF NOT EXISTS remind (id text, time timestamptz, content text, url text, original timestamptz);
             CREATE TABLE IF NOT EXISTS muted (member text, guild text, time timestamptz, roles text[]);
-            CREATE TABLE IF NOT EXISTS snipe (channel_id text, message_id text, content text, author_id text, attachments text[]);
             CREATE TABLE IF NOT EXISTS playlist (id SERIAL PRIMARY KEY, author_id text, title text, description text, queue text[], use_count integer);
             CREATE TABLE IF NOT EXISTS rpg (id text, description text, world int, location int, type int, level int, xp int, money int, items int[], hp int, state text);
         """)
