@@ -46,6 +46,7 @@ TRAVEL_CHANNEL_KEY: Literal["travel_channel_id"] = "travel_channel_id"
 class Event(asyncio.Event):
     async def wait_for(self, predicate: Callable[..., bool], *args, **kwargs) -> None:
         while not predicate(*args, **kwargs):
+            await asyncio.sleep(0)
             self.clear()
             await self.wait()
 
@@ -242,7 +243,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             message: discord.Message = await channel.send("Do you want to fight this opponent?", embed=embed)
 
             display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
-            self.clear()
+            self.release()
             choice: Optional[bool] = await display.listen(self.id)
             player: PT = await self.from_user(self.user)
 
@@ -309,7 +310,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         await player.update()
         await player.save(type=0)
-        player.clear()
+        player.release()
         return await player.from_user(player.user)
 
     async def change_class(self, channel: discord.TextChannel) -> PT:
@@ -344,7 +345,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         message: discord.Message = await channel.send(embed=embed)
         display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
 
-        self.clear()
+        self.release()
         choice: Optional[bool] = await display.listen(self.user.id)
         player = await self.from_user(self.user)
         if choice is None:
@@ -364,7 +365,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
                 hp=-1,
             )
             await channel.send(f"Your new class is **{_type.__name__}**!")
-            player.clear()
+            player.release()
             return await BasePlayer.from_user(player.user)
 
     def create_embed(self) -> discord.Embed:
@@ -467,12 +468,15 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     # Save and load operations
 
-    def clear(self) -> None:
+    def release(self) -> None:
+        """Release control of this player instance,
+        it should not be called afterwards.
+        """
         cache: PlayerCache = self.user._state.players
         cache[self.id] = None
 
     def __del__(self) -> None:
-        self.clear()
+        self.release()
 
     async def update(self) -> None:
         """This function is a coroutine

@@ -121,7 +121,7 @@ class Haruka(SlashMixin, commands.Bot):
             user = await self.fetch_user(row["id"])  # Union[str, int]
             player = await game.BasePlayer.from_user(user)
             self.loop.create_task(player.location.on_arrival(player))
-            player.clear()
+            player.release()
             await asyncio.sleep(0.1)
 
         # Keep the server alive

@@ -166,5 +166,5 @@ class IsekaiEvent(_EarthEvent):
                     await asyncio.sleep(2.0)
                     await result.send(target)
 
-            player.clear()
+            player.release()
             return await player.from_user(player.user)
