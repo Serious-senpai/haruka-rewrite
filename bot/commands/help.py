@@ -23,14 +23,16 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         }
         super().__init__(command_attrs=command_attrs)
 
-    @staticmethod
-    def template(page: int, pref: str) -> discord.Embed:
+    def template(self, page: int, pref: str) -> discord.Embed:
         em: discord.Embed = discord.Embed(
-            title=f"{bot.user} command list",
-            description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help on a command, type `{pref}help <command>`.",
+            description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.\nCommands under development are not listed here, but you can still find their source code with `{pref}source <command>`.",
             color=0x2ECC71,
         )
-        em.set_thumbnail(url=bot.user.avatar.url)
+        em.set_author(
+            name=f"{bot.user} Command List",
+            icon_url=bot.user.avatar.url,
+        )
+        em.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
         em.set_footer(text=f"Current prefix: {pref} | Page {page}/4")
         return em
 
