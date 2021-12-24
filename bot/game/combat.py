@@ -119,6 +119,7 @@ async def battle(player: PT, enemy: CT) -> BattleResult:
     if status.is_dead():
         player = await player.isekai()
     else:
+        player.money += enemy.money
         leveled_up = player.gain_xp(enemy.exp)
         if leveled_up:
             player.hp = player.hp_max

@@ -109,11 +109,12 @@ class Student(_EarthPlayer):
         return 9999
 
 
-class God(_EarthCreature):
+class God(_EarthHomeCreature):
     name = "God"
     description = "An unknown god that appeared out of nowhere and told you to reincarnate into another world"
     display = "😇"
     exp = 9999999
+    money = 9999999
 
     @property
     def hp_max(self) -> int:

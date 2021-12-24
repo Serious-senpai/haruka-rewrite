@@ -297,15 +297,18 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         from .core import BaseWorld
         from .worlds.earth import EarthWorld
 
+        player: PT = await self.location.on_leaving(self)
+
         worlds: List[Type[WT]] = BaseWorld.__subclasses__()
         worlds.remove(EarthWorld)  # Imagine isekai back to earth
-        self.world = random.choice(worlds)
-        self.location = self.world.get_location(0)
-        self.state.update(travel=False, battle=False)
-        player: PT = await self.location.on_arrival(self)
+        player.world = random.choice(worlds)
+        player.location = player.world.get_location(0)
+        player.state.update(travel=False, battle=False)
+        player = await player.location.on_arrival(player)
         player.hp = -1  # A workaround way to set hp = hp_max
 
         await player.update()
+        await player.save(type=0)
         player.clear()
         return await player.from_user(player.user)
 

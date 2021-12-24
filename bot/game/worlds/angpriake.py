@@ -194,6 +194,7 @@ class Rabbit(_AngpriakeForestCreature):
     description = "Rabbits are common in the Angpriake forest. You can find them anywhere."
     display = "🐇"
     exp = 5
+    money = 5
 
     @property
     def hp_max(self) -> int:
@@ -229,6 +230,7 @@ class Eagle(_AngpriakeForestCreature):
     description = "A flying bird with high physical attack."
     display = "🦅"
     exp = 30
+    money = 20
 
     @property
     def hp_max(self) -> int:
@@ -267,6 +269,7 @@ class Elephant(_AngpriakeForestCreature):
     description = "A giant animal with great HP."
     display = "🐘"
     exp = 200
+    money = 300
 
     @property
     def hp_max(self) -> int:

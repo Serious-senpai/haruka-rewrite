@@ -319,11 +319,15 @@ class BaseCreature(Battleable):
     exp: :class:`int`
         The amount of experience points that the player can
         gain from defeating this creature
+    money: :class:`int`
+        The amount of credits that the player can gain from
+        defeating this creature
     """
     name: str
     description: str
     display: str
     exp: int
+    money: int
 
     def __init__(self) -> None:
         self.hp: int = self.hp_max
@@ -338,12 +342,14 @@ class BaseCreature(Battleable):
         embed.add_field(
             name="HP",
             value=self.hp_max,
-            inline=False,
         )
         embed.add_field(
             name="EXP per defeat",
             value=self.exp,
-            inline=False,
+        )
+        embed.add_field(
+            name="Money per defeat",
+            value=f"`💲{self.money}`",
         )
         embed = super().append_status(embed)
         embed.set_author(name="Creature Information")
