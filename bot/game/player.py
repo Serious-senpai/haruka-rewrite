@@ -327,10 +327,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         -----
         :class:`BasePlayer`
             The player after the operation, this may remain unchanged
-            (due to not passing check, for example)
+            (due to not passing checks, for example)
         """
         if not self.location.class_changable:
             await channel.send("You cannot change your class at this location!")
+            return self
 
         embed: discord.Embed = discord.Embed(
             description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!",
