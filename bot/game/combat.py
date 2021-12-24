@@ -116,11 +116,11 @@ async def battle(player: PT, enemy: CT) -> BattleResult:
     else:
         embed._footer["text"] += f" after {turn} turns!"
 
+    leveled_up: bool = False
     if status.is_dead():
         player = await player.isekai()
     else:
         desc: str
-        leveled_up: bool = False
         if random.random() < enemy.escape_rate:
             desc = f"{enemy.name} escaped, {player.name} received `5XP`!"
             leveled_up = player.gain_xp(5)
