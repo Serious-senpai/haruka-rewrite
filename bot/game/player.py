@@ -371,6 +371,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
         this player
+
+        Returns
+        -----
+        :class:`discord.Embed`
+            The created embed
         """
         embed: discord.Embed = discord.Embed(
             description=f"Lv.{self.level} (EXP {self.xp}/{EXP_SCALE * self.level})",

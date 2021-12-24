@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import random
+from typing import Any, Dict, Type
 
 import discord
 
@@ -8,6 +10,7 @@ import discord
 __all__ = (
     "Battleable",
     "ClassObject",
+    "JSONMetaObject",
 )
 
 
@@ -23,40 +26,13 @@ class ClassObject:
 class Battleable:
     """An ABC that implements common operations for an entity which can battle."""
 
-    @property
-    def hp_max(self) -> int:
-        """The maximum health point of the entity."""
-        raise NotImplementedError
-
-    @property
-    def physical_atk(self) -> int:
-        """The physical attack point of the entity."""
-        raise NotImplementedError
-
-    @property
-    def magical_atk(self) -> int:
-        """The magical attack point of the entity."""
-        raise NotImplementedError
-
-    @property
-    def physical_res(self) -> float:
-        """The percentage of reduced incoming physical damage (range 0 - 1)"""
-        raise NotImplementedError
-
-    @property
-    def magical_res(self) -> float:
-        """The percentage of reduced incoming magical damage (range 0 - 1)"""
-        raise NotImplementedError
-
-    @property
-    def crit_rate(self) -> float:
-        """The critical damage rate (range 0 - 1)"""
-        raise NotImplementedError
-
-    @property
-    def crit_dmg(self) -> float:
-        """The critical damage multiplier (initial damage is scaled to 1)"""
-        raise NotImplementedError
+    hp_max: int
+    physical_atk: int
+    magical_atk: int
+    physical_res: float
+    magical_res: float
+    crit_rate: float
+    crit_dmg: float
 
     def _criticalize(self, dmg: float) -> float:
         if random.random() < self.crit_rate:
@@ -152,3 +128,11 @@ class Battleable:
             value="{:.2f}%".format(100 * self.crit_dmg),
         )
         return embed
+
+
+class JSONMetaObject:
+    def __init_subclass__(cls: Type, /, meta: Dict[str, Dict[str, Any]], **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        data: Dict[str, Any] = meta[cls.__name__]
+        for key, value in data.items():
+            setattr(cls, key, value)

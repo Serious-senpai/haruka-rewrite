@@ -1,0 +1,87 @@
+{
+    "AngpriakeWorld": {
+        "name": "Angpriake",
+        "description": "The world dominated by the angels",
+        "id": 1
+    },
+    "Village": {
+        "name": "Village",
+        "description": "The village where you were born. You can earn `💲10`/h here",
+        "id": 0
+    },
+    "Church": {
+        "name": "Church",
+        "description": "The church near the village.\nYou can change your character's class here.",
+        "id": 1,
+        "level_limit": 10,
+        "class_changable": true
+    },
+    "CapitalCity": {
+        "name": "Capital City",
+        "description": "The capital city of the country. You can earn `💲20`/h here",
+        "id": 2,
+        "level_limit": 20
+    },
+    "Forest": {
+        "name": "Forest",
+        "description": "The forest near the village",
+        "id": 3
+    },
+    "Rabbit": {
+        "name": "Rabbit",
+        "description": "Rabbits are common in the Angpriake forest. You can find them anywhere.",
+        "display": "🐇",
+        "exp": 5,
+        "money": 5,
+        "hp_max": 20,
+        "physical_atk": 5,
+        "magical_atk": 0,
+        "physical_res": 0.7,
+        "magical_res": 0.0,
+        "crit_rate": 0.2,
+        "crit_dmg": 0.3
+    },
+    "Eagle": {
+        "name": "Eagle",
+        "description": "A flying bird with high physical attack.",
+        "display": "🦅",
+        "exp": 30,
+        "money": 20,
+        "hp_max": 30,
+        "physical_atk": 12,
+        "magical_atk": 0,
+        "physical_res": 0.3,
+        "magical_res": 0.3,
+        "crit_rate": 0.45,
+        "crit_dmg": 0.9
+    },
+    "Elephant": {
+        "name": "Elephant",
+        "description": "A giant animal with great HP.",
+        "display": "🐘",
+        "exp": 200,
+        "money": 300,
+        "hp_max": 100,
+        "physical_atk": 25,
+        "magical_atk": 0,
+        "physical_res": 0.7,
+        "magical_res": 0.5,
+        "crit_rate": 0.3,
+        "crit_dmg": 1.2
+    },
+    "Thief": {
+        "name": "Thief",
+        "description": "A thief lurking in the city.",
+        "display": "🥷",
+        "exp": 500,
+        "money": 500,
+        "escape_rate": 0.8,
+        "hp_max": 150,
+        "physical_atk": 25,
+        "magical_atk": 25,
+        "physical_res": 0.8,
+        "magical_res": 0.8,
+        "crit_rate": 0.85,
+        "crit_dmg": 2.5
+    }
+}
