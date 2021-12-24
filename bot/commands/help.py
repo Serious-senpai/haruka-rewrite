@@ -116,8 +116,8 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         cooldown: commands.CooldownMapping = command._buckets
         cooldown_notify: str = "**Cooldown**\nNo cooldown"
 
-        _cd_time: float = cooldown._cooldown.per
         if cooldown._cooldown:
+            _cd_time: float = cooldown._cooldown.per
             cooldown_notify = f"**Cooldown**\n{utils.format(_cd_time)} per {cooldown._type.name}"
 
         if command.name == "sfw":
