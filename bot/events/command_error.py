@@ -31,10 +31,7 @@ async def on_command_error(ctx: commands.Context, error: Exception):
             else:
                 return
 
-        await ctx.send(
-            f"⏱️ <@!{ctx.author.id}> This command is on cooldown!\nYou can use it after **{utils.format(error.retry_after)}**!",
-            delete_after=max(1.0, error.retry_after) if error.retry_after < 600 else None,
-        )
+        await ctx.send(f"⏱️ <@!{ctx.author.id}> This command is on cooldown!\nYou can use it after **{utils.format(error.retry_after)}**!")
 
         await asyncio.sleep(error.retry_after)
         COOLDOWN_NOTIFY[ctx.author.id][ctx.command.name] = False

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 import datetime
 import functools
@@ -8,7 +9,7 @@ import math
 import random
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
-from typing import Any, Callable, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Type, TypeVar, Union
 
 import asyncpg
 import discord
@@ -18,13 +19,14 @@ import emoji_ui
 import utils
 from .abc import Battleable, ClassObject
 from .combat import handler
-from .core import CT, LT, WT
+from .core import CT, LT, WT, MISSING
 
 
 __all__ = (
     "rpg_check",
     "BasePlayer",
     "BaseItem",
+    "PlayerCache",
 )
 
 
@@ -32,6 +34,34 @@ T = TypeVar("T")
 PT = TypeVar("PT", bound="BasePlayer")
 IT = TypeVar("IT", bound="BaseItem")
 EXP_SCALE: int = 4
+
+
+# These keys are inside player.state
+BATTLE_KEY: Literal["battle"] = "battle"
+TRAVEL_KEY: Literal["travel"] = "travel"
+TRAVEL_DESTINATION_KEY: Literal["travel_destination"] = "travel_destination"
+TRAVEL_CHANNEL_KEY: Literal["travel_channel_id"] = "travel_channel_id"
+
+
+class Event(asyncio.Event):
+    async def wait_for(self, predicate: Callable[..., bool], *args, **kwargs) -> None:
+        while not predicate(*args, **kwargs):
+            await asyncio.sleep(0)
+            self.clear()
+            await self.wait()
+
+
+class PlayerCache(dict):
+
+    event: Event = Event()
+
+    def __delitem__(self, id: int) -> None:
+        self[id] = None
+        self.event.set()
+
+    def __setitem__(self, k: int, v: Optional[Ellipsis]) -> None:
+        super().__setitem__(k, v)
+        self.event.set()
 
 
 class BattleContext(AbstractAsyncContextManager):
@@ -44,30 +74,12 @@ class BattleContext(AbstractAsyncContextManager):
         self.player: PT = player
 
     async def __aenter__(self) -> None:
-        self.player.state["battle"] = True
-        await self.player.save(state=True)
+        self.player.state[BATTLE_KEY] = True
+        await self.player.save(state=self.player.state)
 
     async def __aexit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
-        self.player.state["battle"] = False
-        await self.player.save(state=True)
-
-
-class TravelContext(AbstractAsyncContextManager):
-
-    __slots__ = (
-        "player",
-    )
-
-    def __init__(self, player: PT) -> None:
-        self.player: PT = player
-
-    async def __aenter__(self) -> None:
-        self.player.state["travel"] = True
-        await self.player.save(state=True)
-
-    async def __aexit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
-        self.player.state["travel"] = False
-        await self.player.save(state=True)
+        self.player.state[BATTLE_KEY] = False
+        await self.player.save(state=self.player.state)
 
 
 @dataclasses.dataclass(init=True, repr=True, order=False, frozen=False)
@@ -97,6 +109,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         The player's money
     items: List[:class:`BaseItem`]
         The player's items
+    travel: Optional[:class:`datetime.datetime`]
+        The datetime when the player will arrive at the destination if he is
+        traveling
     hp: :class:`int`
         The player's current health point
     state: Dict[:class:`str`, Any]
@@ -112,6 +127,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     money: int
     items: List[IT]
     hp: int
+    travel: Optional[datetime.datetime]
     state: Dict[str, Any]
 
     @property
@@ -128,12 +144,23 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     @property
     def client_user(self) -> discord.ClientUser:
+        """The bot user acquired from the internal
+        :class:`discord.state.ConnectionState`
+        """
         return self.user._state.user
 
     @classmethod
     @property
     def type_id(cls: Type[PT]) -> int:
         raise NotImplementedError
+
+    def traveling(self) -> bool:
+        """Whether the player is traveling"""
+        return self.state.get(TRAVEL_KEY, False)
+
+    def battling(self) -> bool:
+        """Whether the player is battling"""
+        return self.state.get(BATTLE_KEY, False)
 
     def calc_distance(self, destination: Type[LT]) -> float:
         """Calculate the moving distance between the player and
@@ -179,39 +206,31 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         if self.location.id == destination.id:
             return await channel.send(f"You have been in **{destination.name}** already!")
 
-        if self.state.get("travel", False):
+        if self.battling():
+            return await channel.send("Please complete your ongoing battle first!")
+
+        if self.traveling():
             return await channel.send("You have already been on a journey, please get to the destination first!")
 
-        async with self.prepare_travel():
-            distance: float = self.calc_distance(destination)
-            _dest_time: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
-            notify: discord.Message = await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
-            await discord.utils.sleep_until(_dest_time)
-            self.location = destination
-            await self.update()
-
-            try:
-                await notify.edit(f"<@!{self.id}> arrived at **{destination.name}**")
-            except discord.HTTPException:
-                pass
-
-        for event in self.world.events:
-            if event.location.id == self.location.id:
-                if random.random() < event.rate:
-                    await event.run(channel, self)
-
-    def prepare_travel(self) -> TravelContext:
-        return TravelContext(self)
+        distance: float = self.calc_distance(destination)
+        self.travel = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
+        self.state[TRAVEL_KEY] = True
+        self.state[TRAVEL_DESTINATION_KEY] = destination.id
+        self.state[TRAVEL_CHANNEL_KEY] = channel.id
+        self = await self.location.on_leaving(self)
+        await self.update()
+        await channel.send(f"Travelling to **{destination.name}**... You will arrive after {utils.format(distance)}")
+        self.user._state.task.travel.restart()
 
     def prepare_battle(self) -> BattleContext:
         return BattleContext(self)
 
     async def battle(self, channel: discord.TextChannel) -> PT:
-        if self.state.get("travel", False):
-            return await channel.send("You are currently travelling, cannot initiate battle!")
-
-        if self.state.get("battle", False):
+        if self.battling():
             return await channel.send("Please complete your ongoing battle first!")
+
+        if self.traveling():
+            return await channel.send("You are currently travelling, cannot initiate battle!")
 
         if not self.location.creatures:
             return await channel.send("The current location has no enemy to battle")
@@ -222,20 +241,23 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             embed: discord.Embed = enemy.create_embed()
             embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
             message: discord.Message = await channel.send("Do you want to fight this opponent?", embed=embed)
+
             display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
+            self.release()
             choice: Optional[bool] = await display.listen(self.id)
+            player: PT = await self.from_user(self.user)
 
             if choice is None:
-                return self
+                return player
 
             if not choice:
                 await channel.send("Retreated")
-                return self
+                return player
 
-            return await handler(channel, player=self, enemy=enemy)
+            return await handler(channel, player=player, enemy=enemy)
 
     async def leveled_up_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
-        return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**. HP was fully recovered.", **kwargs)
+        return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**.\nHP was fully recovered.", **kwargs)
 
     async def isekai_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
         return await target.send(f"<@!{self.id}> was killed and reincarnated to **{self.world.name}**", **kwargs)
@@ -276,19 +298,75 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         from .core import BaseWorld
         from .worlds.earth import EarthWorld
 
+        player: PT = await self.location.on_leaving(self)
+
         worlds: List[Type[WT]] = BaseWorld.__subclasses__()
         worlds.remove(EarthWorld)  # Imagine isekai back to earth
-        world: Type[WT] = random.choice(worlds)
+        player.world = random.choice(worlds)
+        player.location = player.world.get_location(0)
+        player.state.update(travel=False, battle=False)
+        player = await player.location.on_arrival(player)
+        player.hp = -1  # A workaround way to set hp = hp_max
 
-        self.world = world
-        self.location = world.get_location(0)
-        self.hp = -1  # A workaround way to set hp = hp_max
+        await player.update()
+        await player.save(type=0)
+        player.release()
+        return await player.from_user(player.user)
 
-        self.state["travel"] = False
-        self.state["battle"] = False
+    async def change_class(self, channel: discord.TextChannel) -> PT:
+        """This function is a coroutine
 
-        await self.update(isekai=True)
-        return await self.from_user(self.user)
+        Change the class of this player
+
+        Parameters
+        -----
+        channel: :class:`discord.TextChannel`
+            The channel to interact with
+
+        Returns
+        -----
+        :class:`BasePlayer`
+            The player after the operation, this may remain unchanged
+            (due to not passing check, for example)
+        """
+        if not self.location.class_changable:
+            await channel.send("You cannot change your class at this location!")
+
+        embed: discord.Embed = discord.Embed(
+            description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!",
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.set_author(
+            name="Class changing",
+            icon_url=self.client_user.avatar.url,
+        )
+        embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
+        message: discord.Message = await channel.send(embed=embed)
+        display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
+
+        self.release()
+        choice: Optional[bool] = await display.listen(self.user.id)
+        player = await self.from_user(self.user)
+        if choice is None:
+            return player
+
+        if choice:
+            if player.money < 1000:
+                await channel.send("You do not have enough money!")
+                return player
+
+            _type: Type[PT] = random.choice(self.world.ptypes)
+            while _type.type_id == 0:
+                _type = random.choice(self.world.ptypes)
+            await player.save(
+                money=player.money - 1000,
+                type=_type.type_id,
+                hp=-1,
+            )
+            await channel.send(f"Your new class is **{_type.__name__}**!")
+            player.release()
+            return await BasePlayer.from_user(player.user)
 
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
@@ -328,7 +406,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     def map_world(self) -> discord.Embed:
         """Create an embed represents basic information about
-        the player's world
+        the player's world.
+
+        Returns
+        -----
+        :class:`discord.Embed`
+            The created embed
         """
         embed: discord.Embed = discord.Embed(
             title=self.world.name,
@@ -346,7 +429,29 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         )
         embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
         embed.set_author(
-            name="World Information",
+            name="You are currently in",
+            icon_url=self.client_user.avatar.url,
+        )
+        return embed
+
+    def map_location(self, location: Type[LT]) -> discord.Embed:
+        """Create an embed represents basic information about
+        a location.
+
+        Parameters
+        -----
+        location: Type[:class:`BaseLocation`]
+            The location to create an embed for
+
+        Returns
+        -----
+        :class:`discord.Embed`
+            The created embed
+        """
+        embed: discord.Embed = location.create_embed()
+        embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
+        embed.set_author(
+            name="Location information",
             icon_url=self.client_user.avatar.url,
         )
         return embed
@@ -363,95 +468,118 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     # Save and load operations
 
-    async def update(self, *, isekai: bool = False) -> None:
+    def release(self) -> None:
+        """Release control of this player instance,
+        it should not be called afterwards.
+        """
+        cache: PlayerCache = self.user._state.players
+        cache[self.id] = None
+
+    def __del__(self) -> None:
+        self.release()
+
+    async def update(self) -> None:
+        """This function is a coroutine
+
+        Save the instance attributes to the database.
+        """
         await self.save(
-            isekai=isekai,
-            description=True,
-            world=True,
-            location=True,
-            type=True,
-            level=True,
-            xp=True,
-            money=True,
-            items=True,
-            hp=True,
-            state=True,
+            description=self.description,
+            world=self.world,
+            location=self.location,
+            type=self.type_id,
+            level=self.level,
+            xp=self.xp,
+            money=self.money,
+            items=self.items,
+            hp=self.hp,
+            travel=self.travel,
+            state=self.state,
         )
 
-    async def save(
-        self,
-        *,
-        isekai: bool = False,
-        **kwargs,
-    ) -> None:
+    async def save(self, **kwargs) -> None:
         """This function is a coroutine
 
         Save this player's data to the database.
 
         Parameters
         -----
-        isekai: :class:`bool`
-            Whether to set type_id back to ``0``, default to ``False``
         **kwargs:
             The attributes to save
         """
+        if not kwargs:
+            return
+
         counter: int = 0
         updates: List[str] = []
         args: List[Any] = []
         conn: Union[asyncpg.Connection, asyncpg.Pool] = self.user._state.conn
 
-        if kwargs.pop("description", None):
+        description: Optional[str] = kwargs.pop("description", MISSING)
+        if description is not MISSING:
             counter += 1
             updates.append(f"description = ${counter}")
-            args.append(self.description)
+            args.append(description)
 
-        if kwargs.pop("world", None):
+        world: Optional[Type[WT]] = kwargs.pop("world", MISSING)
+        if world is not MISSING:
             counter += 1
             updates.append(f"world = ${counter}")
-            args.append(self.world.id)
+            args.append(world.id)
 
-        if kwargs.pop("location", None):
+        location: Optional[Type[LT]] = kwargs.pop("location", MISSING)
+        if location is not MISSING:
             counter += 1
             updates.append(f"location = ${counter}")
-            args.append(self.location.id)
+            args.append(location.id)
 
-        if isekai:
-            updates.append("type = 0")
-            kwargs.pop("type", None)
-        elif kwargs.pop("type", None):
+        type_id: Optional[int] = kwargs.pop("type", MISSING)
+        if type_id is not MISSING:
             counter += 1
             updates.append(f"type = ${counter}")
-            args.append(self.type_id)
+            args.append(type_id)
 
-        if kwargs.pop("level", None):
+        level: Optional[int] = kwargs.pop("level", MISSING)
+        if level is not MISSING:
             counter += 1
             updates.append(f"level = ${counter}")
-            args.append(self.level)
+            args.append(level)
 
-        if kwargs.pop("xp", None):
+        xp: Optional[int] = kwargs.pop("xp", MISSING)
+        if xp is not MISSING:
             counter += 1
             updates.append(f"xp = ${counter}")
-            args.append(self.xp)
-    
-        if kwargs.pop("money", None):
+            args.append(xp)
+
+        money: Optional[int] = kwargs.pop("money", MISSING)
+        if money is not MISSING:
             counter += 1
             updates.append(f"money = ${counter}")
-            args.append(self.money)
+            args.append(money)
 
-        if kwargs.pop("items", None):
+        items: List[Type[IT]] = kwargs.pop("items", MISSING)
+        if items is not MISSING:
             counter += 1
             updates.append(f"items = ${counter}")
-            args.append([item.id for item in self.items])
+            args.append([item.id for item in items])
 
-        if kwargs.pop("hp", None):
+        hp: Optional[int] = kwargs.pop("hp", MISSING)
+        if hp is not MISSING:
             counter += 1
             updates.append(f"hp = ${counter}")
-            args.append(self.hp)
+            args.append(hp)
 
-        if kwargs.pop("state", None):
+        travel: Optional[datetime.datetime] = kwargs.pop("travel", MISSING)
+        if travel is not MISSING:
+            counter += 1
+            updates.append(f"travel = ${counter}")
+            args.append(travel)
+
+        state: Optional[Dict[str, Any]] = kwargs.pop("state", MISSING)
+        if state is not MISSING:
             counter += 1
             updates.append(f"state = ${counter}")
-            args.append(json.dumps(self.state))
+            args.append(json.dumps(state))
 
         if kwargs:
             raise ValueError("Unrecognized attributes: " + ", ".join(kwargs.keys()))
@@ -468,7 +596,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     async def from_user(cls: Type[PT], user: discord.User) -> Optional[PT]:
         """This function is a coroutine
 
-        Get a player object from a Discord user
+        Get a player object from a Discord user.
 
         Parameters
         -----
@@ -482,9 +610,14 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         """
         from .core import BaseWorld
 
+        cache: PlayerCache = user._state.players
+        await cache.event.wait_for(lambda: cache.get(user.id) is None)
+        cache[user.id] = ...  # Must be a non-None object (act as a placeholder)
+
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
         row: asyncpg.Record = await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';")
         if not row:
+            cache[user.id] = None
             return
 
         world: Type[WT] = BaseWorld.from_id(row["world"])
@@ -501,10 +634,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             money=row["money"],
             items=[BaseItem.from_id(item_id) for item_id in row["items"]],
             hp=row["hp"],
+            travel=row["travel"],
             state=json.loads(row["state"]),
         )
         if player.hp == -1:
             player.hp = player.hp_max
+
         return player
 
     @classmethod
@@ -534,7 +669,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         await conn.execute(
             f"INSERT INTO rpg \
-            VALUES ('{user.id}', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10);",
+            VALUES ('{user.id}', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);",
             "A new player",  # description
             0,  # world
             1,  # location
@@ -544,6 +679,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             50,  # money
             [],  # items
             -1,  # hp
+            None,  # travel
             json.dumps({"display": "🧍"}),  # state
         )
         return await cls.from_user(user)

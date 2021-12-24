@@ -374,5 +374,10 @@ class YesNoSelection(EmojiUI):
             await self.timeout()
             return
         else:
+            try:
+                await self.message.delete()
+            except discord.HTTPException:
+                pass
+
             choice: int = self.allowed_emojis.index(str(payload.emoji))
             return choice == 1

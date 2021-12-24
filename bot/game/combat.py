@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import random
 from typing import NamedTuple, Tuple, TYPE_CHECKING
 
 import discord
@@ -26,6 +27,25 @@ class BattleResult(NamedTuple):
     player: PT
     status: BattleStatus
     leveled_up: bool
+
+    async def send(self, target: discord.TextChannel) -> None:
+        """This function is a coroutine
+
+        Send the battle result to a :class:`discord.TextChannel`
+
+        Parameters
+        -----
+        target: :class:`discord.TextChannel`
+            The target channel
+        """
+        embed, player, status, leveled_up = self
+
+        if status.is_dead():
+            await player.isekai_notify(target, embed=embed)
+        elif leveled_up:
+            await player.leveled_up_notify(target, embed=embed)
+        else:
+            await target.send(embed=embed)
 
 
 async def battle(player: PT, enemy: CT) -> BattleResult:
@@ -96,14 +116,22 @@ async def battle(player: PT, enemy: CT) -> BattleResult:
     else:
         embed._footer["text"] += f" after {turn} turns!"
 
-    leveled_up: bool = False
     if status.is_dead():
         player = await player.isekai()
     else:
-        leveled_up = player.gain_xp(enemy.exp)
-        if leveled_up:
-            player.hp = player.hp_max
+        desc: str
+        leveled_up: bool = False
+        if random.random() < enemy.escape_rate:
+            desc = f"{enemy.name} escaped, {player.name} received `5XP`!"
+            leveled_up = player.gain_xp(5)
+        else:
+            player.money += enemy.money
+            leveled_up = player.gain_xp(enemy.exp)
+            if leveled_up:
+                player.hp = player.hp_max
+            desc = f"{player.name} received `💲{enemy.money}` and `{enemy.exp}XP`!"
         await player.update()
+        embed.description = desc
 
     return BattleResult(embed, player, status, leveled_up)
 
@@ -111,16 +139,9 @@ async def battle(player: PT, enemy: CT) -> BattleResult:
 async def handler(target: discord.TextChannel, *, player: PT, enemy: CT) -> PT:
     """This function is a coroutine
 
-    A higher level function than :func:`battle` that handles
-    the battle results.
+    A high-level function than handles the battle results
+    for you.
     """
-    embed, player, status, leveled_up = await battle(player, enemy)
-
-    if status.is_dead():
-        await player.isekai_notify(target, embed=embed)
-    elif leveled_up:
-        await player.leveled_up_notify(target, embed=embed)
-    else:
-        await target.send(embed=embed)
-
-    return player
+    result: BattleResult = await battle(player, enemy)
+    await result.send(target)
+    return result.player

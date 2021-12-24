@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 from typing import (
     Any,
@@ -160,6 +161,8 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
     level_limit: :class:`int`
         The minimum level for the player to get access to
         this location, default to ``0`` and can be overriden
+    class_changable: :class:`bool`
+        Whether players can change their class at this location
     """
 
     name: str
@@ -169,6 +172,7 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
     coordination: Coordination
     creature: Type[CT]
     level_limit: int = 0
+    class_changable: bool = False
 
     @classmethod
     @property
@@ -194,6 +198,41 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
             ``None`` if not found
         """
         return world.get_location(id)
+
+    @classmethod
+    async def on_leaving(cls: Type[LT], player: PT) -> PT:
+        return player
+
+    @classmethod
+    async def on_arrival(cls: Type[LT], player: PT) -> PT:
+        return player
+
+    @classmethod
+    def create_embed(cls: Type[LT]) -> discord.Embed:
+        embed: discord.Embed = discord.Embed(
+            title=cls.name,
+            description=cls.description,
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.add_field(
+            name="Location ID",
+            value=f"`ID {cls.id}`",
+        )
+        embed.add_field(
+            name="Coordination",
+            value=f"x = {cls.coordination.x}\ny = {cls.coordination.y}",
+        )
+        embed.add_field(
+            name="Creatures",
+            value=", ".join(creature.name for creature in cls.creatures) or "*None*",
+            inline=False,
+        )
+        embed.add_field(
+            name="Level restriction",
+            value=f"`Lv.{cls.level_limit}`",
+        )
+        return embed
 
 
 class BaseEvent(ClassObject, Generic[LT]):
@@ -226,21 +265,28 @@ class BaseEvent(ClassObject, Generic[LT]):
     @classmethod
     async def run(
         cls: Type[ET],
-        target: discord.TextChannel,
+        target: discord.PartialMessageable,
         player: PT,
-    ) -> Any:
+    ) -> PT:
         """This function is a coroutine
 
         This is called when the event happens to a player
 
         Parameters
         -----
-        target: :class:`discord.TextChannel`
+        target: :class:`discord.PartialMessageable`
             The target Discord channel to send messages to
         player: :class:`BasePlayer`
             The player that encounters the event
+
+        Returns
+        -----
+        :class:`BasePlayer`
+            The player after the event
         """
-        raise NotImplementedError
+        with contextlib.suppress(discord.HTTPException):
+            await target.send(embed=cls.create_embed(player))
+        return player
 
     @classmethod
     def create_embed(cls: Type[ET], player: PT) -> discord.Embed:
@@ -273,11 +319,19 @@ class BaseCreature(Battleable):
     exp: :class:`int`
         The amount of experience points that the player can
         gain from defeating this creature
+    money: :class:`int`
+        The amount of credits that the player can gain from
+        defeating this creature
+    escape_rate: :class:`float`
+        The rate at which this creature can escape after
+        being defeated
     """
     name: str
     description: str
     display: str
     exp: int
+    money: int
+    escape_rate: float = 0.0
 
     def __init__(self) -> None:
         self.hp: int = self.hp_max
@@ -292,12 +346,14 @@ class BaseCreature(Battleable):
         embed.add_field(
             name="HP",
             value=self.hp_max,
-            inline=False,
         )
         embed.add_field(
             name="EXP per defeat",
             value=self.exp,
-            inline=False,
+        )
+        embed.add_field(
+            name="Money per defeat",
+            value=f"`💲{self.money}`",
         )
         embed = super().append_status(embed)
         embed.set_author(name="Creature Information")

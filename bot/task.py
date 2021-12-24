@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import asyncio
+import random
+import traceback
 from typing import Any, List, Optional
 
 import asyncpg
 import discord
 from discord.ext import tasks
 
+import game
 import haruka
+from game.core import PT
 
 
 class Task:
@@ -36,6 +40,13 @@ class Task:
     async def prepare(self) -> None:
         await self.bot.wait_until_ready()
 
+    @run.error
+    async def _error_handler(self, *args) -> None:
+        exc: Exception = args[-1]
+        self.bot.log(f"Exception occured in module 'task': {self.__class__.__name__}")
+        self.bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))
+        await self.bot.report("An exception has just occurred in the `task` module", send_state=False)
+
     async def cleanup(self) -> Any:
         return
 
@@ -48,7 +59,7 @@ class ReminderTask(Task):
     @tasks.loop()
     async def run(self) -> None:
         asyncio.current_task().set_name("ReminderTask")
-        row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM remind ORDER BY time;")
+        row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM remind ORDER BY time LIMIT 1;")
         if not row:
             await asyncio.sleep(3600)
             return
@@ -93,7 +104,7 @@ class UnmuteTask(Task):
     @tasks.loop()
     async def run(self) -> None:
         asyncio.current_task().set_name("UnmuteTask")
-        row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM muted ORDER BY time;")
+        row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM muted ORDER BY time LIMIT 1;")
         if not row:
             await asyncio.sleep(3600)
             return
@@ -156,6 +167,52 @@ class UnmuteTask(Task):
         )
 
 
+class TravelTask(Task):
+    ignores: List[str] = []
+
+    @tasks.loop()
+    async def run(self) -> None:
+        asyncio.current_task().set_name("TravelTask")
+        row: Optional[asyncpg.Record] = await self.conn.fetchrow(
+            "SELECT * FROM rpg \
+            WHERE NOT id = ANY($1::text[]) \
+            ORDER BY travel NULLS LAST \
+            LIMIT 1;",
+            self.ignores,
+        )
+        if row is None or row["travel"] is None:
+            await asyncio.sleep(3600)
+            return
+
+        await discord.utils.sleep_until(row["travel"])
+        try:
+            player: Optional[PT] = None
+            id: str = row["id"]
+            user: discord.User = await self.bot.fetch_user(id)  # Union[str, int]
+        except discord.HTTPException:
+            self.bot.log("Warning in TravelTask (most likely the user was deleted):")
+            self.bot.log(traceback.format_exc())
+            self.ignores.append(id)
+        else:
+            player = await game.BasePlayer.from_user(user)
+            player.state[game.player.TRAVEL_KEY] = False
+            player.travel = None
+            player.location = player.world.get_location(player.state[game.player.TRAVEL_DESTINATION_KEY])
+            channel: discord.PartialMessageable = self.bot.get_partial_messageable(player.state[game.player.TRAVEL_CHANNEL_KEY], type=discord.TextChannel)
+
+            await channel.send(f"<@!{player.id}> arrived at **{player.location.name}**", embed=player.map_location(player.location))
+            await player.update()
+            player = await player.location.on_arrival(player)
+            for event in player.world.events:
+                if event.location.id == player.location.id:
+                    if random.random() < event.rate:
+                        player = await event.run(channel, player)
+
+        finally:
+            if player:
+                await player.update()
+
+
 class TaskManager:
     """Represents the object that is
     responsible for managing all Tasks.
@@ -173,12 +230,14 @@ class TaskManager:
         "bot",
         "remind",
         "unmute",
+        "travel",
     )
 
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot: haruka.Haruka = bot
         self.remind: ReminderTask = ReminderTask(self)
         self.unmute: UnmuteTask = UnmuteTask(self)
+        self.travel: TravelTask = TravelTask(self)
 
     @property
     def conn(self) -> asyncpg.Pool:

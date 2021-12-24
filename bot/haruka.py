@@ -7,6 +7,7 @@ import traceback
 from typing import Any, Deque, Dict, List, Optional
 
 import aiohttp
+import asyncpg
 import discord
 import topgg
 from discord.ext import commands, tasks
@@ -46,24 +47,21 @@ class Haruka(SlashMixin, commands.Bot):
         self._slash_command_count: Dict[str, List[discord.Interaction]] = {}
 
     async def start(self) -> None:
-        # Handle SIGTERM signal from Heroku
-        signal.signal(signal.SIGTERM, self.kill)
-
-        # Setup logging file
-        self.logfile = open("./log.txt", "a", encoding="utf-8")
-
-        # Connect to database
         import database
+        import game
 
+        self.logfile = open("./log.txt", "a", encoding="utf-8")
+        signal.signal(signal.SIGTERM, self.kill)
         async with database.Database(self, self.DATABASE_URL) as self.conn:
-            # Attach database connection pool to ConnectionState
             self._connection.conn = self.conn
 
-            # Initialize state
             asyncio.current_task().set_name("Haruka main task")
             self.session: aiohttp.ClientSession = aiohttp.ClientSession()
             self.loop.create_task(self.startup())
             self.uptime: datetime.datetime = datetime.datetime.now()
+
+            self.players: game.PlayerCache = game.PlayerCache()
+            self._connection.players = self.players
 
             # Start the bot
             await super().start(self.TOKEN)
@@ -80,6 +78,7 @@ class Haruka(SlashMixin, commands.Bot):
             image.Asuna,
         )
         self.task: task.TaskManager = task.TaskManager(self)
+        self._connection.task = self.task
         self.log("Loaded all external sources.")
 
     def log(self, content: Any) -> None:
@@ -87,8 +86,12 @@ class Haruka(SlashMixin, commands.Bot):
         self.logfile.write(f"HARUKA | {content}\n")
 
     async def startup(self) -> None:
-        # Get bot owner
         await self.wait_until_ready()
+
+        import game
+        from game.core import PT
+
+        # Get bot owner
         app_info: discord.AppInfo = await self.application_info()
         if app_info.team:
             self.owner_id: int = app_info.team.owner_id
@@ -109,6 +112,17 @@ class Haruka(SlashMixin, commands.Bot):
 
         self._get_external_source()
         self.loop.create_task(self.overwrite_slash_commands())  # Ignore exceptions
+
+        # Schedule all on_arrival tasks for RPG players
+        rows: List[asyncpg.Record] = await self.conn.fetch("SELECT * FROM rpg;")
+        user: discord.User
+        player: PT
+        for row in rows:
+            user = await self.fetch_user(row["id"])  # Union[str, int]
+            player = await game.BasePlayer.from_user(user)
+            self.loop.create_task(player.location.on_arrival(player))
+            player.release()
+            await asyncio.sleep(0.1)
 
         # Keep the server alive
         try:

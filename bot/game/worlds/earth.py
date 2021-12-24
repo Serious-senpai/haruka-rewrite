@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from typing import Type, TypeVar
 
 import discord
 
-from ..combat import handler
+from ..combat import BattleResult, battle
 from ..core import (
     BaseWorld,
     BaseLocation,
@@ -108,11 +109,12 @@ class Student(_EarthPlayer):
         return 9999
 
 
-class God(_EarthCreature):
+class God(_EarthHomeCreature):
     name = "God"
     description = "An unknown god that appeared out of nowhere and told you to reincarnate into another world"
     display = "😇"
     exp = 9999999
+    money = 9999999
 
     @property
     def hp_max(self) -> int:
@@ -152,11 +154,17 @@ class IsekaiEvent(_EarthEvent):
     @classmethod
     async def run(
         cls: Type[IsekaiEvent],
-        target: discord.TextChannel,
+        target: discord.PartialMessageable,
         player: PT,
-    ) -> None:
+    ) -> PT:
         async with player.prepare_battle():
-            await target.send(embed=cls.create_embed(player))
-            async with target.typing():
-                await asyncio.sleep(2.0)
-                await handler(target, player=player, enemy=God())
+            await super().run(target, player)
+
+            result: BattleResult = await battle(player, God())
+            with contextlib.suppress(discord.HTTPException):
+                async with target.typing():
+                    await asyncio.sleep(2.0)
+                    await result.send(target)
+
+            player.release()
+            return await player.from_user(player.user)
