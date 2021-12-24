@@ -161,6 +161,8 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
     level_limit: :class:`int`
         The minimum level for the player to get access to
         this location, default to ``0`` and can be overriden
+    class_changable: :class:`bool`
+        Whether players can change their class at this location
     """
 
     name: str
@@ -170,6 +172,7 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
     coordination: Coordination
     creature: Type[CT]
     level_limit: int = 0
+    class_changable: bool = False
 
     @classmethod
     @property

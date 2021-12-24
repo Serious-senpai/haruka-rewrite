@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import random
-from typing import Dict, Optional, Type, TypeVar
+from typing import Dict, Type, TypeVar
 
 import asyncpg
-import discord
 
-import emoji_ui
 from ..abc import Battleable
 from ..core import (
     BaseWorld,
@@ -100,6 +97,7 @@ class Church(_AngpriakeLocation):
     coordination = Coordination(x=50, y=50)
     creature = _AngpriakeChurchCreature
     level_limit = 10
+    class_changable = True
 
 
 class CapitalCity(_AngpriakeLocation):
@@ -300,52 +298,3 @@ class Elephant(_AngpriakeForestCreature):
 
     def attack(self, target: Battleable) -> int:
         return self.physical_attack(target)
-
-
-class ClassChangeEvent(_AngpriakeEvent):
-    name = "Class changing"
-    description = "You can change your character's class anytime you go here"
-    location = Church
-    rate = 1.0
-
-    @classmethod
-    async def run(
-        cls: Type[ClassChangeEvent],
-        target: discord.PartialMessageable,
-        player: PT,
-    ) -> PT:
-        await super().run(target, player)
-        embed: discord.Embed = discord.Embed(
-            description=f"Do you want to change your class for `💲1000`?\nYour new class will be picked *randomly*!",
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
-        )
-        embed.set_author(
-            name="Class changing",
-            icon_url=player.client_user.avatar.url,
-        )
-        embed.set_thumbnail(url=player.user.avatar.url if player.user.avatar else discord.Embed.Empty)
-        message: discord.Message = await target.send(embed=embed)
-        display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
-
-        player.clear()
-        choice: Optional[bool] = await display.listen(player.user.id)
-        player = await BasePlayer.from_user(player.user)
-        if choice is None:
-            return player
-
-        if choice:
-            if player.money < 1000:
-                await target.send("You do not have enough money!")
-                return player
-
-            _type: Type[APT] = random.choice(_AngpriakeWorld.ptypes)
-            while _type == Villager:
-                _type = random.choice(_AngpriakeWorld.ptypes)
-            await player.save(
-                money=player.money - 1000,
-                type=_type.id,
-            )
-            await target.send(f"Your new class is **{_type.__name__}**!")
-            player.clear()
-            return await BasePlayer.from_user(player.user)

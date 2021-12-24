@@ -309,6 +309,61 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         player.clear()
         return await player.from_user(player.user)
 
+    async def change_class(self, channel: discord.TextChannel) -> PT:
+        """This function is a coroutine
+
+        Change the class of this player
+
+        Parameters
+        -----
+        channel: :class:`discord.TextChannel`
+            The channel to interact with
+
+        Returns
+        -----
+        :class:`BasePlayer`
+            The player after the operation, this may remain unchanged
+            (due to not passing check, for example)
+        """
+        if not self.location.class_changable:
+            await channel.send("You cannot change your class at this location!")
+
+        embed: discord.Embed = discord.Embed(
+            description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!",
+            color=0x2ECC71,
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.set_author(
+            name="Class changing",
+            icon_url=self.client_user.avatar.url,
+        )
+        embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
+        message: discord.Message = await channel.send(embed=embed)
+        display: emoji_ui.YesNoSelection = emoji_ui.YesNoSelection(message)
+
+        self.clear()
+        choice: Optional[bool] = await display.listen(self.user.id)
+        player = await self.from_user(self.user)
+        if choice is None:
+            return player
+
+        if choice:
+            if player.money < 1000:
+                await channel.send("You do not have enough money!")
+                return player
+
+            _type: Type[PT] = random.choice(self.world.ptypes)
+            while _type.type_id == 0:
+                _type = random.choice(self.world.ptypes)
+            await player.save(
+                money=player.money - 1000,
+                type=_type.type_id,
+                hp=-1,
+            )
+            await channel.send(f"Your new class is **{_type.__name__}**!")
+            player.clear()
+            return await BasePlayer.from_user(player.user)
+
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
         this player
