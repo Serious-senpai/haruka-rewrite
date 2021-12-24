@@ -23,12 +23,14 @@ __all__ = (
     "Church",
     "CapitalCity",
     "Forest",
-    "Villager",
-    "Warrior",
+    "Duck",
     "Rabbit",
     "Eagle",
     "Elephant",
     "Thief",
+    "Villager",
+    "Warrior",
+    "Mage",
 )
 
 
@@ -116,6 +118,9 @@ class Forest(_AngpriakeLocation, JSONMetaObject, meta=meta):
     creature = _AngpriakeForestCreature
 
 
+class Duck(_AngpriakeForestCreature, JSONMetaObject, meta=meta): ...
+
+
 class Rabbit(_AngpriakeForestCreature, JSONMetaObject, meta=meta): ...
 
 
@@ -200,3 +205,44 @@ class Warrior(_AngpriakePlayer):
     @property
     def crit_dmg(self) -> float:
         return 0.8
+
+    def attack(self, target: Battleable) -> int:
+        return self.physical_attack(target)
+
+
+class Mage(_AngpriakePlayer):
+    @classmethod
+    @property
+    def type_id(self) -> int:
+        return 2
+
+    @property
+    def hp_max(self) -> int:
+        return 150 + 2 * self.level
+
+    @property
+    def physical_atk(self) -> int:
+        return 0
+
+    @property
+    def magical_atk(self) -> int:
+        return 15 + 3 * self.level
+
+    @property
+    def physical_res(self) -> float:
+        return self.level / (self.level + 5)
+
+    @property
+    def magical_res(self) -> float:
+        return self.level / (self.level + 5)
+
+    @property
+    def crit_rate(self) -> float:
+        return 0.5
+
+    @property
+    def crit_dmg(self) -> float:
+        return 0.8
+
+    def attack(self, target: Battleable) -> int:
+        return self.magical_attack(target)

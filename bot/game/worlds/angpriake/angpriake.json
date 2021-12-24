@@ -27,6 +27,20 @@
         "description": "The forest near the village",
         "id": 3
     },
+    "Duck": {
+        "name": "Duck",
+        "description": "A harmless animal.",
+        "display": "🦆",
+        "exp": 2,
+        "money": 2,
+        "hp_max": 20,
+        "physical_atk": 0,
+        "magical_atk": 0,
+        "physical_res": 0.0,
+        "magical_res": 0.0,
+        "crit_rate": 0.0,
+        "crit_dmg": 0.0
+    },
     "Rabbit": {
         "name": "Rabbit",
         "description": "Rabbits are common in the Angpriake forest. You can find them anywhere.",
@@ -36,7 +50,7 @@
         "hp_max": 20,
         "physical_atk": 5,
         "magical_atk": 0,
-        "physical_res": 0.7,
+        "physical_res": 0.0,
         "magical_res": 0.0,
         "crit_rate": 0.2,
         "crit_dmg": 0.3
