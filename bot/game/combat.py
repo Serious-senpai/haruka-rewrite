@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import random
 from typing import NamedTuple, Tuple, TYPE_CHECKING
 
 import discord
@@ -115,15 +116,22 @@ async def battle(player: PT, enemy: CT) -> BattleResult:
     else:
         embed._footer["text"] += f" after {turn} turns!"
 
-    leveled_up: bool = False
     if status.is_dead():
         player = await player.isekai()
     else:
-        player.money += enemy.money
-        leveled_up = player.gain_xp(enemy.exp)
-        if leveled_up:
-            player.hp = player.hp_max
+        desc: str
+        leveled_up: bool = False
+        if random.random() < enemy.escape_rate:
+            desc = f"{enemy.name} escaped, {player.name} received `5XP`!"
+            leveled_up = player.gain_xp(5)
+        else:
+            player.money += enemy.money
+            leveled_up = player.gain_xp(enemy.exp)
+            if leveled_up:
+                player.hp = player.hp_max
+            desc = f"{player.name} received `💲{enemy.money}` and `{enemy.exp}XP`!"
         await player.update()
+        embed.description = desc
 
     return BattleResult(embed, player, status, leveled_up)
 

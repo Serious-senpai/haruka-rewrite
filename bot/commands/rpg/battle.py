@@ -12,7 +12,7 @@ from game.core import PT
 )
 @utils.testing()
 @game.rpg_check()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 10, commands.BucketType.user)
 async def _battle_cmd(ctx: commands.Context):
     player: PT = await game.BasePlayer.from_user(ctx.author)
     await player.battle(ctx.channel)

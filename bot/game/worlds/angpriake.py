@@ -102,12 +102,29 @@ class Church(_AngpriakeLocation):
 
 class CapitalCity(_AngpriakeLocation):
     name = "Capital City"
-    description = "The capital city of the country"
+    description = "The capital city of the country. You can earn `💲20`/h here"
     id = 2
     world = AngpriakeWorld
     coordination = Coordination(x=500, y=600)
     creature = _AngpriakeCapitalCityCreature
     level_limit = 20
+
+    tasks: Dict[int, asyncio.Task] = {}
+
+    @classmethod
+    async def _stonks(cls: Type[Village], conn: asyncpg.Pool, id: int) -> None:
+        while await asyncio.sleep(180, True):
+            await conn.execute(f"UPDATE rpg SET money = money + 1 WHERE id = '{id}';")
+
+    @classmethod
+    async def on_leaving(cls: Type[Village], player: PT) -> PT:
+        cls.tasks[player.id].cancel()
+        return player
+
+    @classmethod
+    async def on_arrival(cls: Type[Village], player: PT) -> PT:
+        cls.tasks[player.id] = asyncio.create_task(cls._stonks(player.user._state.conn, player.id))
+        return player
 
 
 class Forest(_AngpriakeLocation):
@@ -301,3 +318,40 @@ class Elephant(_AngpriakeForestCreature):
 
     def attack(self, target: Battleable) -> int:
         return self.physical_attack(target)
+
+
+class Thief(_AngpriakeCapitalCityCreature):
+    name = "Thief"
+    description = "A thief lurking in the city."
+    display = "🥷"
+    exp = 500
+    money = 500
+    escape_rate = 0.8
+
+    @property
+    def hp_max(self) -> int:
+        return 150
+
+    @property
+    def physical_atk(self) -> int:
+        return 25
+
+    @property
+    def magical_atk(self) -> int:
+        return 25
+
+    @property
+    def physical_res(self) -> float:
+        return 0.8
+
+    @property
+    def magical_res(self) -> float:
+        return 0.8
+
+    @property
+    def crit_rate(self) -> float:
+        return 0.85
+
+    @property
+    def crit_dmg(self) -> float:
+        return 2.5

@@ -322,12 +322,16 @@ class BaseCreature(Battleable):
     money: :class:`int`
         The amount of credits that the player can gain from
         defeating this creature
+    escape_rate: :class:`float`
+        The rate at which this creature can escape after
+        being defeated
     """
     name: str
     description: str
     display: str
     exp: int
     money: int
+    escape_rate: float = 0.0
 
     def __init__(self) -> None:
         self.hp: int = self.hp_max
