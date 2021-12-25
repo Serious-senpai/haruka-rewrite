@@ -273,7 +273,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     async def use(self, channel: discord.TextChannel, item_id: int) -> PT:
         """This function is a coroutine
-        
+
         Let this player use an item that only affects himself.
 
         Parameters
@@ -282,7 +282,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             The front-end channel to interact with the user
         item_id: ``int``
             The item ID to use
-        
+
         Returns
         -----
         ``BasePlayer``
@@ -568,9 +568,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         )
 
     async def save(self, *, description: str = MISSING, world: Type[WT] = MISSING, location: Type[LT] = MISSING, type_id: int = MISSING,
-        level: int = MISSING, xp: int = MISSING, money: int = MISSING, items: Dict[int, int] = MISSING, hp: int = MISSING,
-        travel: Optional[datetime.datetime] = MISSING, state: Dict[str, Any] = MISSING,
-    ) -> None:
+                   level: int = MISSING, xp: int = MISSING, money: int = MISSING, items: Dict[int, int] = MISSING, hp: int = MISSING,
+                   travel: Optional[datetime.datetime] = MISSING, state: Dict[str, Any] = MISSING,
+                   ) -> None:
         """This function is a coroutine
 
         Save this player's data to the database.

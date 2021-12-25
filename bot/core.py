@@ -52,8 +52,11 @@ gc.enable()
 class Embed(discord.Embed):
     def __init__(self, *args, **kwargs) -> None:
         self.timestamp: datetime.datetime = discord.utils.utcnow()
-        self.color: int = 0x2ECC71
         super().__init__(*args, **kwargs)
+        if not self.colour:
+            self.colour = 0x2ECC71
+
+
 discord.Embed = Embed
 
 
