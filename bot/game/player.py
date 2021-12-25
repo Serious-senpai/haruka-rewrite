@@ -271,6 +271,36 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
             return await handler(channel, player=player, enemy=enemy)
 
+    async def use(self, channel: discord.TextChannel, item_id: int) -> PT:
+        """This function is a coroutine
+        
+        Let this player use an item that only affects himself.
+
+        Parameters
+        -----
+        channel: :class:`discord.TextChannel`
+            The front-end channel to interact with the user
+        item_id: :class:`int`
+            The item ID to use
+        
+        Returns
+        -----
+        :class:`BasePlayer`
+            The player after using the item, may remain unchanged
+            if a check fails
+        """
+        try:
+            item: Optional[IT] = BaseItem.from_id(item_id)
+            if not item:
+                raise ItemNotFound
+            self = await item.effect(self)
+        except ItemNotFound:
+            await channel.send(f"I cannot find any items with `ID {item_id}` from your inventory!")
+        else:
+            await channel.send(f"**{escape(self.user.name)}** consumed 1 **{item.name}**!")
+        finally:
+            return self
+
     async def leveled_up_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
         return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**.\nHP was fully recovered.", **kwargs)
 
@@ -385,6 +415,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             player.release()
             return await BasePlayer.from_user(player.user)
 
+    # Embed creation support
+
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
         this player
@@ -438,12 +470,15 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             The created embed
         """
         _display: List[str] = []
+        item: IT
+        item_id: int
+        item_amount: int
         for item_id, item_amount in self.items.items():
-            item: IT = BaseItem.from_id(item_id)
+            item = BaseItem.from_id(item_id)
             _display.append(f"`ID {item_id}` **{escape(item.name)}**: {item_amount}")
+
         embed: discord.Embed = discord.Embed(
-            title=f"{self.user} Inventory",
-            description="\n".join(_display) or "Whoops! Looks like there is nothing here at the moment. You can gain items from battles and gachas!",
+            description="\n".join(_display) or "Whoops! Looks like there is nothing here at the moment. You can get items from the lottery and shops!",
             color=0x2ECC71,
             timestamp=discord.utils.utcnow(),
         )
@@ -751,12 +786,12 @@ class BaseItem(ClassObject, Generic[PT]):
 
     @classmethod
     @overload
-    async def effect(cls: Type[IT], user: PT, target: Any) -> Any:
+    async def effect(cls: Type[IT], user: PT, target: Any) -> PT:
         ...
 
     @classmethod
     @overload
-    async def effect(cls: Type[IT], user: PT) -> Any:
+    async def effect(cls: Type[IT], user: PT) -> PT:
         ...
 
     @classmethod
@@ -773,6 +808,11 @@ class BaseItem(ClassObject, Generic[PT]):
             The player who consumed this item
         Optional[:class:`Battleable`]
             The effect target, if this item aims at another entity
+
+        Returns
+        -----
+        :class:`BasePlayer`
+            The player after using the item
         """
         if cls.id not in user.items:
             raise ItemNotFound
@@ -781,6 +821,7 @@ class BaseItem(ClassObject, Generic[PT]):
         else:
             user.items[cls.id] -= 1
             await user.save(items=user.items)
+            return user
 
     @classmethod
     @functools.cache
