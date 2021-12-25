@@ -77,7 +77,7 @@ intents.webhooks = False
 
 activity: discord.Activity = discord.Activity(
     type=discord.ActivityType.playing,
-    name="@Haruka help",
+    name="Restarting...",
 )
 
 
@@ -86,7 +86,7 @@ bot: haruka.Haruka = haruka.Haruka(
     command_prefix=get_prefix,
     intents=intents,
     case_insensitive=True,
-    max_messages=80000,
+    max_messages=10000,
     strip_after_prefix=True,
 )
 

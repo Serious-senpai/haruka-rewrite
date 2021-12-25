@@ -85,6 +85,10 @@ class Haruka(SlashMixin, commands.Bot):
         content: str = str(content).replace("\n", "\nHARUKA | ")
         self.logfile.write(f"HARUKA | {content}\n")
 
+    async def _change_activity_after_booting(self) -> None:
+        await asyncio.sleep(30.0)
+        await self.change_presence(activity=discord.Game("@Haruka help"))
+
     async def startup(self) -> None:
         await self.wait_until_ready()
 
@@ -99,6 +103,8 @@ class Haruka(SlashMixin, commands.Bot):
             self.owner_id: int = app_info.owner.id
 
         self.owner = await self.fetch_user(self.owner_id)
+
+        self.loop.create_task(self._change_activity_after_booting())
 
         # Run youtube-dl tests
         tasks: List[asyncio.Task] = []

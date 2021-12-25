@@ -135,7 +135,7 @@ class Thief(_AngpriakeCapitalCityCreature, JSONMetaObject, meta=meta): ...
 class Villager(_AngpriakePlayer):
     @classmethod
     @property
-    def type_id(self) -> int:
+    def type_id(cls: Type[Villager]) -> int:
         return 0
 
     @property
@@ -170,7 +170,12 @@ class Villager(_AngpriakePlayer):
 class Warrior(_AngpriakePlayer):
     @classmethod
     @property
-    def type_id(self) -> int:
+    def display(cls: Type[Warrior]) -> str:
+        return "💂"
+
+    @classmethod
+    @property
+    def type_id(cls: Type[Warrior]) -> int:
         return 1
 
     @property
@@ -208,7 +213,12 @@ class Warrior(_AngpriakePlayer):
 class Mage(_AngpriakePlayer):
     @classmethod
     @property
-    def type_id(self) -> int:
+    def display(cls: Type[Mage]) -> str:
+        return "🧙"
+
+    @classmethod
+    @property
+    def type_id(cls: Type[Mage]) -> int:
         return 2
 
     @property

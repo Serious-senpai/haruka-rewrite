@@ -130,6 +130,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     travel: Optional[datetime.datetime]
     state: Dict[str, Any]
 
+    # Short-hand properties
+
     @property
     def name(self) -> str:
         return self.user.name
@@ -139,20 +141,25 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         return self.user.id
 
     @property
-    def display(self) -> str:
-        return self.state["display"]
-
-    @property
     def client_user(self) -> discord.ClientUser:
         """The bot user acquired from the internal
         :class:`discord.state.ConnectionState`
         """
         return self.user._state.user
 
+    # Class-specific properties, can be overriden
+
+    @classmethod
+    @property
+    def display(cls: Type[PT]) -> str:
+        return "🧍"
+
     @classmethod
     @property
     def type_id(cls: Type[PT]) -> int:
         raise NotImplementedError
+
+    # Instance methods
 
     def traveling(self) -> bool:
         """Whether the player is traveling"""
@@ -333,8 +340,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             await channel.send("You cannot change your class at this location!")
             return self
 
+        class_display: str = ", ".join(ptype.__name__ for ptype in self.world.ptypes)
         embed: discord.Embed = discord.Embed(
-            description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!",
+            description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!\nList of classes in this world: " + class_display,
             color=0x2ECC71,
             timestamp=discord.utils.utcnow(),
         )
@@ -392,9 +400,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             name="Cash",
             value=f"`💲{self.money}`",
         )
+        _ext: str = ""
+        if self.traveling():
+            _ext = " (traveling)"
         embed.add_field(
             name="Current location",
-            value=f"{self.location.name}, {self.world.name}",
+            value=f"{self.location.name}{_ext}, {self.world.name}",
         )
         embed.add_field(
             name="HP",
@@ -686,7 +697,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             [],  # items
             -1,  # hp
             None,  # travel
-            json.dumps({"display": "🧍"}),  # state
+            json.dumps(dict(travel=False, battle=False)),  # state
         )
         return await cls.from_user(user)
 
