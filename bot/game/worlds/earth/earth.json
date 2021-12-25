@@ -7,12 +7,20 @@
     "Home": {
         "name": "Home",
         "description": "Your house where you are living alone.",
-        "id": 0
+        "id": 0,
+        "coordination": {
+            "x": 0,
+            "y": 0
+        }
     },
     "HighSchool": {
         "name": "High School",
         "description": "The high school you are going to",
-        "id": 1
+        "id": 1,
+        "coordination": {
+            "x": 20,
+            "y": 10
+        }
     },
     "God": {
         "name": "God",

@@ -14,7 +14,6 @@ from game.core import (
     BaseLocation,
     BaseEvent,
     BaseCreature,
-    Coordination,
 )
 from game.player import PT, BasePlayer
 
@@ -55,13 +54,11 @@ class EarthWorld(BaseWorld, JSONMetaObject, meta=meta):
 
 class Home(_EarthLocation, JSONMetaObject, meta=meta):
     world = EarthWorld
-    coordination = Coordination(x=0, y=0)
     creature = _EarthHomeCreature
 
 
 class HighSchool(_EarthLocation, JSONMetaObject, meta=meta):
     world = EarthWorld
-    coordination = Coordination(x=20, y=20)
     creature = _EarthHighSchoolCreature
 
 

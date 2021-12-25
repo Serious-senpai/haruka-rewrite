@@ -7,25 +7,41 @@
     "Village": {
         "name": "Village",
         "description": "The village where you were born. You can earn `💲10`/h here",
-        "id": 0
+        "id": 0,
+        "coordination": {
+            "x": 0,
+            "y": 0
+        }
     },
     "Church": {
         "name": "Church",
         "description": "The church near the village.\nYou can change your character's class here.",
         "id": 1,
         "level_limit": 10,
-        "class_changable": true
+        "class_changable": true,
+        "coordination": {
+            "x": 50,
+            "y": 50
+        }
     },
     "CapitalCity": {
         "name": "Capital City",
         "description": "The capital city of the country. You can earn `💲20`/h here",
         "id": 2,
-        "level_limit": 20
+        "level_limit": 20,
+        "coordination": {
+            "x": 500,
+            "y": 600
+        }
     },
     "Forest": {
         "name": "Forest",
         "description": "The forest near the village",
-        "id": 3
+        "id": 3,
+        "coordination": {
+            "x": 20,
+            "y": 10
+        }
     },
     "Duck": {
         "name": "Duck",

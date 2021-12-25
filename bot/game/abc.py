@@ -130,9 +130,18 @@ class Battleable:
         return embed
 
 
+from .core import (
+    BaseLocation,
+    Coordination,
+)
+
+
 class JSONMetaObject:
     def __init_subclass__(cls: Type, /, meta: Dict[str, Dict[str, Any]], **kwargs) -> None:
         super().__init_subclass__(**kwargs)
         data: Dict[str, Any] = meta[cls.__name__]
         for key, value in data.items():
             setattr(cls, key, value)
+
+        if issubclass(cls, BaseLocation):
+            setattr(cls, "coordination", Coordination(**cls.coordination))

@@ -12,7 +12,6 @@ from game.core import (
     BaseLocation,
     BaseEvent,
     BaseCreature,
-    Coordination,
 )
 from game.player import PT, BasePlayer
 
@@ -62,7 +61,6 @@ class AngpriakeWorld(BaseWorld, JSONMetaObject, meta=meta):
 
 class Village(_AngpriakeLocation, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
-    coordination = Coordination(x=0, y=0)
     creature = _AngpriakeVillageCreature
 
     tasks: Dict[int, asyncio.Task] = {}
@@ -85,13 +83,11 @@ class Village(_AngpriakeLocation, JSONMetaObject, meta=meta):
 
 class Church(_AngpriakeLocation, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
-    coordination = Coordination(x=50, y=50)
     creature = _AngpriakeChurchCreature
 
 
 class CapitalCity(_AngpriakeLocation, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
-    coordination = Coordination(x=500, y=600)
     creature = _AngpriakeCapitalCityCreature
 
     tasks: Dict[int, asyncio.Task] = {}
@@ -114,7 +110,6 @@ class CapitalCity(_AngpriakeLocation, JSONMetaObject, meta=meta):
 
 class Forest(_AngpriakeLocation, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
-    coordination = Coordination(x=20, y=10)
     creature = _AngpriakeForestCreature
 
 
