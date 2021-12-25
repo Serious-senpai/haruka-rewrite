@@ -133,6 +133,10 @@ from .core import BaseLocation, Coordination  # noqa
 
 
 class JSONMetaObject:
+    """Base class for objects that have their data stored in
+    a local JSON file.
+    """
+
     def __init_subclass__(cls: Type, /, meta: Dict[str, Dict[str, Any]], **kwargs) -> None:
         super().__init_subclass__(**kwargs)
         data: Dict[str, Any] = meta[cls.__name__]

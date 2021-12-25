@@ -1,7 +1,7 @@
 import contextlib
 import time
 from types import TracebackType
-from typing import Callable, List, Optional, Type, TypeVar
+from typing import Callable, Iterator, List, Optional, Type, TypeVar
 
 from discord.ext import commands
 
@@ -17,6 +17,12 @@ def testing() -> Callable[[T], T]:
             return True
         return False
     return commands.check(predicate)
+
+
+def get_all_subclasses(cls: Type) -> Iterator[Type]:
+    for subclass in cls.__subclasses__():
+        yield subclass
+        yield from get_all_subclasses(subclass)
 
 
 def format(time: float) -> str:
