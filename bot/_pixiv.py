@@ -135,7 +135,6 @@ class PixivArtwork:
             title=escape(self.title),
             description=escape(self.description) if self.description else discord.Embed.Empty,
             url=self.url,
-            color=0x2ECC71,
         )
 
         try:

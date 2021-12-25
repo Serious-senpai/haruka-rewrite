@@ -147,7 +147,6 @@ class PartialInvidiousSource:
             title=escape(self.title),
             description=escape(self.description) if self.description else discord.Embed.Empty,
             url=f"https://www.youtube.com/watch?v={self.id}",
-            color=0x2ECC71,
         )
         em.add_field(
             name="Channel",
@@ -473,9 +472,7 @@ async def embed_search(
         await target.send("No matching result was found.")
         return
 
-    embed: discord.Embed = discord.Embed(
-        color=0x2ECC71,
-    )
+    embed: discord.Embed = discord.Embed()
     embed.set_author(
         name=f"Search results for {query}",
         icon_url=bot.user.avatar.url,
@@ -662,10 +659,7 @@ class MusicClient(discord.VoiceClient):
             track: Optional[InvidiousSource] = await InvidiousSource.build(track_id)
 
             if track is None:
-                em: discord.Embed = discord.Embed(
-                    description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.",
-                    color=0x2ECC71,
-                )
+                em: discord.Embed = discord.Embed(description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.")
                 em.set_author(
                     name="Warning",
                     icon_url=bot.user.avatar.url,

@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import gc
 import logging
 from typing import List, Optional
@@ -45,6 +46,15 @@ logger.addHandler(handler)
 
 # Setup garbage collector
 gc.enable()
+
+
+# Set default attributes for all embeds
+class Embed(discord.Embed):
+    def __init__(self, *args, **kwargs) -> None:
+        self.timestamp: datetime.datetime = discord.utils.utcnow()
+        self.color: int = 0x2ECC71
+        super().__init__(*args, **kwargs)
+discord.Embed = Embed
 
 
 async def prefix(bot, message) -> str:

@@ -54,7 +54,6 @@ class Playlist:
         embed: discord.Embed = discord.Embed(
             title=self.title,
             description=self.description,
-            color=0x2ECC71,
         )
 
         if self.author:
@@ -185,7 +184,6 @@ class YouTubePlaylist:
         embed: discord.Embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.description),
-            color=0x2ECC71,
         )
         embed.set_thumbnail(url=self.thumbnail)
         embed.add_field(

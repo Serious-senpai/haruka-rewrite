@@ -74,7 +74,6 @@ class ReminderTask(Task):
 
         em: discord.Embed = discord.Embed(
             description=row["content"],
-            color=0x2ECC71,
             timestamp=row["original"],
         )
         em.set_author(
@@ -138,10 +137,7 @@ class UnmuteTask(Task):
             pass
 
     async def cleanup(self, *, member: discord.Member, reason: str) -> None:
-        em: discord.Embed = discord.Embed(
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
-        )
+        em: discord.Embed = discord.Embed()
         em.set_author(
             name="You were unmuted from the server",
             icon_url=self.bot.user.avatar.url,

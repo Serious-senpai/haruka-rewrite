@@ -34,9 +34,7 @@ async def _publish_cmd(ctx: commands.Context, title: str, *, description: str):
 
     await bot.conn.execute(f"INSERT INTO playlist (author_id, title, description, queue, use_count) VALUES ('{ctx.author.id}', $1, $2, $3, 0);", title, description, queue)
 
-    em: discord.Embed = discord.Embed(
-        color=0x2ECC71,
-    )
+    em: discord.Embed = discord.Embed()
     em.set_author(
         name="Published music queue",
         icon_url=bot.user.avatar.url,

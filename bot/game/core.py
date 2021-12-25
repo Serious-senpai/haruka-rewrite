@@ -212,8 +212,6 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
         embed: discord.Embed = discord.Embed(
             title=cls.name,
             description=cls.description,
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
         )
         embed.add_field(
             name="Location ID",
@@ -293,8 +291,6 @@ class BaseEvent(ClassObject, Generic[LT]):
         embed: discord.Embed = discord.Embed(
             title=cls.name,
             description=cls.description,
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
         )
         embed.set_author(
             name="An event occured",
@@ -340,8 +336,6 @@ class BaseCreature(Battleable):
         embed: discord.Embed = discord.Embed(
             title=self.name,
             description=self.description,
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
         )
         embed.add_field(
             name="HP",

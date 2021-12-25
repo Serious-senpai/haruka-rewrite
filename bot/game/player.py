@@ -379,11 +379,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             return self
 
         class_display: str = ", ".join(ptype.__name__ for ptype in self.world.ptypes if ptype.type_id > 0)
-        embed: discord.Embed = discord.Embed(
-            description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!\nList of player classes in this world: " + class_display,
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
-        )
+        embed: discord.Embed = discord.Embed(description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!\nList of player classes in this world: " + class_display)
         embed.set_author(
             name="Class changing",
             icon_url=self.client_user.avatar.url,
@@ -426,12 +422,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         ``discord.Embed``
             The created embed
         """
-        embed: discord.Embed = discord.Embed(
-            description=f"Lv.{self.level} (EXP {self.xp}/{EXP_SCALE * self.level})",
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
-        )
-
+        embed: discord.Embed = discord.Embed(description=f"Lv.{self.level} (EXP {self.xp}/{EXP_SCALE * self.level})")
         embed.add_field(
             name="Class",
             value=f"{self.display} {self.__class__.__name__}",
@@ -477,11 +468,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             item = BaseItem.from_id(item_id)
             _display.append(f"`ID {item_id}` **{escape(item.name)}**: {item_amount}")
 
-        embed: discord.Embed = discord.Embed(
-            description="\n".join(_display) or "Whoops! Looks like there is nothing here at the moment. You can get items from the lottery and shops!",
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
-        )
+        embed: discord.Embed = discord.Embed(description="\n".join(_display) or "Whoops! Looks like there is nothing here at the moment. You can get items from the lottery and shops!")
         embed.set_author(
             name=f"{self.user} Inventory",
             icon_url=self.client_user.avatar.url,
@@ -501,8 +488,6 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         embed: discord.Embed = discord.Embed(
             title=self.world.name,
             description=self.world.description,
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
         )
         embed.add_field(
             name="World ID",

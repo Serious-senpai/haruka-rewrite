@@ -49,7 +49,6 @@ async def _invite_cmd(ctx: commands.Context):
     em: discord.Embed = discord.Embed(
         title="Invite me to your server",
         description=f"My invitation link: https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=271969606&scope=applications.commands%20bot",
-        color=0x2ECC71,
     )
     em.set_thumbnail(url=bot.user.avatar.url)
     await ctx.send(embed=em)
@@ -124,7 +123,7 @@ async def _avatar_cmd(ctx: commands.Context, *, user: discord.User = None):
         user = ctx.author
     if not user.avatar:
         return await ctx.send("This user hasn't uploaded an avatar yet.")
-    ava_em: discord.Embed = discord.Embed(color=0x2ECC71)
+    ava_em: discord.Embed = discord.Embed()
     ava_em.set_author(
         name=f"This is {user.name}'s avatar",
         icon_url=bot.user.avatar.url,
@@ -159,7 +158,6 @@ async def _emoji_cmd(ctx: commands.Context):
         em: discord.Embed = discord.Embed(
             title=escape(ctx.guild.name),
             description="".join(f"<a:{emoji.name}:{emoji.id}>" if emoji.animated else f"<:{emoji.name}:{emoji.id}>" for emoji in emojis[page * 50:page * 50 + 50]),
-            color=0x2ECC71,
         )
         em.set_author(
             name="These are the server's emojis!",
@@ -197,10 +195,7 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
     )
     bot.task.remind.restart()
 
-    em: discord.Embed = discord.Embed(
-        color=0x2ECC71,
-        timestamp=now,
-    )
+    em: discord.Embed = discord.Embed()
     em.add_field(
         name="Content",
         value=content,

@@ -252,8 +252,6 @@ class Haruka(SlashMixin, commands.Bot):
         em: discord.Embed = discord.Embed(
             title="Internal status",
             description=desc,
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
         )
         em.set_thumbnail(url=self.user.avatar.url)
 

@@ -24,10 +24,7 @@ async def _card_cmd(ctx: commands.Context, n: int = 1):
         hand.draw()
 
     file: discord.File = discord.File(hand.make_image(), filename="image.png")
-    embed: discord.Embed = discord.Embed(
-        title=f"{escape(ctx.author.name)} drew {n} card(s)!",
-        color=0x2ECC71,
-    )
+    embed: discord.Embed = discord.Embed(title=f"{escape(ctx.author.name)} drew {n} card(s)!")
     embed.set_image(url="attachment://image.png")
     embed.set_footer(text=f"Total points: {hand.value}")
 

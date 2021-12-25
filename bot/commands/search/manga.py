@@ -30,7 +30,6 @@ async def _manga_cmd(ctx: commands.Context, *, query):
     em: discord.Embed = discord.Embed(
         title=f"Search results for {query}",
         description=escape(desc),
-        color=0x2ECC71,
     )
     message: discord.Message = await ctx.send(embed=em)
 
