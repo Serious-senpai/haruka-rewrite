@@ -306,7 +306,7 @@ class ImageClient(Generic[IT]):
         self.nsfw: Dict[str, List[IT]] = {}
         for command in self.bot.walk_commands():
             if command.name.startswith("*"):
-                bot.remove_command(command.name)
+                self.bot.remove_command(command.name)
 
         await asyncio.gather(*[self._register(source(self.session, self)) for source in self.sources])
         self.bot.log(f"Loaded {len(self.sources)} ImageSource objects, preparing commands...")
@@ -358,7 +358,7 @@ class ImageClient(Generic[IT]):
 
         Parameters
         -----
-        :source: ``ImageSource``
+        source: ``ImageSource``
             The ``ImageSource`` to analyze.
         """
         if not isinstance(source, ImageSource):

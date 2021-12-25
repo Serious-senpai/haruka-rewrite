@@ -215,7 +215,7 @@ class YouTubePlaylist:
 
         Parameters
         -----
-        conn: Union[``asyncpg.Connection`, :class:`asyncpg.Pool``]
+        conn: Union[``asyncpg.Connection`, ``asyncpg.Pool``]
             The database connection or connection pool.
         channel_id: ``int``
             The voice channel ID.
