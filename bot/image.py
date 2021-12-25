@@ -30,7 +30,7 @@ class ImageSource:
 
     Attributes
     -----
-    session: :class:`aiohttp.ClientSession`
+    session: ``aiohttp.ClientSession``
         The aiohttp session used to interact with the image source.
     client: ``ImageClient``
         The client that manages this image source.
@@ -268,10 +268,10 @@ class ImageClient(Generic[IT]):
 
     Attributes
     -----
-    bot: :class:`haruka.Haruka`
+    bot: ``haruka.Haruka``
         The bot associated with this image client.
-    session: :class:`aiohttp.ClientSession`
-        The :class:`aiohttp.ClientSession` used to interact with
+    session: ``aiohttp.ClientSession``
+        The ``aiohttp.ClientSession`` used to interact with
         the ``ImageSource`` that this client contains.
     sfw: Dict[``str``, List[``ImageSource``]]
         A mapping of SFW categories with all ``ImageSource``

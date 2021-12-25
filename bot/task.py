@@ -19,11 +19,11 @@ class Task:
 
     Attributes
     -----
-    bot: :class:`haruka.Haruka`
+    bot: ``haruka.Haruka``
         The bot associated with this task
-    conn: :class:`asyncpg.Pool`
+    conn: ``asyncpg.Pool``
         The database connection pool
-    task: :class:`asyncio.Task`
+    task: ``asyncio.Task``
         The underlying task for this object
     """
 
@@ -219,7 +219,7 @@ class TaskManager:
 
     Attributes
     -----
-    bot: :class:`haruka.Haruka`
+    bot: ``haruka.Haruka``
         The bot associated with this TaskManager.
     remind: ``ReminderTask``
         The running ``ReminderTask``

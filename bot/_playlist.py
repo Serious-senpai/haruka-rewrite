@@ -26,7 +26,7 @@ class Playlist:
         The title of the playlist.
     description: ``str``
         The description of the playlist.
-    author: :class:`discord.User`
+    author: ``discord.User``
         The author of the playlist.
     queue: List[``str``]
         List of track IDs this playlist has.
@@ -88,7 +88,7 @@ class Playlist:
 
         Parameters
         -----
-        bot: :class:`haruka.Haruka`
+        bot: ``haruka.Haruka``
             The bot that initialized the request.
         query: ``str``
             The searching query.
@@ -136,7 +136,7 @@ class Playlist:
 
         Parameters
         -----
-        bot: :class:`haruka.Haruka`
+        bot: ``haruka.Haruka``
             The bot that initialized the request.
         id: ``int``
             The playlist ID
@@ -215,7 +215,7 @@ class YouTubePlaylist:
 
         Parameters
         -----
-        conn: Union[:class:`asyncpg.Connection`, :class:`asyncpg.Pool`]
+        conn: Union[``asyncpg.Connection`, :class:`asyncpg.Pool``]
             The database connection or connection pool.
         channel_id: ``int``
             The voice channel ID.
@@ -232,7 +232,7 @@ class YouTubePlaylist:
 
         Parameters
         -----
-        bot: :class:`haruka.Haruka`
+        bot: ``haruka.Haruka``
             The bot that initialized the request.
         id: ``str``
             The playlist ID.

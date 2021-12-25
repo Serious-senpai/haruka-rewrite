@@ -72,10 +72,10 @@ class Pagination(EmojiUI):
 
     Attributes
     -----
-    pages: List[:class:`discord.Embed`]
+    pages: List[``discord.Embed``]
         A list of pages as embeds
 
-    message: Optional[:class:`discord.Message`]
+    message: Optional[``discord.Message``]
         The message used to interact.
     """
 
@@ -104,7 +104,7 @@ class Pagination(EmojiUI):
 
         Parameters
         -----
-        target: :class:`discord.abc.Messageable`
+        target: ``discord.abc.Messageable``
             The target to interact with.
 
         user_id: Optional[``int``]
@@ -141,10 +141,10 @@ class RandomPagination(EmojiUI):
 
     Attributes
     -----
-    pages: List[:class:`discord.Embed`]
+    pages: List[``discord.Embed``]
         A list of pages as embeds
 
-    message: Optional[:class:`discord.Message`]
+    message: Optional[``discord.Message``]
         The message used to interact.
     """
 
@@ -169,7 +169,7 @@ class RandomPagination(EmojiUI):
 
         Parameters
         -----
-        target: :class:`discord.abc.Messageable`
+        target: ``discord.abc.Messageable``
             The target to interact with.
 
         user_id: Optional[``int``]
@@ -210,10 +210,10 @@ class NavigatorPagination(EmojiUI):
 
     Attributes
     -----
-    pages: List[:class:`discord.Embed`]
+    pages: List[``discord.Embed``]
         A list of pages as embeds
 
-    message: Optional[:class:`discord.Message`]
+    message: Optional[``discord.Message``]
         The message used to interact.
     """
 
@@ -238,7 +238,7 @@ class NavigatorPagination(EmojiUI):
 
         Parameters
         -----
-        target: :class:`discord.abc.Messageable`
+        target: ``discord.abc.Messageable``
             The target to interact with.
 
         user_id: Optional[``int``]
@@ -290,7 +290,7 @@ class SelectMenu(EmojiUI):
 
     Attributes
     -----
-    message: :class:`discord.Message`
+    message: ``discord.Message``
         The message used to interact.
 
     nargs: ``int``

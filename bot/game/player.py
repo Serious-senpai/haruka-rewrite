@@ -117,7 +117,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         The player's money
     items: Dict[``int``, ``int``]
         The player's items
-    travel: Optional[:class:`datetime.datetime`]
+    travel: Optional[``datetime.datetime``]
         The datetime when the player will arrive at the destination if he is
         traveling
     hp: ``int``
@@ -151,7 +151,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     @property
     def client_user(self) -> discord.ClientUser:
         """The bot user acquired from the internal
-        :class:`discord.state.ConnectionState`
+        ``discord.state.ConnectionState``
         """
         return self.user._state.user
 
@@ -207,7 +207,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        target: :class:`discord.TextChannel`
+        target: ``discord.TextChannel``
             The target Discord channel to send messages to
         destination: Type[``BaseLocation``]
             The location to travel to
@@ -278,7 +278,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        channel: :class:`discord.TextChannel`
+        channel: ``discord.TextChannel``
             The front-end channel to interact with the user
         item_id: ``int``
             The item ID to use
@@ -365,7 +365,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        channel: :class:`discord.TextChannel`
+        channel: ``discord.TextChannel``
             The channel to interact with
 
         Returns
@@ -423,7 +423,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        :class:`discord.Embed`
+        ``discord.Embed``
             The created embed
         """
         embed: discord.Embed = discord.Embed(
@@ -466,7 +466,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        :class:`discord.Embed`
+        ``discord.Embed``
             The created embed
         """
         _display: List[str] = []
@@ -495,7 +495,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        :class:`discord.Embed`
+        ``discord.Embed``
             The created embed
         """
         embed: discord.Embed = discord.Embed(
@@ -530,7 +530,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        :class:`discord.Embed`
+        ``discord.Embed``
             The created embed
         """
         embed: discord.Embed = location.create_embed()
@@ -674,7 +674,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        user: :class:`discord.User`
+        user: ``discord.User``
             The Discord user
 
         Returns
@@ -728,7 +728,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        user: :class:`discord.User`
+        user: ``discord.User``
             The Discord user
 
         Returns

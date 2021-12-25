@@ -31,11 +31,11 @@ class BattleResult(NamedTuple):
     async def send(self, target: discord.TextChannel) -> None:
         """This function is a coroutine
 
-        Send the battle result to a :class:`discord.TextChannel`
+        Send the battle result to a ``discord.TextChannel``
 
         Parameters
         -----
-        target: :class:`discord.TextChannel`
+        target: ``discord.TextChannel``
             The target channel
         """
         embed, player, status, leveled_up = self

@@ -274,7 +274,7 @@ class BaseEvent(ClassObject, Generic[LT]):
 
         Parameters
         -----
-        target: :class:`discord.PartialMessageable`
+        target: ``discord.PartialMessageable``
             The target Discord channel to send messages to
         player: ``BasePlayer``
             The player that encounters the event

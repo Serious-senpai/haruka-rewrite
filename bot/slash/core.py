@@ -57,7 +57,7 @@ class SlashMixin:
     """A mixin that provides utilities for slash commands.
 
     The bot object inherits from this mixin must also subclass
-    :class:`commands.Bot`
+    ``commands.Bot``
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -81,7 +81,7 @@ class SlashMixin:
 
     def slash(self, payload: Dict[str, Any]) -> Callable[[SlashCallback], Command]:
         """A shortcut decorator that convert a function into ``SlashCommand`` and adds it
-        to the internal command list via :meth:`add_slash_command()`.
+        to the internal command list via ``add_slash_command()``.
 
         Parameters
         -----
@@ -90,7 +90,7 @@ class SlashMixin:
 
         Returns
         -----
-        Callable[[:class:`discord.Interaction`], Coroutine[Any, Any, Any]]
+        Callable[[``discord.Interaction``], Coroutine[Any, Any, Any]]
             A decorator that converts the provided method into a ``SlashCommand``, adds it
             to the bot, then returns it.
         """
@@ -123,7 +123,7 @@ class SlashMixin:
 
         Parameters
         -----
-        interaction: :class:`discord.Interaction`
+        interaction: ``discord.Interaction``
             The interaction to process
         """
         name: str = interaction.data["name"]
@@ -153,7 +153,7 @@ def parse(interaction: discord.Interaction) -> Dict[str, Any]:
 
     Parameters
     -----
-    interaction: :class:`discord.Interaction`
+    interaction: ``discord.Interaction``
         The slash command interaction
 
     Returns

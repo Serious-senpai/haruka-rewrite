@@ -78,7 +78,7 @@ class PartialInvidiousSource:
     """Represents a video object from Invidious
 
     This class only has information from the track and can be
-    obtained from :meth:`PartialInvidiousSource.search`
+    obtained from ``PartialInvidiousSource.search``
     """
 
     __slots__ = (
@@ -132,7 +132,7 @@ class PartialInvidiousSource:
         return self._json["lengthSeconds"]
 
     def create_embed(self) -> discord.Embed:
-        """Make a :class:`discord.Embed` that represents
+        """Make a ``discord.Embed`` that represents
         basic information of the video.
 
         The embed is created with a title, description,
@@ -140,7 +140,7 @@ class PartialInvidiousSource:
 
         Returns
         -----
-        :class:`discord.Embed`
+        ``discord.Embed``
             The embed with information about the video
         """
         em: discord.Embed = discord.Embed(
@@ -290,14 +290,14 @@ class InvidiousSource(PartialInvidiousSource):
 
         If the track hasn't been initialized for
         playing yet, this will automatically call
-        :meth:`initialize()`
+        ``initialize()``
 
         Because this method is blocking, it should
         be ran in another thread.
 
         Returns
         -----
-        Optional[:class:`discord.FFmpegOpusAudio`]
+        Optional[``discord.FFmpegOpusAudio``]
             A playable audio source for 30 seconds,
             or ``None`` if the audio was finished.
         """
@@ -433,7 +433,7 @@ class InvidiousSource(PartialInvidiousSource):
         """This function is a coroutine
 
         This method should never be used. Use
-        :meth:`PartialInvidiousSource.search` instead.
+        ``PartialInvidiousSource.search`` instead.
         """
         raise NotImplementedError
 
@@ -452,7 +452,7 @@ async def embed_search(
     -----
     query: ``str``
         The searching query
-    target: :class:`discord.abc.Messageable`
+    target: ``discord.abc.Messageable``
         The interaction target channel
     user_id: ``int``
         The user ID to listen to
@@ -540,7 +540,7 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
 class MusicClient(discord.VoiceClient):
     """Represents an audio client within a guild.
 
-    This is a subclass of :class:`discord.VoiceClient`.
+    This is a subclass of ``discord.VoiceClient``.
 
     This class provides some additional functions for
     implementing the music queue system.
@@ -640,7 +640,7 @@ class MusicClient(discord.VoiceClient):
 
         Parameters
         -----
-        target :class:`discord.abc.Messageable`
+        target ``discord.abc.Messageable``
             The channel to send audio playing info.
         """
         repeat_id: Optional[str] = None
