@@ -16,23 +16,6 @@ from game.core import (
 from game.player import PT, BasePlayer
 
 
-__all__ = (
-    "AngpriakeWorld",
-    "Village",
-    "Church",
-    "CapitalCity",
-    "Forest",
-    "Duck",
-    "Rabbit",
-    "Eagle",
-    "Elephant",
-    "Thief",
-    "Villager",
-    "Warrior",
-    "Mage",
-)
-
-
 ALT = TypeVar("ALT", bound="_AngpriakeLocation")
 AET = TypeVar("AET", bound="_AngpriakeEvent")
 ACT = TypeVar("ACT", bound="_AngpriakeCreature")

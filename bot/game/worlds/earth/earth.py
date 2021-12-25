@@ -18,16 +18,6 @@ from game.core import (
 from game.player import PT, BasePlayer
 
 
-__all__ = (
-    "EarthWorld",
-    "Home",
-    "HighSchool",
-    "Student",
-    "God",
-    "IsekaiEvent",
-)
-
-
 ELT = TypeVar("ELT", bound="_EarthLocation")
 EET = TypeVar("EET", bound="_EarthEvent")
 ECT = TypeVar("ECT", bound="_EarthCreature")

@@ -340,9 +340,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             await channel.send("You cannot change your class at this location!")
             return self
 
-        class_display: str = ", ".join(ptype.__name__ for ptype in self.world.ptypes)
+        class_display: str = ", ".join(ptype.__name__ for ptype in self.world.ptypes if ptype.type_id > 0)
         embed: discord.Embed = discord.Embed(
-            description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!\nList of classes in this world: " + class_display,
+            description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!\nList of player classes in this world: " + class_display,
             color=0x2ECC71,
             timestamp=discord.utils.utcnow(),
         )

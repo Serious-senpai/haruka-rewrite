@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import random
 from typing import Any, Dict, Type
 
@@ -130,10 +129,7 @@ class Battleable:
         return embed
 
 
-from .core import (
-    BaseLocation,
-    Coordination,
-)
+from .core import BaseLocation, Coordination  # noqa
 
 
 class JSONMetaObject:
