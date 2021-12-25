@@ -49,11 +49,11 @@ class BaseWorld(ClassObject, Generic[LT, PT, ET]):
 
     Attributes
     -----
-    name: :class:`str`
+    name: ``str``
         The world's name
-    description: :class:`str`
+    description: ``str``
         The world's description
-    id: :class:`int`
+    id: ``int``
         The world's ID
     """
 
@@ -89,12 +89,12 @@ class BaseWorld(ClassObject, Generic[LT, PT, ET]):
 
         Parameters
         -----
-        id: :class:`int`
+        id: ``int``
             The world ID
 
         Returns
         -----
-        Optional[Type[:class:`BaseWorld`]]
+        Optional[Type[``BaseWorld``]]
             The world with the given ID, or ``None`` if not found
         """
         for world in cls.__subclasses__():
@@ -108,12 +108,12 @@ class BaseWorld(ClassObject, Generic[LT, PT, ET]):
 
         Parameters
         -----
-        id: :class:`int`
+        id: ``int``
             The player type ID
 
         Returns
         -----
-        Optional[Type[:class:`BaseLocation`]]
+        Optional[Type[``BaseLocation``]]
             The type with the given ID, or ``None`` if not found
         """
         for player in cls.ptypes:
@@ -127,12 +127,12 @@ class BaseWorld(ClassObject, Generic[LT, PT, ET]):
 
         Parameters
         -----
-        id: :class:`int`
+        id: ``int``
             The location ID
 
         Returns
         -----
-        Optional[Type[:class:`BaseLocation`]]
+        Optional[Type[``BaseLocation``]]
             The location with the given ID, or ``None`` if not found
         """
         for location in cls.locations:
@@ -148,20 +148,20 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
 
     Attributes
     -----
-    name: :class:`str`
+    name: ``str``
         The location's name
-    description: :class:`str`
+    description: ``str``
         The location's description
-    id: :class:`int`
+    id: ``int``
         The location's ID
-    world: Type[:class:`BaseWorld`]
+    world: Type[``BaseWorld``]
         The world that this location belongs to
-    coordination: :class:`Coordination`
+    coordination: ``Coordination``
         The coordination of this location in its world
-    level_limit: :class:`int`
+    level_limit: ``int``
         The minimum level for the player to get access to
         this location, default to ``0`` and can be overriden
-    class_changable: :class:`bool`
+    class_changable: ``bool``
         Whether players can change their class at this location
     """
 
@@ -186,14 +186,14 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
 
         Parameters
         -----
-        world: :class:`BaseWorld`
+        world: ``BaseWorld``
             The world to search from
-        id: :class:`int`
+        id: ``int``
             The location ID
 
         Returns
         -----
-        Optional[Type[:class:`BaseLocation`]]
+        Optional[Type[``BaseLocation``]]
             The location with the given ID in the given world, or
             ``None`` if not found
         """
@@ -243,13 +243,13 @@ class BaseEvent(ClassObject, Generic[LT]):
 
     Attributes
     -----
-    name: :class:`str`
+    name: ``str``
         The event's name
-    description: :class:`str`
+    description: ``str``
         The event's description
-    location: Type[:class:`BaseLocation`]
+    location: Type[``BaseLocation``]
         The location that this event belongs to
-    rate: :class:`float`
+    rate: ``float``
         The rate at which this event can happen (range 0 - 1)
     """
     name: str
@@ -276,12 +276,12 @@ class BaseEvent(ClassObject, Generic[LT]):
         -----
         target: :class:`discord.PartialMessageable`
             The target Discord channel to send messages to
-        player: :class:`BasePlayer`
+        player: ``BasePlayer``
             The player that encounters the event
 
         Returns
         -----
-        :class:`BasePlayer`
+        ``BasePlayer``
             The player after the event
         """
         with contextlib.suppress(discord.HTTPException):
@@ -309,20 +309,20 @@ class BaseCreature(Battleable):
 
     Attributes
     -----
-    name: :class:`str`
+    name: ``str``
         The creature's name
-    description: :class:`str`
+    description: ``str``
         The creature's description
-    display: :class:`str`
+    display: ``str``
         The emoji to display the player, this does not need
         to be a Unicode emoji
-    exp: :class:`int`
+    exp: ``int``
         The amount of experience points that the player can
         gain from defeating this creature
-    money: :class:`int`
+    money: ``int``
         The amount of credits that the player can gain from
         defeating this creature
-    escape_rate: :class:`float`
+    escape_rate: ``float``
         The rate at which this creature can escape after
         being defeated
     """

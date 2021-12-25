@@ -221,10 +221,10 @@ class TaskManager:
     -----
     bot: :class:`haruka.Haruka`
         The bot associated with this TaskManager.
-    remind: :class:`ReminderTask`
-        The running :class:`ReminderTask`
-    unmute: :class:`UnmuteTask`
-        The running :class:`UnmuteTask`
+    remind: ``ReminderTask``
+        The running ``ReminderTask``
+    unmute: ``UnmuteTask``
+        The running ``UnmuteTask``
     """
     __slots__ = (
         "bot",

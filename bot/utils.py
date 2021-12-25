@@ -30,12 +30,12 @@ def format(time: float) -> str:
 
     Parameters
     -----
-    time: :class:`float`
+    time: ``float``
         The given time, in seconds.
 
     Returns
     -----
-    :class:`str`
+    ``str``
         The formated time (e.g. ``1.5 s``)
     """
     if time < 1:

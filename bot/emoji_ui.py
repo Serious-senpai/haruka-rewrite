@@ -107,7 +107,7 @@ class Pagination(EmojiUI):
         target: :class:`discord.abc.Messageable`
             The target to interact with.
 
-        user_id: Optional[:class:`int`]
+        user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
             this bot itself.
@@ -172,7 +172,7 @@ class RandomPagination(EmojiUI):
         target: :class:`discord.abc.Messageable`
             The target to interact with.
 
-        user_id: Optional[:class:`int`]
+        user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
             this bot itself.
@@ -241,7 +241,7 @@ class NavigatorPagination(EmojiUI):
         target: :class:`discord.abc.Messageable`
             The target to interact with.
 
-        user_id: Optional[:class:`int`]
+        user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
             this bot itself.
@@ -293,7 +293,7 @@ class SelectMenu(EmojiUI):
     message: :class:`discord.Message`
         The message used to interact.
 
-    nargs: :class:`int`
+    nargs: ``int``
         The number of options.
     """
 
@@ -322,12 +322,12 @@ class SelectMenu(EmojiUI):
 
         Parameters
         -----
-        user_id: :class:`int`
+        user_id: ``int``
             The user ID to listen to.
 
         Returns
         -----
-        Optional[:class:`int`]
+        Optional[``int``]
             The index of the selected option, starting from 0,
             or ``None`` if the menu times out.
         """

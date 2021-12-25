@@ -69,29 +69,29 @@ class SlashMixin:
         """Register a slash command to the internal commands
         mapping.
 
-        It is recommended to use :meth:`slash` instead.
+        It is recommended to use ``slash`` instead.
 
         Parameters
         -----
-        coro: :class:`SlashCommand`
+        coro: ``SlashCommand``
             The slash command to add
         """
         self._slash_commands[command.payload["name"]] = command
         self._json.append(command.payload)
 
     def slash(self, payload: Dict[str, Any]) -> Callable[[SlashCallback], Command]:
-        """A shortcut decorator that convert a function into :class:`SlashCommand` and adds it
+        """A shortcut decorator that convert a function into ``SlashCommand`` and adds it
         to the internal command list via :meth:`add_slash_command()`.
 
         Parameters
         -----
-        payload: Dict[:class:`str`, Any]
+        payload: Dict[``str``, Any]
             The slash command payload to register with the Discord API.
 
         Returns
         -----
         Callable[[:class:`discord.Interaction`], Coroutine[Any, Any, Any]]
-            A decorator that converts the provided method into a :class:`SlashCommand`, adds it
+            A decorator that converts the provided method into a ``SlashCommand``, adds it
             to the bot, then returns it.
         """
         def decorator(coro: SlashCallback) -> Command:
@@ -158,7 +158,7 @@ def parse(interaction: discord.Interaction) -> Dict[str, Any]:
 
     Returns
     -----
-    Dict[:class:`str`, Any]
+    Dict[``str``, Any]
         A mapping of argument objects by their names
     """
     ret: Dict[str, Any] = {}

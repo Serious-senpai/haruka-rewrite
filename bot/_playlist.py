@@ -20,15 +20,15 @@ class Playlist:
 
     Attributes
     -----
-    id: :class:`int`
+    id: ``int``
         The playlist ID.
-    title: :class:`str`
+    title: ``str``
         The title of the playlist.
-    description: :class:`str`
+    description: ``str``
         The description of the playlist.
     author: :class:`discord.User`
         The author of the playlist.
-    queue: List[:class:`str`]
+    queue: List[``str``]
         List of track IDs this playlist has.
     """
 
@@ -90,12 +90,12 @@ class Playlist:
         -----
         bot: :class:`haruka.Haruka`
             The bot that initialized the request.
-        query :class:`str`
+        query: ``str``
             The searching query.
 
         Returns
         -----
-        List[:class:`Playlist`]
+        List[``Playlist``]
             A list of results, this may be empty.
         """
         rows: List[asyncpg.Record] = await bot.conn.fetch(
@@ -138,12 +138,12 @@ class Playlist:
         -----
         bot: :class:`haruka.Haruka`
             The bot that initialized the request.
-        id :class:`int`
+        id: ``int``
             The playlist ID
 
         Returns
         -----
-        Optional[:class:`Playlist`]
+        Optional[``Playlist``]
             The playlist with the given ID, or ``None`` if not found.
         """
         row: Optional[asyncpg.Record] = await bot.conn.fetchrow("SELECT * FROM playlist WHERE id = $1", id)
@@ -217,7 +217,7 @@ class YouTubePlaylist:
         -----
         conn: Union[:class:`asyncpg.Connection`, :class:`asyncpg.Pool`]
             The database connection or connection pool.
-        channel_id: :class:`int`
+        channel_id: ``int``
             The voice channel ID.
         """
         track_ids: List[str] = [video["videoId"] for video in self.videos]
@@ -228,18 +228,18 @@ class YouTubePlaylist:
     async def get(cls: Type[YouTubePlaylist], bot: haruka.Haruka, id: str) -> Optional[YouTubePlaylist]:
         """This function is a coroutine
 
-        Get a :class:`YouTubePlaylist` with the given ID.
+        Get a ``YouTubePlaylist`` with the given ID.
 
         Parameters
         -----
         bot: :class:`haruka.Haruka`
             The bot that initialized the request.
-        id: :class:`str`
+        id: ``str``
             The playlist ID.
 
         Returns
         -----
-        Optional[:class:`YouTubePlaylist`]
+        Optional[``YouTubePlaylist``]
             The playlist with the given ID, or ``None``
             if not found.
         """

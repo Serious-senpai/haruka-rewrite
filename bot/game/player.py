@@ -99,30 +99,30 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     Attributes
     -----
-    name: :class:`str`
+    name: ``str``
         The player's name, which is the same as Discord name
-    id: :class:`int`
+    id: ``int``
         The player's ID, which is the same as Discord ID
-    description: :class:`str`
+    description: ``str``
         The player's description
-    world: :class:`BaseWorld`
+    world: ``BaseWorld``
         The world the player is currently in
-    location: :class:`BaseLocation`
+    location: ``BaseLocation``
         The location the player is currently in
-    level: :class:`int`
+    level: ``int``
         The player's level
-    xp: :class:`int`
+    xp: ``int``
         The player's experience point
-    money: :class:`int`
+    money: ``int``
         The player's money
-    items: Dict[:class:`int`, :class:`int`]
+    items: Dict[``int``, ``int``]
         The player's items
     travel: Optional[:class:`datetime.datetime`]
         The datetime when the player will arrive at the destination if he is
         traveling
-    hp: :class:`int`
+    hp: ``int``
         The player's current health point
-    state: Dict[:class:`str`, Any]
+    state: Dict[``str``, Any]
         The player status
     """
 
@@ -183,12 +183,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        destination: Type[:class:`BaseLocation`]
+        destination: Type[``BaseLocation``]
             The location to travel to
 
         Returns
         -----
-        :class:`float`
+        ``float``
             The distance to travel
         """
         _dx: int = self.location.coordination.x - destination.coordination.x
@@ -209,7 +209,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         -----
         target: :class:`discord.TextChannel`
             The target Discord channel to send messages to
-        destination: Type[:class:`BaseLocation`]
+        destination: Type[``BaseLocation``]
             The location to travel to
         """
         if not self.world.id == destination.world.id:
@@ -280,12 +280,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         -----
         channel: :class:`discord.TextChannel`
             The front-end channel to interact with the user
-        item_id: :class:`int`
+        item_id: ``int``
             The item ID to use
         
         Returns
         -----
-        :class:`BasePlayer`
+        ``BasePlayer``
             The player after using the item, may remain unchanged
             if a check fails
         """
@@ -313,12 +313,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        exp: :class:`int`
+        exp: ``int``
             The amount of experience points to increase
 
         Returns
         -----
-        :class:`bool`
+        ``bool``
             Returns ``True`` if the player leveled up, ``False``
             otherwise
         """
@@ -337,7 +337,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        :class:`BasePlayer`
+        ``BasePlayer``
             The player with updated attributes
         """
         from .core import BaseWorld
@@ -370,7 +370,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        :class:`BasePlayer`
+        ``BasePlayer``
             The player after the operation, this may remain unchanged
             (due to not passing checks, for example)
         """
@@ -525,7 +525,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        location: Type[:class:`BaseLocation`]
+        location: Type[``BaseLocation``]
             The location to create an embed for
 
         Returns
@@ -679,7 +679,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        Optional[:class:`BasePlayer`]
+        Optional[``BasePlayer``]
             The retrieved player, or ``None`` if not found
         """
         from .core import BaseWorld
@@ -733,12 +733,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        :class:`BasePlayer`
+        ``BasePlayer``
             The newly created player
 
         Exceptions
         -----
-        :class:`ValueError`
+        ``ValueError``
             The player has already existed
         """
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
@@ -772,11 +772,11 @@ class BaseItem(ClassObject, Generic[PT]):
 
     Attributes
     -----
-    name: :class:`str`
+    name: ``str``
         The item's name
-    description: :class:`str`
+    description: ``str``
         The item's description
-    id: :class:`int`
+    id: ``int``
         The item's ID
     """
 
@@ -804,14 +804,14 @@ class BaseItem(ClassObject, Generic[PT]):
 
         Parameters
         -----
-        user: :class:`BasePlayer`
+        user: ``BasePlayer``
             The player who consumed this item
-        Optional[:class:`Battleable`]
+        Optional[``Battleable``]
             The effect target, if this item aims at another entity
 
         Returns
         -----
-        :class:`BasePlayer`
+        ``BasePlayer``
             The player after using the item
         """
         if cls.id not in user.items:
@@ -830,12 +830,12 @@ class BaseItem(ClassObject, Generic[PT]):
 
         Parameters
         -----
-        id: :class:`int`
+        id: ``int``
             The item ID
 
         Returns
         -----
-        Optional[Type[:class:`BaseItem`]]
+        Optional[Type[``BaseItem``]]
             The item with the given ID, or ``None`` if not found
         """
         for itype in utils.get_all_subclasses(cls):

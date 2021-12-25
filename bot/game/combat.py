@@ -55,14 +55,14 @@ async def battle(player: PT, enemy: CT) -> BattleResult:
 
     Parameters
     -----
-    player: :class:`BasePlayer`
+    player: ``BasePlayer``
         The player engaging the battle
-    enemy: :class:`BaseCreature`
+    enemy: ``BaseCreature``
         The opponent
 
     Returns
     -----
-    :class:`BattleResult`
+    ``BattleResult``
         The result of the battle
     """
     turn: int = 0

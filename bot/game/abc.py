@@ -45,11 +45,11 @@ class Battleable:
 
         Parameters
         -----
-        target: :class:`Battleable`
+        target: ``Battleable``
             The attacked target
 
         Returns
-        :class:`int`
+        ``int``
             The damage dealt. This cannot be lower than 0.
         """
         if random.random() < 0.5:
@@ -65,11 +65,11 @@ class Battleable:
 
         Parameters
         -----
-        target: :class:`Battleable`
+        target: ``Battleable``
             The attacked target
 
         Returns
-        :class:`int`
+        ``int``
             The damage dealt. This cannot be lower than 0.
         """
         _dmg: float = self.physical_atk * (1 - target.physical_res)
@@ -87,11 +87,11 @@ class Battleable:
 
         Parameters
         -----
-        target: :class:`Battleable`
+        target: ``Battleable``
             The attacked target
 
         Returns
-        :class:`int`
+        ``int``
             The damage dealt. This cannot be lower than 0.
         """
         _dmg: float = self.magical_atk * (1 - target.magical_res)

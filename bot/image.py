@@ -32,7 +32,7 @@ class ImageSource:
     -----
     session: :class:`aiohttp.ClientSession`
         The aiohttp session used to interact with the image source.
-    client: :class:`ImageClient`
+    client: ``ImageClient``
         The client that manages this image source.
     """
 
@@ -54,10 +54,10 @@ class ImageSource:
 
         Returns
         -----
-        Tuple[List[:class:`str`], List[:class:`str`]]
+        Tuple[List[``str``], List[``str``]]
             A 2-tuple containing the sfw and nsfw categories that the
             image source can provide. These categories will be passed
-            to :meth:`get` to get the image URL.
+            to ``get`` to get the image URL.
         """
         raise NotImplementedError
 
@@ -70,15 +70,15 @@ class ImageSource:
 
         Parameters
         -----
-        category: :class:`str`
+        category: ``str``
             The requested category that the image source can provide,
-            should be registered with :meth:`_get_all_endpoints` first.
+            should be registered with ``_get_all_endpoints`` first.
         mode: Literal["sfw", "nsfw"]
             Whether the image should be sfw or nsfw.
 
         Returns
         -----
-        Optional[:class:`str`]
+        Optional[``str``]
             The image URL
         """
         raise NotImplementedError
@@ -272,15 +272,15 @@ class ImageClient(Generic[IT]):
         The bot associated with this image client.
     session: :class:`aiohttp.ClientSession`
         The :class:`aiohttp.ClientSession` used to interact with
-        the :class:`ImageSource` that this client contains.
-    sfw: Dict[:class:`str`, List[:class:`ImageSource`]]
-        A mapping of SFW categories with all :class:`ImageSource`
+        the ``ImageSource`` that this client contains.
+    sfw: Dict[``str``, List[``ImageSource``]]
+        A mapping of SFW categories with all ``ImageSource``
         that can listen to it.
-    nsfw: Dict[:class:`str`, List[:class:`ImageSource`]]
-        A mapping of NSFW categories with all :class:`ImageSource`
+    nsfw: Dict[``str``, List[``ImageSource``]]
+        A mapping of NSFW categories with all ``ImageSource``
         that can listen to it.
-    sources: List[Type[:class:`ImageSource`]]
-        All the :class:`ImageSource` that this client contains.
+    sources: List[Type[``ImageSource``]]
+        All the ``ImageSource`` that this client contains.
     """
     __slots__ = (
         "bot",
@@ -353,13 +353,13 @@ class ImageClient(Generic[IT]):
     async def _register(self, source: IT) -> None:
         """This function is a coroutine
 
-        Register all endpoints that a :class:`ImageSource` can listen
+        Register all endpoints that a ``ImageSource`` can listen
         to and add them to the client listener.
 
         Parameters
         -----
-        :source: :class:`ImageSource`
-            The :class:`ImageSource` to analyze.
+        :source: ``ImageSource``
+            The ``ImageSource`` to analyze.
         """
         if not isinstance(source, ImageSource):
             raise TypeError(f"source must be ImageSource, not {source.__class__.__name__}")
@@ -385,7 +385,7 @@ class ImageClient(Generic[IT]):
 
         Get a URL from the requested category. If the requested
         category was not registered, this method will raise
-        :class:`CategoryNotFound`.
+        ``CategoryNotFound``.
 
         Note that although the category was registered, the
         fetching operation may still fall somehow and ``None``
@@ -393,7 +393,7 @@ class ImageClient(Generic[IT]):
 
         Parameters
         -----
-        category: :class:`str`
+        category: ``str``
             The image category to fetch URL.
 
         mode: Literal["sfw", "nsfw"]
@@ -402,12 +402,12 @@ class ImageClient(Generic[IT]):
 
         Returns
         -----
-        Optional[:class:`str`]
+        Optional[``str``]
             The image URL.
 
         Exceptions
         -----
-        :class:`CategoryNotFound`
+        ``CategoryNotFound``
             The category does not exist in the requested mode
             (SFW or NSFW).
         """
