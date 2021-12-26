@@ -178,7 +178,6 @@ class Anime(MALObject):
         em: discord.Embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.synopsis[:4096]),
-            color=0x2ECC71,
         )
         em.set_thumbnail(url=self.image_url)
         em.add_field(
@@ -249,7 +248,6 @@ class Manga(MALObject):
         em: discord.Embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.synopsis[:4096]),
-            color=0x2ECC71,
         )
         em.set_thumbnail(url=self.image_url)
         em.add_field(

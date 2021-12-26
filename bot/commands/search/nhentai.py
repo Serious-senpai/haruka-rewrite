@@ -39,7 +39,6 @@ async def _nhentai_cmd(ctx: commands.Context, *, query: str):
         em: discord.Embed = discord.Embed(
             title=f"Search results for {query}",
             description=desc,
-            color=0x2ECC71,
         )
         msg: discord.Message = await ctx.send(embed=em)
         display: emoji_ui.SelectMenu = emoji_ui.SelectMenu(msg, len(rslt))

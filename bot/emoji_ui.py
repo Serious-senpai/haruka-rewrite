@@ -72,10 +72,10 @@ class Pagination(EmojiUI):
 
     Attributes
     -----
-    pages: List[:class:`discord.Embed`]
+    pages: List[``discord.Embed``]
         A list of pages as embeds
 
-    message: Optional[:class:`discord.Message`]
+    message: Optional[``discord.Message``]
         The message used to interact.
     """
 
@@ -104,10 +104,10 @@ class Pagination(EmojiUI):
 
         Parameters
         -----
-        target: :class:`discord.abc.Messageable`
+        target: ``discord.abc.Messageable``
             The target to interact with.
 
-        user_id: Optional[:class:`int`]
+        user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
             this bot itself.
@@ -141,10 +141,10 @@ class RandomPagination(EmojiUI):
 
     Attributes
     -----
-    pages: List[:class:`discord.Embed`]
+    pages: List[``discord.Embed``]
         A list of pages as embeds
 
-    message: Optional[:class:`discord.Message`]
+    message: Optional[``discord.Message``]
         The message used to interact.
     """
 
@@ -169,10 +169,10 @@ class RandomPagination(EmojiUI):
 
         Parameters
         -----
-        target: :class:`discord.abc.Messageable`
+        target: ``discord.abc.Messageable``
             The target to interact with.
 
-        user_id: Optional[:class:`int`]
+        user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
             this bot itself.
@@ -210,10 +210,10 @@ class NavigatorPagination(EmojiUI):
 
     Attributes
     -----
-    pages: List[:class:`discord.Embed`]
+    pages: List[``discord.Embed``]
         A list of pages as embeds
 
-    message: Optional[:class:`discord.Message`]
+    message: Optional[``discord.Message``]
         The message used to interact.
     """
 
@@ -238,10 +238,10 @@ class NavigatorPagination(EmojiUI):
 
         Parameters
         -----
-        target: :class:`discord.abc.Messageable`
+        target: ``discord.abc.Messageable``
             The target to interact with.
 
-        user_id: Optional[:class:`int`]
+        user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
             this bot itself.
@@ -290,10 +290,10 @@ class SelectMenu(EmojiUI):
 
     Attributes
     -----
-    message: :class:`discord.Message`
+    message: ``discord.Message``
         The message used to interact.
 
-    nargs: :class:`int`
+    nargs: ``int``
         The number of options.
     """
 
@@ -322,12 +322,12 @@ class SelectMenu(EmojiUI):
 
         Parameters
         -----
-        user_id: :class:`int`
+        user_id: ``int``
             The user ID to listen to.
 
         Returns
         -----
-        Optional[:class:`int`]
+        Optional[``int``]
             The index of the selected option, starting from 0,
             or ``None`` if the menu times out.
         """

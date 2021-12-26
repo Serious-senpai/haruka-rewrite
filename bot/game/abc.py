@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import random
 from typing import Any, Dict, Type
 
@@ -46,11 +45,11 @@ class Battleable:
 
         Parameters
         -----
-        target: :class:`Battleable`
+        target: ``Battleable``
             The attacked target
 
         Returns
-        :class:`int`
+        ``int``
             The damage dealt. This cannot be lower than 0.
         """
         if random.random() < 0.5:
@@ -66,11 +65,11 @@ class Battleable:
 
         Parameters
         -----
-        target: :class:`Battleable`
+        target: ``Battleable``
             The attacked target
 
         Returns
-        :class:`int`
+        ``int``
             The damage dealt. This cannot be lower than 0.
         """
         _dmg: float = self.physical_atk * (1 - target.physical_res)
@@ -88,11 +87,11 @@ class Battleable:
 
         Parameters
         -----
-        target: :class:`Battleable`
+        target: ``Battleable``
             The attacked target
 
         Returns
-        :class:`int`
+        ``int``
             The damage dealt. This cannot be lower than 0.
         """
         _dmg: float = self.magical_atk * (1 - target.magical_res)
@@ -130,13 +129,14 @@ class Battleable:
         return embed
 
 
-from .core import (
-    BaseLocation,
-    Coordination,
-)
+from .core import BaseLocation, Coordination  # noqa
 
 
 class JSONMetaObject:
+    """Base class for objects that have their data stored in
+    a local JSON file.
+    """
+
     def __init_subclass__(cls: Type, /, meta: Dict[str, Dict[str, Any]], **kwargs) -> None:
         super().__init_subclass__(**kwargs)
         data: Dict[str, Any] = meta[cls.__name__]

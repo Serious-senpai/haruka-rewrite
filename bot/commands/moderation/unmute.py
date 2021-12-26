@@ -24,10 +24,7 @@ async def _unmute_cmd(ctx: commands.Context, member: discord.Member, *, reason: 
 
     await bot.task.unmute.unmute(row, member=member, reason=reason)
 
-    em: discord.Embed = discord.Embed(
-        color=0x2ECC71,
-        timestamp=discord.utils.utcnow(),
-    )
+    em: discord.Embed = discord.Embed()
     em.set_author(
         name=f"{ctx.author.name} unmuted 1 member",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

@@ -67,7 +67,6 @@ async def _hangman_cmd(ctx: commands.Context, n: int = 5):
     em: discord.Embed = discord.Embed(
         title="Hangman Game",
         description="-" * len(word) + "\nSend any characters to guess!\nSend `leave` to leave the game.",
-        color=0x2ECC71,
     )
     em.set_author(
         name=f"{ctx.author.name} started Hangman Game!",
@@ -101,18 +100,13 @@ async def _hangman_cmd(ctx: commands.Context, n: int = 5):
                 pass
 
             # Construct embed
-            em: discord.Embed = discord.Embed(
-                title="Hangman Game",
-                color=0x2ECC71,
-            )
-
+            em: discord.Embed = discord.Embed(title="Hangman Game")
             if guess in word:
                 game.guessed.append(guess)
                 em.set_author(
                     name=f"{ctx.author.name} guessed 1 more character!",
                     icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
                 )
-
             else:
                 if guess not in game.incorrect:
                     game.life -= 1

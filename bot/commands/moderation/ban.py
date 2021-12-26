@@ -29,10 +29,7 @@ async def _ban_cmd(ctx: commands.Context, users: commands.Greedy[discord.Object]
         else:
             success.append(user)
 
-    em: discord.Embed = discord.Embed(
-        color=0x2ECC71,
-        timestamp=discord.utils.utcnow(),
-    )
+    em: discord.Embed = discord.Embed()
 
     if success:
         em.add_field(

@@ -3,6 +3,7 @@ from typing import List
 import asyncpg
 import discord
 from discord.ext import commands
+from discord.utils import escape_markdown as escape
 
 from core import bot
 
@@ -29,11 +30,11 @@ async def _blacklist_cmd(ctx: commands.Context, user: discord.User = None):
             SET id = array_remove(id, '{user.id}')
             WHERE title = 'blacklist';
         """)
-        await ctx.send(f"Removed **{user.name}** from blacklist.")
+        await ctx.send(f"Removed **{escape(str(user))}** from blacklist.")
     else:
         await bot.conn.execute(f"""
             UPDATE misc
             SET id = array_append(id, '{user.id}')
             WHERE title = 'blacklist';
         """)
-        await ctx.send(f"Added **{user.name}** to blacklist.")
+        await ctx.send(f"Added **{escape(str(user))}** to blacklist.")

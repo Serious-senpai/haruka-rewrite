@@ -205,7 +205,9 @@ class Haruka(SlashMixin, commands.Bot):
 
     async def close(self) -> None:
         await self.conn.close()
+        self.log("Closed database connection pool for bot.")
         await self.session.close()
+        self.log("Closed side session.")
         try:
             await self.report("Terminating bot. This is the final report.")
             print("Final report has been sent.")
@@ -250,8 +252,6 @@ class Haruka(SlashMixin, commands.Bot):
         em: discord.Embed = discord.Embed(
             title="Internal status",
             description=desc,
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
         )
         em.set_thumbnail(url=self.user.avatar.url)
 

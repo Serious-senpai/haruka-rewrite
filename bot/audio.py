@@ -40,12 +40,12 @@ def get_from_memory(id: str) -> Optional[Dict[str, Any]]:
 
     Parameters
     -----
-    id: :class:`str`
+    id: ``str``
         The track ID.
 
     Returns
     -----
-    Optional[Dict[:class:`str`, Any]]
+    Optional[Dict[``str``, Any]]
         A dictionary containing the snippet information
         about the track, or ``None`` if not found.
     """
@@ -65,7 +65,7 @@ def save_to_memory(data: Dict[str, Any]) -> None:
 
     Parameters
     -----
-    data: Dict[:class:`str`, Any]
+    data: Dict[``str``, Any]
         A dictionary containing the snippet information
         about the track.
     """
@@ -78,7 +78,7 @@ class PartialInvidiousSource:
     """Represents a video object from Invidious
 
     This class only has information from the track and can be
-    obtained from :meth:`PartialInvidiousSource.search`
+    obtained from ``PartialInvidiousSource.search``
     """
 
     __slots__ = (
@@ -132,7 +132,7 @@ class PartialInvidiousSource:
         return self._json["lengthSeconds"]
 
     def create_embed(self) -> discord.Embed:
-        """Make a :class:`discord.Embed` that represents
+        """Make a ``discord.Embed`` that represents
         basic information of the video.
 
         The embed is created with a title, description,
@@ -140,14 +140,13 @@ class PartialInvidiousSource:
 
         Returns
         -----
-        :class:`discord.Embed`
+        ``discord.Embed``
             The embed with information about the video
         """
         em: discord.Embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.description) if self.description else discord.Embed.Empty,
             url=f"https://www.youtube.com/watch?v={self.id}",
-            color=0x2ECC71,
         )
         em.add_field(
             name="Channel",
@@ -180,14 +179,14 @@ class PartialInvidiousSource:
 
         Parameters
         -----
-        query: :class:`str`
+        query: ``str``
             The searching query
-        max_results: :class:`int`
+        max_results: ``int``
             The maximum number of results to return
 
         Returns
         -----
-        List[:class:`PartialInvidiousSource`]
+        List[``PartialInvidiousSource``]
             The list of searching results
         """
         params = {
@@ -213,7 +212,7 @@ class PartialInvidiousSource:
     async def build(cls: Type[PartialInvidiousSource], id: str) -> Optional[PartialInvidiousSource]:
         """This function is a coroutine
 
-        Build a :class:`PartialInvidiousSource` from a given ``id``.
+        Build a ``PartialInvidiousSource`` from a given ``id``.
 
         If data about a track with this ID is found in the disk
         then that data will be used, otherwise a new data will be
@@ -221,12 +220,12 @@ class PartialInvidiousSource:
 
         Parameters
         -----
-        id: :class:`str`
+        id: ``str``
             The track ID
 
         Returns
         -----
-        Optional[:class:`PartialInvidiousSource`]
+        Optional[``PartialInvidiousSource``]
             The track with the given ID, or ``None`` if not found.
         """
         data: Optional[Dict[str, Any]] = await asyncio.to_thread(get_from_memory, id)
@@ -246,7 +245,7 @@ class PartialInvidiousSource:
 class InvidiousSource(PartialInvidiousSource):
     """Represents a playable video object from Invidious
 
-    This class inherits from :class:`PartialInvidiousSource`,
+    This class inherits from ``PartialInvidiousSource``,
     but provides additional attributes and methods that
     support music playing.
 
@@ -290,14 +289,14 @@ class InvidiousSource(PartialInvidiousSource):
 
         If the track hasn't been initialized for
         playing yet, this will automatically call
-        :meth:`initialize()`
+        ``initialize()``
 
         Because this method is blocking, it should
         be ran in another thread.
 
         Returns
         -----
-        Optional[:class:`discord.FFmpegOpusAudio`]
+        Optional[``discord.FFmpegOpusAudio``]
             A playable audio source for 30 seconds,
             or ``None`` if the audio was finished.
         """
@@ -338,11 +337,11 @@ class InvidiousSource(PartialInvidiousSource):
 
         Ensure that the opus encoded audio URL can function
         properly. If it does not then a new URL will be
-        fetched via :meth:`get_source`.
+        fetched via ``get_source``.
 
         Returns
         -----
-        Optional[:class:`str`]
+        Optional[``str``]
             The URL to the audio. This is the same as the
             ``source`` attribute of the object.
         """
@@ -365,7 +364,7 @@ class InvidiousSource(PartialInvidiousSource):
 
         Returns
         -----
-        Optional[:class:`str`]
+        Optional[``str``]
             The fetched URL, or ``None`` if an error occured.
         """
         args: List[str] = [
@@ -400,16 +399,16 @@ class InvidiousSource(PartialInvidiousSource):
     async def build(cls: Type[InvidiousSource], id: str) -> Optional[InvidiousSource]:
         """This function is a coroutine
 
-        Get a :class:`InvidiousSource` from a video ID.
+        Get a ``InvidiousSource`` from a video ID.
 
         Parameters
         -----
-        id: :class:`str`
+        id: ``str``
             The track ID.
 
         Returns
         -----
-        :class:`InvidiousSource`
+        ``InvidiousSource``
             The video object with the given ID.
         """
         for url in INVIDIOUS_URLS:
@@ -433,7 +432,7 @@ class InvidiousSource(PartialInvidiousSource):
         """This function is a coroutine
 
         This method should never be used. Use
-        :meth:`PartialInvidiousSource.search` instead.
+        ``PartialInvidiousSource.search`` instead.
         """
         raise NotImplementedError
 
@@ -450,16 +449,16 @@ async def embed_search(
 
     Parameters
     -----
-    query: :class:`str`
+    query: ``str``
         The searching query
-    target: :class:`discord.abc.Messageable`
+    target: ``discord.abc.Messageable``
         The interaction target channel
-    user_id: :class:`int`
+    user_id: ``int``
         The user ID to listen to
 
     Returns
     -----
-    Optional[:class:`InvidiousSource`]
+    Optional[``InvidiousSource``]
         The selected track. This can be ``None`` in the
         following cases:
         - No track was found. In this case a notification
@@ -473,9 +472,7 @@ async def embed_search(
         await target.send("No matching result was found.")
         return
 
-    embed: discord.Embed = discord.Embed(
-        color=0x2ECC71,
-    )
+    embed: discord.Embed = discord.Embed()
     embed.set_author(
         name=f"Search results for {query}",
         icon_url=bot.user.avatar.url,
@@ -503,12 +500,12 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
 
     Parameters
     -----
-    track: :class:`InvidiousSource`
+    track: ``InvidiousSource``
         The target track.
 
     Returns
     -----
-    Optional[:class:`str`]
+    Optional[``str``]
         The URL to the audio, remember that we are hosting
         on Heroku.
     """
@@ -540,7 +537,7 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
 class MusicClient(discord.VoiceClient):
     """Represents an audio client within a guild.
 
-    This is a subclass of :class:`discord.VoiceClient`.
+    This is a subclass of ``discord.VoiceClient``.
 
     This class provides some additional functions for
     implementing the music queue system.
@@ -564,12 +561,12 @@ class MusicClient(discord.VoiceClient):
 
         Parameters
         -----
-        channel_id: :class:`int`
+        channel_id: ``int``
             The voice channel ID to get the music queue.
 
         Returns
         -----
-        List[:class:`str`]
+        List[``str``]
             The list of IDs of tracks in the voice channel,
             this list can be empty.
         """
@@ -589,9 +586,9 @@ class MusicClient(discord.VoiceClient):
 
         Parameters
         -----
-        channel_id: :class:`int`
+        channel_id: ``int``
             The voice channel ID.
-        id: :class:`str`
+        id: ``str``
             The ID of the track to add, in this case, a YouTube video
         """
         await bot.conn.execute(f"UPDATE youtube SET queue = array_append(queue, '{id}') WHERE id = '{channel_id}';")
@@ -609,15 +606,15 @@ class MusicClient(discord.VoiceClient):
 
         Parameters
         -----
-        channel_id: :class:`int`
+        channel_id: ``int``
             The voice channel ID.
-        pos: Optional[:class:`int`]
+        pos: Optional[``int``]
             The position of the track to remove, indexing starts from 1. If
             this argument is not provided, a random track will be poped out.
 
         Returns
         -----
-        Optional[:class:`str`]
+        Optional[``str``]
             The ID of the removed track, or ``None`` if the operation failed
         """
         queue: List[str] = await cls.queue(channel_id)
@@ -640,7 +637,7 @@ class MusicClient(discord.VoiceClient):
 
         Parameters
         -----
-        target :class:`discord.abc.Messageable`
+        target ``discord.abc.Messageable``
             The channel to send audio playing info.
         """
         repeat_id: Optional[str] = None
@@ -662,10 +659,7 @@ class MusicClient(discord.VoiceClient):
             track: Optional[InvidiousSource] = await InvidiousSource.build(track_id)
 
             if track is None:
-                em: discord.Embed = discord.Embed(
-                    description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.",
-                    color=0x2ECC71,
-                )
+                em: discord.Embed = discord.Embed(description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.")
                 em.set_author(
                     name="Warning",
                     icon_url=bot.user.avatar.url,

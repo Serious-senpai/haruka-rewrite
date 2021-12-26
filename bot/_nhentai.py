@@ -96,7 +96,6 @@ class NHentai:
             title=escape(self.title),
             description=escape(self.subtitle) if self.subtitle else discord.Embed.Empty,
             url=self.url,
-            color=0x2ECC71,
         )
         for section in self.sections:
             span: bs4.BeautifulSoup = section.span.extract()

@@ -13,9 +13,7 @@ from core import bot
 async def _miku_cmd(ctx: commands.Context):
     return await ctx.send("This command is deprecated.")
     image_url: str = leech.get_miku()
-    em: discord.Embed = discord.Embed(
-        color=0x2ECC71,
-    )
+    em: discord.Embed = discord.Embed()
     em.set_author(
         name=f"{ctx.author.name} simped Miku!",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

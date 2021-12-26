@@ -21,10 +21,7 @@ async def _daily_cmd(ctx: commands.Context):
     if not player:
         player = await game.BasePlayer.make_new(ctx.author)
         pref: str = await prefix(bot, ctx.message)
-        embed: discord.Embed = discord.Embed(
-            description=f"It looks like this is the first time you have played this game. Here are some commands to help you get started!\nYou can still use `{pref}help <command>` to get help as usual.\n\nYou are currently in school, use `{pref}travel 0` to go back home!",
-            color=0x2ECC71,
-        )
+        embed: discord.Embed = discord.Embed(description=f"It looks like this is the first time you have played this game. Here are some commands to help you get started!\nYou can still use `{pref}help <command>` to get help as usual.\n\nYou are currently in school, use `{pref}travel 0` to go back home!")
         embed.set_author(
             name="Game Tutorial",
             icon_url=bot.user.avatar.url,

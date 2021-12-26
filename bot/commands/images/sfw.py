@@ -21,10 +21,7 @@ async def _sfw_cmd(ctx: commands.Context, *, category: str):
     except image.CategoryNotFound:
         return await ctx.send(f"No category named `{category}` was found.")
 
-    em: discord.Embed = discord.Embed(
-        description=f"You can now invoke this command with `*{category.replace(' ', '_')}`",
-        color=0x2ECC71,
-    )
+    em: discord.Embed = discord.Embed()
     em.set_author(
         name=f"{ctx.author.name}, this is your image!",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

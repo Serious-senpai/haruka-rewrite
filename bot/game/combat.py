@@ -31,11 +31,11 @@ class BattleResult(NamedTuple):
     async def send(self, target: discord.TextChannel) -> None:
         """This function is a coroutine
 
-        Send the battle result to a :class:`discord.TextChannel`
+        Send the battle result to a ``discord.TextChannel``
 
         Parameters
         -----
-        target: :class:`discord.TextChannel`
+        target: ``discord.TextChannel``
             The target channel
         """
         embed, player, status, leveled_up = self
@@ -55,14 +55,14 @@ async def battle(player: PT, enemy: CT) -> BattleResult:
 
     Parameters
     -----
-    player: :class:`BasePlayer`
+    player: ``BasePlayer``
         The player engaging the battle
-    enemy: :class:`BaseCreature`
+    enemy: ``BaseCreature``
         The opponent
 
     Returns
     -----
-    :class:`BattleResult`
+    ``BattleResult``
         The result of the battle
     """
     turn: int = 0

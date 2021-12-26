@@ -86,10 +86,7 @@ async def get_sauce(src) -> List[discord.Embed]:
                         attrs={"class": "resultsimilarityinfo"}
                     ).get_text()
 
-                    em: discord.Embed = discord.Embed(
-                        title=f"Displaying result #{count}",
-                        color=0x2ECC71,
-                    )
+                    em: discord.Embed = discord.Embed(title=f"Displaying result #{count}")
                     em.add_field(
                         name="Sauce",
                         value=url,

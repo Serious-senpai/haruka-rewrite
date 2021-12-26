@@ -19,11 +19,11 @@ class Task:
 
     Attributes
     -----
-    bot: :class:`haruka.Haruka`
+    bot: ``haruka.Haruka``
         The bot associated with this task
-    conn: :class:`asyncpg.Pool`
+    conn: ``asyncpg.Pool``
         The database connection pool
-    task: :class:`asyncio.Task`
+    task: ``asyncio.Task``
         The underlying task for this object
     """
 
@@ -74,7 +74,6 @@ class ReminderTask(Task):
 
         em: discord.Embed = discord.Embed(
             description=row["content"],
-            color=0x2ECC71,
             timestamp=row["original"],
         )
         em.set_author(
@@ -138,10 +137,7 @@ class UnmuteTask(Task):
             pass
 
     async def cleanup(self, *, member: discord.Member, reason: str) -> None:
-        em: discord.Embed = discord.Embed(
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
-        )
+        em: discord.Embed = discord.Embed()
         em.set_author(
             name="You were unmuted from the server",
             icon_url=self.bot.user.avatar.url,
@@ -219,12 +215,12 @@ class TaskManager:
 
     Attributes
     -----
-    bot: :class:`haruka.Haruka`
+    bot: ``haruka.Haruka``
         The bot associated with this TaskManager.
-    remind: :class:`ReminderTask`
-        The running :class:`ReminderTask`
-    unmute: :class:`UnmuteTask`
-        The running :class:`UnmuteTask`
+    remind: ``ReminderTask``
+        The running ``ReminderTask``
+    unmute: ``UnmuteTask``
+        The running ``UnmuteTask``
     """
     __slots__ = (
         "bot",

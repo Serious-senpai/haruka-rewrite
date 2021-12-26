@@ -61,7 +61,6 @@ class UrbanSearch:
             title=f"{title}",
             description=desc,
             url=self.url,
-            color=0x2ECC71,
         )
         em.set_footer(text="From Urban Dictionary")
 

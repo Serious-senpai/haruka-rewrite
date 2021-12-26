@@ -42,10 +42,7 @@ async def _queue_cmd(ctx: commands.Context):
         pages: int = 1 + int(len(track_ids) / SONGS_PER_PAGE)
 
         for page in range(pages):
-            em: discord.Embed = discord.Embed(
-                title=f"Music queue of channel {channel.name}",
-                color=0x2ECC71,
-            )
+            em: discord.Embed = discord.Embed(title=f"Music queue of channel {channel.name}")
             em.set_footer(
                 text=f"Currently has {len(track_ids)} song(s) | Page {page + 1}/{pages}"
             )

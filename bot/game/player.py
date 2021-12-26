@@ -9,11 +9,12 @@ import math
 import random
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
-from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Type, TypeVar, Union, overload
 
 import asyncpg
 import discord
 from discord.ext import commands
+from discord.utils import escape_markdown as escape
 
 import emoji_ui
 import utils
@@ -82,6 +83,13 @@ class BattleContext(AbstractAsyncContextManager):
         await self.player.save(state=self.player.state)
 
 
+class ItemNotFound(Exception):
+    """Exception raise when the item ID cannot be found
+    in the player's inventory
+    """
+    pass
+
+
 @dataclasses.dataclass(init=True, repr=True, order=False, frozen=False)
 class BasePlayer(Battleable, Generic[LT, WT]):
     """Base class for players from different worlds
@@ -91,30 +99,30 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
     Attributes
     -----
-    name: :class:`str`
+    name: ``str``
         The player's name, which is the same as Discord name
-    id: :class:`int`
+    id: ``int``
         The player's ID, which is the same as Discord ID
-    description: :class:`str`
+    description: ``str``
         The player's description
-    world: :class:`BaseWorld`
+    world: ``BaseWorld``
         The world the player is currently in
-    location: :class:`BaseLocation`
+    location: ``BaseLocation``
         The location the player is currently in
-    level: :class:`int`
+    level: ``int``
         The player's level
-    xp: :class:`int`
+    xp: ``int``
         The player's experience point
-    money: :class:`int`
+    money: ``int``
         The player's money
-    items: List[:class:`BaseItem`]
+    items: Dict[``int``, ``int``]
         The player's items
-    travel: Optional[:class:`datetime.datetime`]
+    travel: Optional[``datetime.datetime``]
         The datetime when the player will arrive at the destination if he is
         traveling
-    hp: :class:`int`
+    hp: ``int``
         The player's current health point
-    state: Dict[:class:`str`, Any]
+    state: Dict[``str``, Any]
         The player status
     """
 
@@ -125,7 +133,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     level: int
     xp: int
     money: int
-    items: List[IT]
+    items: Dict[int, int]
     hp: int
     travel: Optional[datetime.datetime]
     state: Dict[str, Any]
@@ -143,7 +151,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     @property
     def client_user(self) -> discord.ClientUser:
         """The bot user acquired from the internal
-        :class:`discord.state.ConnectionState`
+        ``discord.state.ConnectionState``
         """
         return self.user._state.user
 
@@ -175,12 +183,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        destination: Type[:class:`BaseLocation`]
+        destination: Type[``BaseLocation``]
             The location to travel to
 
         Returns
         -----
-        :class:`float`
+        ``float``
             The distance to travel
         """
         _dx: int = self.location.coordination.x - destination.coordination.x
@@ -199,9 +207,9 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        target: :class:`discord.TextChannel`
+        target: ``discord.TextChannel``
             The target Discord channel to send messages to
-        destination: Type[:class:`BaseLocation`]
+        destination: Type[``BaseLocation``]
             The location to travel to
         """
         if not self.world.id == destination.world.id:
@@ -263,6 +271,36 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
             return await handler(channel, player=player, enemy=enemy)
 
+    async def use(self, channel: discord.TextChannel, item_id: int) -> PT:
+        """This function is a coroutine
+
+        Let this player use an item that only affects himself.
+
+        Parameters
+        -----
+        channel: ``discord.TextChannel``
+            The front-end channel to interact with the user
+        item_id: ``int``
+            The item ID to use
+
+        Returns
+        -----
+        ``BasePlayer``
+            The player after using the item, may remain unchanged
+            if a check fails
+        """
+        try:
+            item: Optional[IT] = BaseItem.from_id(item_id)
+            if not item:
+                raise ItemNotFound
+            self = await item.effect(self)
+        except ItemNotFound:
+            await channel.send(f"I cannot find any items with `ID {item_id}` from your inventory!")
+        else:
+            await channel.send(f"**{escape(self.user.name)}** consumed 1 **{item.name}**!")
+        finally:
+            return self
+
     async def leveled_up_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
         return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**.\nHP was fully recovered.", **kwargs)
 
@@ -275,12 +313,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        exp: :class:`int`
+        exp: ``int``
             The amount of experience points to increase
 
         Returns
         -----
-        :class:`bool`
+        ``bool``
             Returns ``True`` if the player leveled up, ``False``
             otherwise
         """
@@ -299,7 +337,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        :class:`BasePlayer`
+        ``BasePlayer``
             The player with updated attributes
         """
         from .core import BaseWorld
@@ -316,7 +354,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         player.hp = -1  # A workaround way to set hp = hp_max
 
         await player.update()
-        await player.save(type=0)
+        await player.save(type_id=0)
         player.release()
         return await player.from_user(player.user)
 
@@ -327,12 +365,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        channel: :class:`discord.TextChannel`
+        channel: ``discord.TextChannel``
             The channel to interact with
 
         Returns
         -----
-        :class:`BasePlayer`
+        ``BasePlayer``
             The player after the operation, this may remain unchanged
             (due to not passing checks, for example)
         """
@@ -340,12 +378,8 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             await channel.send("You cannot change your class at this location!")
             return self
 
-        class_display: str = ", ".join(ptype.__name__ for ptype in self.world.ptypes)
-        embed: discord.Embed = discord.Embed(
-            description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!\nList of classes in this world: " + class_display,
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
-        )
+        class_display: str = ", ".join(ptype.__name__ for ptype in self.world.ptypes if ptype.type_id > 0)
+        embed: discord.Embed = discord.Embed(description="Do you want to change your class for `💲1000`?\nYour new class will be chosen *randomly*!\nList of player classes in this world: " + class_display)
         embed.set_author(
             name="Class changing",
             icon_url=self.client_user.avatar.url,
@@ -370,12 +404,14 @@ class BasePlayer(Battleable, Generic[LT, WT]):
                 _type = random.choice(self.world.ptypes)
             await player.save(
                 money=player.money - 1000,
-                type=_type.type_id,
+                type_id=_type.type_id,
                 hp=-1,
             )
             await channel.send(f"Your new class is **{_type.__name__}**!")
             player.release()
             return await BasePlayer.from_user(player.user)
+
+    # Embed creation support
 
     def create_embed(self) -> discord.Embed:
         """Create an embed represents basic information about
@@ -383,15 +419,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Returns
         -----
-        :class:`discord.Embed`
+        ``discord.Embed``
             The created embed
         """
-        embed: discord.Embed = discord.Embed(
-            description=f"Lv.{self.level} (EXP {self.xp}/{EXP_SCALE * self.level})",
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
-        )
-
+        embed: discord.Embed = discord.Embed(description=f"Lv.{self.level} (EXP {self.xp}/{EXP_SCALE * self.level})")
         embed.add_field(
             name="Class",
             value=f"{self.display} {self.__class__.__name__}",
@@ -421,20 +452,42 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         return embed
 
+    def map_inventory(self) -> discord.Embed:
+        """Create an embed displaying the player's inventory
+
+        Returns
+        -----
+        ``discord.Embed``
+            The created embed
+        """
+        _display: List[str] = []
+        item: IT
+        item_id: int
+        item_amount: int
+        for item_id, item_amount in self.items.items():
+            item = BaseItem.from_id(item_id)
+            _display.append(f"`ID {item_id}` **{escape(item.name)}**: {item_amount}")
+
+        embed: discord.Embed = discord.Embed(description="\n".join(_display) or "Whoops! Looks like there is nothing here at the moment. You can get items from the lottery and shops!")
+        embed.set_author(
+            name=f"{self.user} Inventory",
+            icon_url=self.client_user.avatar.url,
+        )
+        embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
+        return embed
+
     def map_world(self) -> discord.Embed:
         """Create an embed represents basic information about
         the player's world.
 
         Returns
         -----
-        :class:`discord.Embed`
+        ``discord.Embed``
             The created embed
         """
         embed: discord.Embed = discord.Embed(
             title=self.world.name,
             description=self.world.description,
-            color=0x2ECC71,
-            timestamp=discord.utils.utcnow(),
         )
         embed.add_field(
             name="World ID",
@@ -457,12 +510,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        location: Type[:class:`BaseLocation`]
+        location: Type[``BaseLocation``]
             The location to create an embed for
 
         Returns
         -----
-        :class:`discord.Embed`
+        ``discord.Embed``
             The created embed
         """
         embed: discord.Embed = location.create_embed()
@@ -504,7 +557,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             description=self.description,
             world=self.world,
             location=self.location,
-            type=self.type_id,
+            type_id=self.type_id,
             level=self.level,
             xp=self.xp,
             money=self.money,
@@ -514,7 +567,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             state=self.state,
         )
 
-    async def save(self, **kwargs) -> None:
+    async def save(self, *, description: str = MISSING, world: Type[WT] = MISSING, location: Type[LT] = MISSING, type_id: int = MISSING,
+                   level: int = MISSING, xp: int = MISSING, money: int = MISSING, items: Dict[int, int] = MISSING, hp: int = MISSING,
+                   travel: Optional[datetime.datetime] = MISSING, state: Dict[str, Any] = MISSING,
+                   ) -> None:
         """This function is a coroutine
 
         Save this player's data to the database.
@@ -524,82 +580,68 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         **kwargs:
             The attributes to save
         """
-        if not kwargs:
-            return
-
         counter: int = 0
         updates: List[str] = []
         args: List[Any] = []
         conn: Union[asyncpg.Connection, asyncpg.Pool] = self.user._state.conn
 
-        description: Optional[str] = kwargs.pop("description", MISSING)
         if description is not MISSING:
             counter += 1
             updates.append(f"description = ${counter}")
             args.append(description)
 
-        world: Optional[Type[WT]] = kwargs.pop("world", MISSING)
         if world is not MISSING:
             counter += 1
             updates.append(f"world = ${counter}")
             args.append(world.id)
 
-        location: Optional[Type[LT]] = kwargs.pop("location", MISSING)
         if location is not MISSING:
             counter += 1
             updates.append(f"location = ${counter}")
             args.append(location.id)
 
-        type_id: Optional[int] = kwargs.pop("type", MISSING)
         if type_id is not MISSING:
             counter += 1
             updates.append(f"type = ${counter}")
             args.append(type_id)
 
-        level: Optional[int] = kwargs.pop("level", MISSING)
         if level is not MISSING:
             counter += 1
             updates.append(f"level = ${counter}")
             args.append(level)
 
-        xp: Optional[int] = kwargs.pop("xp", MISSING)
         if xp is not MISSING:
             counter += 1
             updates.append(f"xp = ${counter}")
             args.append(xp)
 
-        money: Optional[int] = kwargs.pop("money", MISSING)
         if money is not MISSING:
             counter += 1
             updates.append(f"money = ${counter}")
             args.append(money)
 
-        items: List[Type[IT]] = kwargs.pop("items", MISSING)
         if items is not MISSING:
             counter += 1
             updates.append(f"items = ${counter}")
-            args.append([item.id for item in items])
+            args.append(json.dumps(items))
 
-        hp: Optional[int] = kwargs.pop("hp", MISSING)
         if hp is not MISSING:
             counter += 1
             updates.append(f"hp = ${counter}")
             args.append(hp)
 
-        travel: Optional[datetime.datetime] = kwargs.pop("travel", MISSING)
         if travel is not MISSING:
             counter += 1
             updates.append(f"travel = ${counter}")
             args.append(travel)
 
-        state: Optional[Dict[str, Any]] = kwargs.pop("state", MISSING)
         if state is not MISSING:
             counter += 1
             updates.append(f"state = ${counter}")
             args.append(json.dumps(state))
 
-        if kwargs:
-            raise ValueError("Unrecognized attributes: " + ", ".join(kwargs.keys()))
+        if counter == 0:
+            return
 
         content: str = ", ".join(updates)
         query: str = f"UPDATE rpg SET {content} WHERE id = '{self.id}';"
@@ -617,12 +659,12 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        user: :class:`discord.User`
+        user: ``discord.User``
             The Discord user
 
         Returns
         -----
-        Optional[:class:`BasePlayer`]
+        Optional[``BasePlayer``]
             The retrieved player, or ``None`` if not found
         """
         from .core import BaseWorld
@@ -641,6 +683,10 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         location: Type[LT] = world.get_location(row["location"])
         ptype: Type[PT] = world.get_player(row["type"])
 
+        items: Dict[int, int] = {}
+        for k, v in json.loads(row["items"]).items():
+            items[int(k)] = v
+
         player: PT = ptype(
             user=user,
             description=row["description"],
@@ -649,7 +695,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             level=row["level"],
             xp=row["xp"],
             money=row["money"],
-            items=[BaseItem.from_id(item_id) for item_id in row["items"]],
+            items=items,
             hp=row["hp"],
             travel=row["travel"],
             state=json.loads(row["state"]),
@@ -667,17 +713,17 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         Parameters
         -----
-        user: :class:`discord.User`
+        user: ``discord.User``
             The Discord user
 
         Returns
         -----
-        :class:`BasePlayer`
+        ``BasePlayer``
             The newly created player
 
         Exceptions
         -----
-        :class:`ValueError`
+        ``ValueError``
             The player has already existed
         """
         conn: Union[asyncpg.Connection, asyncpg.Pool] = user._state.conn
@@ -694,7 +740,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             1,  # level
             0,  # exp
             50,  # money
-            [],  # items
+            json.dumps({}),  # items
             -1,  # hp
             None,  # travel
             json.dumps(dict(travel=False, battle=False)),  # state
@@ -707,57 +753,78 @@ class BaseItem(ClassObject, Generic[PT]):
 
     All items must subclass this class. Please note that
     item objects are represented by the classes themselves,
-    not by their instances.
+    not their instances.
 
     Attributes
     -----
-    name: :class:`str`
+    name: ``str``
         The item's name
-    description: :class:`str`
+    description: ``str``
         The item's description
-    id: :class:`int`
-        The item's id
-    level: :class:`int`
-        The item's level
+    id: ``int``
+        The item's ID
     """
-    __slots__ = (
-        "level",
-    )
+
     name: str
     description: str
     id: int
 
-    def effect(self, user: PT, target: Optional[Battleable]) -> Any:
-        """Perform calculation for the effect when a user consumes this item.
+    @classmethod
+    @overload
+    async def effect(cls: Type[IT], user: PT, target: Any) -> PT:
+        ...
+
+    @classmethod
+    @overload
+    async def effect(cls: Type[IT], user: PT) -> PT:
+        ...
+
+    @classmethod
+    async def effect(cls, user, target=None):
+        """This function is a coroutine
+
+        Perform calculation for the effect when a user consumes this item.
 
         Subclasses must implement this.
 
         Parameters
         -----
-        user: :class:`BasePlayer`
+        user: ``BasePlayer``
             The player who consumed this item
-        Optional[:class:`Battleable`]
+        Optional[``Battleable``]
             The effect target, if this item aims at another entity
+
+        Returns
+        -----
+        ``BasePlayer``
+            The player after using the item
         """
-        raise NotImplementedError
+        if cls.id not in user.items:
+            raise ItemNotFound
+        elif user.items[cls.id] <= 0:
+            raise ItemNotFound
+        else:
+            user.items[cls.id] -= 1
+            await user.save(items=user.items)
+            return user
 
     @classmethod
     @functools.cache
     def from_id(cls: Type[BaseItem], id: int) -> Optional[Type[IT]]:
-        """Construct an item from an identification string
+        """Construct an item from an ID
 
         Parameters
         -----
-        id: :class:`int`
+        id: ``int``
             The item ID
 
         Returns
         -----
-        Optional[Type[:class:`BaseItem`]]
+        Optional[Type[``BaseItem``]]
             The item with the given ID, or ``None`` if not found
         """
-        for itype in cls.__subclasses__():
-            if itype.id == id:
+        for itype in utils.get_all_subclasses(cls):
+            if getattr(itype, "id", MISSING) == id:
                 return itype
 
 

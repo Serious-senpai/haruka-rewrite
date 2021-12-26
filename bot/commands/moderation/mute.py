@@ -69,11 +69,7 @@ async def _mute_cmd(ctx: commands.Context, hours: int, minutes: int, member: dis
     except BaseException:
         warning = True
 
-    em: discord.Embed = discord.Embed(
-        description="Cannot remove all roles, this member may not be muted completely." if warning else discord.Embed.Empty,
-        color=0x2ECC71,
-        timestamp=discord.utils.utcnow(),
-    )
+    em: discord.Embed = discord.Embed(description="Cannot remove all roles, this member may not be muted completely." if warning else discord.Embed.Empty)
     em.set_author(
         name=f"{ctx.author.name} muted 1 member",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

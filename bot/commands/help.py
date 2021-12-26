@@ -24,10 +24,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         super().__init__(command_attrs=command_attrs)
 
     def template(self, page: int, pref: str) -> discord.Embed:
-        em: discord.Embed = discord.Embed(
-            description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.\nCommands under development are not listed here, but you can still find their source code with `{pref}source <command>`.",
-            color=0x2ECC71,
-        )
+        em: discord.Embed = discord.Embed(description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.\nCommands under development are not listed here, but you can still find their source code with `{pref}source <command>`.")
         em.set_author(
             name=f"{bot.user} Command List",
             icon_url=bot.user.avatar.url,
@@ -129,7 +126,6 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         em: discord.Embed = discord.Embed(
             title=command.qualified_name,
             description=f"```\n{pref}{usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
-            color=0x2ECC71,
         )
         em.set_author(name=f"{self.context.author.name}, this is an instruction for {command.qualified_name}!", icon_url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
         await self.context.send(embed=em)
