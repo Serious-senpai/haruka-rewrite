@@ -27,6 +27,7 @@ __all__ = (
     "rpg_check",
     "BasePlayer",
     "BaseItem",
+    "ItemNotFound",
     "PlayerCache",
 )
 
@@ -290,16 +291,22 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             if a check fails
         """
         try:
-            item: Optional[IT] = BaseItem.from_id(item_id)
-            if not item:
-                raise ItemNotFound
-            self = await item.effect(self)
+            item: Type[IT] = self.get_item(item_id)
+            self = await item.effect(self, channel)
         except ItemNotFound:
             await channel.send(f"I cannot find any items with `ID {item_id}` from your inventory!")
-        else:
-            await channel.send(f"**{escape(self.user.name)}** consumed 1 **{item.name}**!")
         finally:
             return self
+
+    def get_item(self, item_id: int) -> Type[IT]:
+        if item_id not in self.items:
+            raise ItemNotFound
+
+        item: Optional[Type[IT]] = BaseItem.from_id(item_id)
+        if not item:
+            raise ItemNotFound
+
+        return item
 
     async def leveled_up_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
         return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**.\nHP was fully recovered.", **kwargs)
@@ -623,6 +630,13 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         if items is not MISSING:
             counter += 1
             updates.append(f"items = ${counter}")
+            bin: List[int] = []
+            for item_id, amount in items.items():
+                if amount == 0:
+                    bin.append(item_id)
+
+            for id in bin:
+                del items[id]
             args.append(json.dumps(items))
 
         if hp is not MISSING:
@@ -771,19 +785,20 @@ class BaseItem(ClassObject, Generic[PT]):
 
     @classmethod
     @overload
-    async def effect(cls: Type[IT], user: PT, target: Any) -> PT:
+    async def effect(cls: Type[IT], user: PT, channel: discord.TextChannel, target: Any) -> PT:
         ...
 
     @classmethod
     @overload
-    async def effect(cls: Type[IT], user: PT) -> PT:
+    async def effect(cls: Type[IT], user: PT, channel: discord.TextChannel) -> PT:
         ...
 
     @classmethod
-    async def effect(cls, user, target=None):
+    async def effect(cls, user, channel, target=None):
         """This function is a coroutine
 
         Perform calculation for the effect when a user consumes this item.
+        The user will be automatically updated within this method.
 
         Subclasses must implement this.
 
@@ -791,6 +806,8 @@ class BaseItem(ClassObject, Generic[PT]):
         -----
         user: ``BasePlayer``
             The player who consumed this item
+        channel: ``discord.TextChannel``
+            The front-end channel to interact with the user
         Optional[``Battleable``]
             The effect target, if this item aims at another entity
 

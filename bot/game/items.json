@@ -18,7 +18,7 @@
         "heal": 80
     },
     "LegendaryHealingPotion": {
-        "name": "Common Healing Potion",
+        "name": "Legendary Healing Potion",
         "description": "Heal the user for 150 HP",
         "id": 3,
         "heal": 150
