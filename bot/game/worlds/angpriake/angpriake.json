@@ -84,7 +84,7 @@
         "physical_atk": 12,
         "magical_atk": 0,
         "physical_res": 0.3,
-        "magical_res": 0.3,
+        "magical_res": 0.2,
         "crit_rate": 0.45,
         "crit_dmg": 0.9
     },
@@ -113,7 +113,7 @@
         "physical_atk": 25,
         "magical_atk": 25,
         "physical_res": 0.8,
-        "magical_res": 0.8,
+        "magical_res": 0.7,
         "crit_rate": 0.85,
         "crit_dmg": 2.5
     }

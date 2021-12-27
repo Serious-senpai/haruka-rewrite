@@ -516,7 +516,9 @@ class BasePlayer(Battleable):
                 except IndexError:
                     pass
 
-            embed: discord.Embed = discord.Embed(description="\n".join(desc.format(item=item) for item in _items))
+            embed: discord.Embed = discord.Embed(
+                description="\n".join(desc.format(item=item) for item in _items) or "*None*",
+            )
             embed.set_author(
                 name="These items can be bought at this location",
                 icon_url=self.client_user.avatar.url,

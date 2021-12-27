@@ -222,7 +222,7 @@ class Mage(_AngpriakePlayer):
 
     @property
     def magical_res(self) -> float:
-        return self.level / (self.level + 5)
+        return self.level / (self.level + 10)
 
     @property
     def crit_rate(self) -> float:
@@ -234,3 +234,43 @@ class Mage(_AngpriakePlayer):
 
     def attack(self, target: Battleable) -> int:
         return self.magical_attack(target)
+
+
+class Assassin(_AngpriakePlayer):
+    @classmethod
+    @property
+    def display(cls: Type[Assassin]) -> str:
+        return "🥷"
+
+    @classmethod
+    @property
+    def type_id(cls: Type[Assassin]) -> int:
+        return 3
+
+    @property
+    def hp_max(self) -> int:
+        return 100 + self.level
+
+    @property
+    def physical_atk(self) -> int:
+        return 50 + 5 * self.level
+
+    @property
+    def magical_atk(self) -> int:
+        return 50 + 4 * self.level
+
+    @property
+    def physical_res(self) -> float:
+        return self.level / (self.level + 20)
+
+    @property
+    def magical_res(self) -> float:
+        return self.level / (self.level + 25)
+
+    @property
+    def crit_rate(self) -> float:
+        return 0.9
+
+    @property
+    def crit_dmg(self) -> float:
+        return self.level / (self.level + 5)
