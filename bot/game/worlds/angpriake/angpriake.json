@@ -8,6 +8,7 @@
         "name": "Village",
         "description": "The village where you were born. You can earn `💲10`/h here",
         "id": 0,
+        "item_ids": [0, 1, 2],
         "coordination": {
             "x": 0,
             "y": 0
@@ -19,6 +20,7 @@
         "id": 1,
         "level_limit": 10,
         "class_changable": true,
+        "item_ids": [0, 1, 2, 3, 4],
         "coordination": {
             "x": 50,
             "y": 50
@@ -29,6 +31,7 @@
         "description": "The capital city of the country. You can earn `💲20`/h here",
         "id": 2,
         "level_limit": 20,
+        "item_ids": [0, 1, 2, 3, 5],
         "coordination": {
             "x": 500,
             "y": 600

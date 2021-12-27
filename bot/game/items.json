@@ -3,35 +3,41 @@
         "name": "Common Healing Potion",
         "description": "Heal the user for 10 HP",
         "id": 0,
+        "cost": 200,
         "heal": 10
     },
     "RareHealingPotion": {
         "name": "Rare Healing Potion",
         "description": "Heal the user for 40 HP",
         "id": 1,
+        "cost": 800,
         "heal": 40
     },
     "EpicHealingPotion": {
         "name": "Epic Healing Potion",
         "description": "Heal the user for 80 HP",
         "id": 2,
+        "cost": 1600,
         "heal": 80
     },
     "LegendaryHealingPotion": {
-        "name": "Common Healing Potion",
+        "name": "Legendary Healing Potion",
         "description": "Heal the user for 150 HP",
         "id": 3,
+        "cost": 3000,
         "heal": 150
     },
     "EXHealingPotion": {
         "name": "EX Healing Potion",
         "description": "Heal the user for 250 HP",
         "id": 4,
+        "cost": 5000,
         "heal": 250
     },
     "TeleportDevice": {
         "name": "Teleport Device",
         "description": "Teleport you to a different location",
-        "id": 5
+        "id": 5,
+        "cost": 500
     }
 }
