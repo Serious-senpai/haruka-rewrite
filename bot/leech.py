@@ -41,17 +41,19 @@ def get_8ball() -> str:
     return random.choice(answers)
 
 
-async def get_quote() -> Optional[discord.Embed]:
-    async with bot.session.get("https://animechan.vercel.app/api/random") as response:
-        if response.ok:
-            data: Dict[str, str] = await response.json(encoding="utf-8")
-            embed: discord.Embed = discord.Embed(description=data["quote"])
-            embed.set_footer(text=data["character"])
-            embed.set_author(
-                name="From " + data["anime"],
-                icon_url=bot.user.avatar.url,
-            )
-            return embed
+with open("./bot/assets/misc/quotes.json", "r", encoding="utf-8") as f:
+    quotes: List[Dict[str, str]] = json.load(f)
+
+
+def get_quote() -> discord.Embed:
+    quote: Dict[str, str] = random.choice(quotes)
+    embed: discord.Embed = discord.Embed(description=quote["quote"])
+    embed.set_author(
+        name="From " + quote["anime"],
+        icon_url=bot.user.avatar.url,
+    )
+    embed.set_footer(text=quote["character"])
+    return embed
 
 
 async def get_sauce(src: str) -> List[discord.Embed]:
