@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from .player import PT
 
 
-with open("./bot/game/items.json", "r") as f:
+with open("./bot/game/items.json", "r", encoding="utf-8") as f:
     meta: Dict[str, Dict[str, Any]] = json.load(f)
 
 
@@ -70,4 +70,11 @@ class TeleportDevice(BaseItem, JSONMetaObject, meta=meta):
         user = await user.location.on_arrival(user)
         await user.update()
         await channel.send(f"<@!{user.id}> teleported to **{target.name}**!")
+        return user
+
+
+class FirstPlayersTrophy(BaseItem, JSONMetaObject, meta=meta):
+    @classmethod
+    async def effect(cls: Type[FirstPlayersTrophy], user: PT, channel: discord.TextChannel) -> PT:
+        await channel.send("🏆 This item is for commemorating the first 100 players!")
         return user

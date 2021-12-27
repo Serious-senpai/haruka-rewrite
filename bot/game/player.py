@@ -493,10 +493,19 @@ class BasePlayer(Battleable):
         return embed
 
     async def send_shop(self, target: discord.TextChannel) -> None:
-        items: Deque[IT] = deque(BaseItem.from_id(item_id) for item_id in self.location.item_ids)
+        """This function is a coroutine
+
+        Display the shop of the current location
+
+        Parameters
+        -----
+        channel: ``discord.TextChannel``
+            The front-end channel to interact with the user
+        """
+        items: Deque[Type[IT]] = deque(BaseItem.from_id(item_id) for item_id in self.location.item_ids)
         desc: str = "`ID {item.id}` **{item.name}** `💲{item.cost}`\n```\n{item.description}\n```"
         embeds: List[discord.Embed] = []
-        _items: List[IT]
+        _items: List[Type[IT]]
         page: int = 0
         while True:
             page += 1
@@ -523,30 +532,52 @@ class BasePlayer(Battleable):
         self.release()
         await display.send(target)
 
-    def map_inventory(self) -> discord.Embed:
-        """Create an embed displaying the player's inventory
+    async def send_inventory(self, channel: discord.TextChannel) -> None:
+        """This function is a coroutine
 
-        Returns
+        Display the player's inventory in ``channel``
+
+        Parameters
         -----
-        ``discord.Embed``
-            The created embed
+        channel: ``discord.TextChannel``
+            The front-end channel to interact with the user
         """
-        item: IT
+        item: Type[IT]
         item_id: int
         item_amount: int
 
-        _display: List[str] = []
+        desc: Deque[str] = deque()
         for item_id, item_amount in self.items.items():
             item = BaseItem.from_id(item_id)
-            _display.append(f"`ID {item_id}` **{escape(item.name)}**: {item_amount}")
+            desc.append(f"`ID {item.id}` **{item.name}**: {item_amount}\n```\n{item.description}\n```")
 
-        embed: discord.Embed = discord.Embed(description="\n".join(_display) or "Whoops! Looks like there is nothing here at the moment. You can get items from the lottery and shops!")
-        embed.set_author(
-            name=f"{self.user} Inventory",
-            icon_url=self.client_user.avatar.url,
-        )
-        embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
-        return embed
+        embeds: List[discord.Embed] = []
+        page: int = 0
+        description: List[str]
+        while True:
+            page += 1
+            description = []
+            for _ in range(ITEMS_PER_PAGE):
+                try:
+                    description.append(desc.popleft())
+                except IndexError:
+                    pass
+
+            embed: discord.Embed = discord.Embed(description="\n".join(description))
+            embed.set_author(
+                name=f"{self.user} Inventory",
+                icon_url=self.client_user.avatar.url,
+            )
+            embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
+            embed.set_footer(text=f"Page {page}")
+            embeds.append(embed)
+
+            if len(desc) == 0:
+                break
+
+        display: emoji_ui.NavigatorPagination = emoji_ui.NavigatorPagination(embeds)
+        self.release()
+        await display.send(channel)
 
     def map_world(self) -> discord.Embed:
         """Create an embed represents basic information about
@@ -816,6 +847,11 @@ class BasePlayer(Battleable):
         if await conn.fetchrow(f"SELECT * FROM rpg WHERE id = '{user.id}';"):
             raise ValueError("A player with the same ID exists")
 
+        items: Dict[int, int] = {}
+        row: asyncpg.Record = await conn.fetchrow("SELECT COUNT(*) FROM rpg;")
+        if row["count"] < 100:
+            items[6] = 1
+
         await conn.execute(
             f"INSERT INTO rpg \
             VALUES ('{user.id}', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);",
@@ -826,7 +862,7 @@ class BasePlayer(Battleable):
             1,  # level
             0,  # exp
             50,  # money
-            json.dumps({}),  # items
+            json.dumps(items),  # items
             -1,  # hp
             None,  # travel
             json.dumps(dict(travel=False, battle=False)),  # state

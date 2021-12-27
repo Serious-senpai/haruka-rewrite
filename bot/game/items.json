@@ -39,5 +39,10 @@
         "description": "Teleport you to a different location",
         "id": 5,
         "cost": 500
+    },
+    "FirstPlayersTrophy": {
+        "name": "🏆 First Players Trophy",
+        "description": "This item is for commemorating the first 100 players!",
+        "id": 6
     }
 }

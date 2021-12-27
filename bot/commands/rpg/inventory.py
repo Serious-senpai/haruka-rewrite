@@ -16,4 +16,4 @@ from game.core import PT
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def _inventory_cmd(ctx: commands.Context):
     player: PT = await game.BasePlayer.from_user(ctx.author)
-    await ctx.send(embed=player.map_inventory())
+    await player.send_inventory(ctx.channel)
