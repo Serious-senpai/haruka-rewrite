@@ -48,6 +48,10 @@ class TeleportDevice(BaseItem, JSONMetaObject, meta=meta):
             await channel.send("Please use the `teleport` command instead!")
             return user
 
+        if user.level < target.level_limit:
+            await channel.send(f"You must reach `Lv.{target.level_limit}` to get access to this location!")
+            return user
+
         if target.id == user.location.id:
             await channel.send(f"You have already been in **{target.name}**, cannot perform teleportation!")
             return user
