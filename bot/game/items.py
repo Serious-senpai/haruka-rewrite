@@ -56,6 +56,14 @@ class TeleportDevice(BaseItem, JSONMetaObject, meta=meta):
             await channel.send(f"You have already been in **{target.name}**, cannot perform teleportation!")
             return user
 
+        if user.traveling():
+            await channel.send("You are currently traveling. Please get to the destination first!")
+            return user
+
+        if user.battling():
+            await channel.send("Please complete your ongoing battle first!")
+            return user
+
         user = await super().effect(user, channel, target)
         user = await user.location.on_leaving()
         user.location = target

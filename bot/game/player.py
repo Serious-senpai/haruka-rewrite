@@ -313,6 +313,32 @@ class BasePlayer(Battleable):
 
         return item
 
+    async def buy(self, channel: discord.TextChannel, item_id: int) -> PT:
+        if self.traveling():
+            await channel.send("You are currently traveling. Please get to the destination first!")
+            return self
+
+        try:
+            if item_id not in self.location.item_ids:
+                raise ItemNotFound
+            item: Optional[Type[IT]] = BaseItem.from_id(item_id)
+            if not item:
+                raise ItemNotFound
+        except ItemNotFound:
+            await channel.send(f"This location does not sell any items with `ID {item_id}`!")
+            return self
+        else:
+            if self.money < item.cost:
+                await channel.send("You do not have enough money!")
+                return self
+            
+            if item_id not in self.items:
+                self.items[item_id] = 0
+            self.items[item_id] += 1
+            await self.update()
+            await channel.send(f"<@!{self.id}> bought **{item.name}** for `💲{item.cost}`!")
+            return self
+
     async def leveled_up_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
         return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**.\nHP was fully recovered.", **kwargs)
 
@@ -674,7 +700,14 @@ class BasePlayer(Battleable):
 
             for id in bin:
                 del items[id]
-            args.append(json.dumps(items))
+
+            item_ids: List[int] = list(items.keys())
+            item_ids.sort()
+            sorted_items: Dict[int, int] = {}
+            for item_id in item_ids:
+                sorted_items[item_id] = items[item_id]
+
+            args.append(json.dumps(sorted_items))
 
         if hp is not MISSING:
             counter += 1
