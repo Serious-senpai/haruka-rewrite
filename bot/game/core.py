@@ -31,6 +31,8 @@ WT = TypeVar("WT", bound="BaseWorld")
 LT = TypeVar("LT", bound="BaseLocation")
 ET = TypeVar("ET", bound="BaseEvent")
 CT = TypeVar("CT", bound="BaseCreature")
+
+
 from .player import PT  # noqa
 
 
@@ -56,7 +58,6 @@ class BaseWorld(ClassObject, Generic[LT, PT, ET]):
     id: ``int``
         The world's ID
     """
-
     name: str
     description: str
     id: int
@@ -163,8 +164,9 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
         this location, default to ``0`` and can be overriden
     class_changable: ``bool``
         Whether players can change their class at this location
+    item_ids: List[``int``]
+        List of item IDs that can be bought at this location
     """
-
     name: str
     description: str
     id: int
@@ -173,6 +175,7 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
     creature: Type[CT]
     level_limit: int = 0
     class_changable: bool = False
+    item_ids: List[int] = []
 
     @classmethod
     @property

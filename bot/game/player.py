@@ -7,9 +7,10 @@ import functools
 import json
 import math
 import random
+from collections import deque
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
-from typing import Any, Callable, Dict, Generic, List, Literal, Optional, Type, TypeVar, Union, overload
+from typing import Any, Callable, Deque, Dict, Generic, List, Literal, Optional, Type, TypeVar, Union, overload
 
 import asyncpg
 import discord
@@ -36,6 +37,7 @@ T = TypeVar("T")
 PT = TypeVar("PT", bound="BasePlayer")
 IT = TypeVar("IT", bound="BaseItem")
 EXP_SCALE: int = 4
+ITEMS_PER_PAGE: int = 4
 
 
 # These keys are inside player.state
@@ -126,7 +128,6 @@ class BasePlayer(Battleable, Generic[LT, WT]):
     state: Dict[``str``, Any]
         The player status
     """
-
     user: discord.User
     description: str
     world: Type[WT]
@@ -217,16 +218,20 @@ class BasePlayer(Battleable, Generic[LT, WT]):
             raise ValueError("Destination is in another world")
 
         if self.level < destination.level_limit:
-            return await channel.send(f"You must reach `Lv.{destination.level_limit}` to get access to this location!")
+            await channel.send(f"You must reach `Lv.{destination.level_limit}` to get access to this location!")
+            return
 
         if self.location.id == destination.id:
-            return await channel.send(f"You have been in **{destination.name}** already!")
+            await channel.send(f"You have been in **{destination.name}** already!")
+            return
 
         if self.battling():
-            return await channel.send("Please complete your ongoing battle first!")
+            await channel.send("Please complete your ongoing battle first!")
+            return
 
         if self.traveling():
-            return await channel.send("You have already been on a journey, please get to the destination first!")
+            await channel.send("You have already been on a journey, please get to the destination first!")
+            return
 
         distance: float = self.calc_distance(destination)
         self.travel = discord.utils.utcnow() + datetime.timedelta(seconds=distance)
@@ -459,6 +464,36 @@ class BasePlayer(Battleable, Generic[LT, WT]):
 
         return embed
 
+    async def send_shop(self, target: discord.TextChannel) -> None:
+        items: Deque[IT] = deque(BaseItem.from_id(item_id) for item_id in self.location.item_ids)
+        desc: str = "`ID {item.id}` **{item.name}** `💲{item.cost}`\n```\n{item.description}\n```"
+        embeds: List[discord.Embed] = []
+        _items: List[IT]
+        page: int = 0
+        while True:
+            page += 1
+            _items = []
+            for _ in range(ITEMS_PER_PAGE):
+                try:
+                    _items.append(items.popleft())
+                except IndexError:
+                    pass
+
+            embed: discord.Embed = discord.Embed(description="\n".join(desc.format(item=item) for item in _items))
+            embed.set_author(
+                name="These items can be bought at this location",
+                icon_url=self.client_user.avatar.url,
+            )
+            embed.set_thumbnail(url=self.user.avatar.url if self.user.avatar else discord.Embed.Empty)
+            embed.set_footer(text=f"Page {page}")
+            embeds.append(embed)
+
+            if len(items) == 0:
+                break
+
+        display: emoji_ui.NavigatorPagination = emoji_ui.NavigatorPagination(embeds)
+        await display.send(target)
+
     def map_inventory(self) -> discord.Embed:
         """Create an embed displaying the player's inventory
 
@@ -467,10 +502,11 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         ``discord.Embed``
             The created embed
         """
-        _display: List[str] = []
         item: IT
         item_id: int
         item_amount: int
+
+        _display: List[str] = []
         for item_id, item_amount in self.items.items():
             item = BaseItem.from_id(item_id)
             _display.append(f"`ID {item_id}` **{escape(item.name)}**: {item_amount}")
@@ -777,11 +813,13 @@ class BaseItem(ClassObject, Generic[PT]):
         The item's description
     id: ``int``
         The item's ID
+    cost: ``int``
+        The item's cost
     """
-
     name: str
     description: str
     id: int
+    cost: int
 
     @classmethod
     @overload
@@ -851,6 +889,6 @@ def rpg_check() -> Callable[[T], T]:
         if player:
             return True
 
-        await ctx.send(f"In order to use RPG commands, you have to invoke `{ctx.prefix}daily` first!")
+        await ctx.send(f"To use RPG commands, you have to invoke `{ctx.prefix}daily` first!")
         return False
     return commands.check(predicate)
