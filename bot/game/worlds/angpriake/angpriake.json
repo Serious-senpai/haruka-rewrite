@@ -6,9 +6,10 @@
     },
     "Village": {
         "name": "Village",
-        "description": "The village where you were born. You can earn `💲10`/h here",
+        "description": "The village where you were born.\nYou can earn `💲10`/h here",
         "id": 0,
         "item_ids": [0, 1, 2],
+        "stonk_per_hour": 10,
         "coordination": {
             "x": 0,
             "y": 0
@@ -28,10 +29,11 @@
     },
     "CapitalCity": {
         "name": "Capital City",
-        "description": "The capital city of the country. You can earn `💲20`/h here",
+        "description": "The capital city of the country.\nYou can earn `💲20`/h here",
         "id": 2,
         "level_limit": 20,
         "item_ids": [0, 1, 2, 3, 5],
+        "stonk_per_hour": 20,
         "coordination": {
             "x": 500,
             "y": 600

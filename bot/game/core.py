@@ -13,6 +13,7 @@ from typing import (
 
 import discord
 
+import utils
 from .abc import Battleable, ClassObject
 
 
@@ -97,7 +98,7 @@ class BaseWorld(ClassObject):
         Optional[Type[``BaseWorld``]]
             The world with the given ID, or ``None`` if not found
         """
-        for world in cls.__subclasses__():
+        for world in utils.get_all_subclasses(cls):
             if world.id == id:
                 return world
 

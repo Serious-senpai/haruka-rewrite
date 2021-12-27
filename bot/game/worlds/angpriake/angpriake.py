@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import asyncio
 import json
 from typing import Any, Dict, Type, TypeVar
-
-import asyncpg
 
 from game.abc import Battleable, JSONMetaObject
 from game.core import (
@@ -13,7 +10,8 @@ from game.core import (
     BaseEvent,
     BaseCreature,
 )
-from game.player import PT, BasePlayer
+from game.player import BasePlayer
+from game.locations import MoneyStonksLocationMixin
 
 
 ALT = TypeVar("ALT", bound="_AngpriakeLocation")
@@ -42,26 +40,9 @@ class AngpriakeWorld(BaseWorld, JSONMetaObject, meta=meta):
     event = _AngpriakeEvent
 
 
-class Village(_AngpriakeLocation, JSONMetaObject, meta=meta):
+class Village(_AngpriakeLocation, MoneyStonksLocationMixin, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
     creature = _AngpriakeVillageCreature
-
-    tasks: Dict[int, asyncio.Task] = {}
-
-    @classmethod
-    async def _stonks(cls: Type[Village], conn: asyncpg.Pool, id: int) -> None:
-        while await asyncio.sleep(360, True):
-            await conn.execute(f"UPDATE rpg SET money = money + 1 WHERE id = '{id}';")
-
-    @classmethod
-    async def on_leaving(cls: Type[Village], player: PT) -> PT:
-        cls.tasks[player.id].cancel()
-        return player
-
-    @classmethod
-    async def on_arrival(cls: Type[Village], player: PT) -> PT:
-        cls.tasks[player.id] = asyncio.create_task(cls._stonks(player.user._state.conn, player.id))
-        return player
 
 
 class Church(_AngpriakeLocation, JSONMetaObject, meta=meta):
@@ -69,26 +50,9 @@ class Church(_AngpriakeLocation, JSONMetaObject, meta=meta):
     creature = _AngpriakeChurchCreature
 
 
-class CapitalCity(_AngpriakeLocation, JSONMetaObject, meta=meta):
+class CapitalCity(_AngpriakeLocation, MoneyStonksLocationMixin, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
     creature = _AngpriakeCapitalCityCreature
-
-    tasks: Dict[int, asyncio.Task] = {}
-
-    @classmethod
-    async def _stonks(cls: Type[Village], conn: asyncpg.Pool, id: int) -> None:
-        while await asyncio.sleep(180, True):
-            await conn.execute(f"UPDATE rpg SET money = money + 1 WHERE id = '{id}';")
-
-    @classmethod
-    async def on_leaving(cls: Type[Village], player: PT) -> PT:
-        cls.tasks[player.id].cancel()
-        return player
-
-    @classmethod
-    async def on_arrival(cls: Type[Village], player: PT) -> PT:
-        cls.tasks[player.id] = asyncio.create_task(cls._stonks(player.user._state.conn, player.id))
-        return player
 
 
 class Forest(_AngpriakeLocation, JSONMetaObject, meta=meta):
@@ -97,8 +61,6 @@ class Forest(_AngpriakeLocation, JSONMetaObject, meta=meta):
 
 
 class Duck(_AngpriakeForestCreature, JSONMetaObject, meta=meta): ...
-
-
 class Rabbit(_AngpriakeForestCreature, JSONMetaObject, meta=meta): ...
 
 
