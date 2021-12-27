@@ -492,6 +492,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
                 break
 
         display: emoji_ui.NavigatorPagination = emoji_ui.NavigatorPagination(embeds)
+        self.release()
         await display.send(target)
 
     def map_inventory(self) -> discord.Embed:
