@@ -331,10 +331,12 @@ class BasePlayer(Battleable):
             if self.money < item.cost:
                 await channel.send("You do not have enough money!")
                 return self
-            
+
             if item_id not in self.items:
                 self.items[item_id] = 0
             self.items[item_id] += 1
+            self.money -= item.cost
+
             await self.update()
             await channel.send(f"<@!{self.id}> bought **{item.name}** for `💲{item.cost}`!")
             return self
