@@ -40,7 +40,7 @@ class AngpriakeWorld(BaseWorld, JSONMetaObject, meta=meta):
     event = _AngpriakeEvent
 
 
-class Village(_AngpriakeLocation, MoneyStonksLocationMixin, JSONMetaObject, meta=meta):
+class Village(MoneyStonksLocationMixin, _AngpriakeLocation, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
     creature = _AngpriakeVillageCreature
 
@@ -50,7 +50,7 @@ class Church(_AngpriakeLocation, JSONMetaObject, meta=meta):
     creature = _AngpriakeChurchCreature
 
 
-class CapitalCity(_AngpriakeLocation, MoneyStonksLocationMixin, JSONMetaObject, meta=meta):
+class CapitalCity(MoneyStonksLocationMixin, _AngpriakeLocation, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
     creature = _AngpriakeCapitalCityCreature
 
