@@ -1,6 +1,6 @@
 import json
 import random
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import bs4
 import discord
@@ -41,15 +41,20 @@ def get_8ball() -> str:
     return random.choice(answers)
 
 
-with open("./bot/assets/misc/quote.txt", "r", encoding="utf-8") as f:
-    quotes: List[str] = [row.strip("\n") for row in f.readlines()]
+async def get_quote() -> Optional[discord.Embed]:
+    async with bot.session.get("https://animechan.vercel.app/api/random") as response:
+        if response.ok:
+            data: Dict[str, str] = await response.json(encoding="utf-8")
+            embed: discord.Embed = discord.Embed(description=data["quote"])
+            embed.set_footer(text=data["character"])
+            embed.set_author(
+                name="From " + data["anime"],
+                icon_url=bot.user.avatar.url,
+            )
+            return embed
 
 
-def get_quote() -> str:
-    return random.choice(quotes)
-
-
-async def get_sauce(src) -> List[discord.Embed]:
+async def get_sauce(src: str) -> List[discord.Embed]:
     ret: List[discord.Embed] = []
     async with bot.session.post("https://saucenao.com/search.php", data={"url": src}) as response:
         if response.ok:
