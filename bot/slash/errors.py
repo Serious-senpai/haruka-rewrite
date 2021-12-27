@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 import discord
 
@@ -27,7 +27,7 @@ class NoPrivateMessage(CheckFailure):
         super().__init__(f"Command '{command}' can only be used in a server text channel.")
 
 
-class CommandInvokeError(SlashException, Generic[ET]):
+class CommandInvokeError(SlashException):
     def __init__(self, command: str, original: ET) -> None:
         self.original: ET = original
         super().__init__(f"Command '{command}' raised an exception: {original.__class__.__name__}: {original}")

@@ -4,7 +4,6 @@ import contextlib
 import functools
 from typing import (
     Any,
-    Generic,
     List,
     NamedTuple,
     Optional,
@@ -42,7 +41,7 @@ class Coordination(NamedTuple):
     y: int
 
 
-class BaseWorld(ClassObject, Generic[LT, PT, ET]):
+class BaseWorld(ClassObject):
     """Base class for creating new worlds.
 
     All worlds must inherit from this class. Please note that
@@ -141,7 +140,7 @@ class BaseWorld(ClassObject, Generic[LT, PT, ET]):
                 return location
 
 
-class BaseLocation(ClassObject, Generic[WT, CT]):
+class BaseLocation(ClassObject):
     """Base class for world locations
 
     Please note that location objects are represented by the
@@ -236,7 +235,7 @@ class BaseLocation(ClassObject, Generic[WT, CT]):
         return embed
 
 
-class BaseEvent(ClassObject, Generic[LT]):
+class BaseEvent(ClassObject):
     """Base class for world events
 
     Please note that event objects are represented by the

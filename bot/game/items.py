@@ -57,7 +57,9 @@ class TeleportDevice(BaseItem, JSONMetaObject, meta=meta):
             return user
 
         user = await super().effect(user, channel, target)
+        user = await user.location.on_leaving()
         user.location = target
-        await user.save(location=target)
+        user = await user.location.on_arrival()
+        await user.update()
         await channel.send(f"<@!{user.id}> teleported to **{target.name}**!")
         return user

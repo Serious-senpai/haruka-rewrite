@@ -10,7 +10,7 @@ import random
 from collections import deque
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
-from typing import Any, Callable, Deque, Dict, Generic, List, Literal, Optional, Type, TypeVar, Union, overload
+from typing import Any, Callable, Deque, Dict, List, Literal, Optional, Type, TypeVar, Union, overload
 
 import asyncpg
 import discord
@@ -94,7 +94,7 @@ class ItemNotFound(Exception):
 
 
 @dataclasses.dataclass(init=True, repr=True, order=False, frozen=False)
-class BasePlayer(Battleable, Generic[LT, WT]):
+class BasePlayer(Battleable):
     """Base class for players from different worlds
 
     Each player is represented with an instance of a subclass of this class and
@@ -799,7 +799,7 @@ class BasePlayer(Battleable, Generic[LT, WT]):
         return await cls.from_user(user)
 
 
-class BaseItem(ClassObject, Generic[PT]):
+class BaseItem(ClassObject):
     """Base class for player items.
 
     All items must subclass this class. Please note that

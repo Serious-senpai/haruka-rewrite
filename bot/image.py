@@ -4,7 +4,7 @@ import asyncio
 import functools
 import random
 import re
-from typing import Any, Dict, Generic, List, Literal, Optional, Tuple, Type, TypeVar
+from typing import Any, Dict, List, Literal, Optional, Tuple, Type, TypeVar
 
 import aiohttp
 import discord
@@ -262,7 +262,7 @@ class Asuna(ImageSource):
         return
 
 
-class ImageClient(Generic[IT]):
+class ImageClient:
     """Represents a client that is used to interact with all
     ImageSource objects.
 

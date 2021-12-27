@@ -1,7 +1,7 @@
 import io
 import os
 import random
-from typing import Generic, Optional, List, Tuple, Type, TypeVar
+from typing import Optional, List, Tuple, Type, TypeVar
 
 from PIL import Image
 
@@ -31,7 +31,7 @@ class BaseCard:
         return Image.open(f"./bot/assets/cards/{self.id}.png")
 
 
-class BaseHand(Generic[CT]):
+class BaseHand:
 
     __slots__ = (
         "cards",
