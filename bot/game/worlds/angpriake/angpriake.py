@@ -238,8 +238,8 @@ class Assassin(_AngpriakePlayer):
 
     @property
     def crit_rate(self) -> float:
-        return 0.9
+        return self.level / (self.level + 8)
 
     @property
     def crit_dmg(self) -> float:
-        return self.level / (self.level + 5)
+        return 1 + self.level / 15
