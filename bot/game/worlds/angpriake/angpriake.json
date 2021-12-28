@@ -48,6 +48,16 @@
             "y": 10
         }
     },
+    "WorldCenter": {
+        "name": "World Center",
+        "description": "The center of Angpriake",
+        "id": 4,
+        "level_limit": 200,
+        "coordination": {
+            "x": 1000,
+            "y": 1500
+        }
+    },
     "Duck": {
         "name": "Duck",
         "description": "A harmless animal.",
@@ -118,5 +128,20 @@
         "magical_res": 0.7,
         "crit_rate": 0.85,
         "crit_dmg": 2.5
+    },
+    "Angel": {
+        "name": "Angel",
+        "description": "The angel race is dominating the Angpriake World",
+        "display": "✝️",
+        "exp": 10000,
+        "money": 10000,
+        "escape_rate": 0.5,
+        "hp_max": 5000,
+        "physical_atk": 600,
+        "magical_atk": 800,
+        "physical_res": 0.9,
+        "magical_res": 0.85,
+        "crit_rate": 0.3,
+        "crit_dmg": 0.3
     }
 }
