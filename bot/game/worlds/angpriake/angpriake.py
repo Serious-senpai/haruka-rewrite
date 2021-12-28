@@ -11,7 +11,10 @@ from game.core import (
     BaseCreature,
 )
 from game.player import BasePlayer
-from game.locations import MoneyStonksLocationMixin
+from game.locations import (
+    HPDepletionLocationBase,
+    MoneyStonksLocationBase,
+)
 
 
 ALT = TypeVar("ALT", bound="_AngpriakeLocation")
@@ -41,7 +44,7 @@ class AngpriakeWorld(BaseWorld, JSONMetaObject, meta=meta):
     event = _AngpriakeEvent
 
 
-class Village(MoneyStonksLocationMixin, _AngpriakeLocation, JSONMetaObject, meta=meta):
+class Village(MoneyStonksLocationBase, _AngpriakeLocation, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
     creature = _AngpriakeVillageCreature
 
@@ -51,7 +54,7 @@ class Church(_AngpriakeLocation, JSONMetaObject, meta=meta):
     creature = _AngpriakeChurchCreature
 
 
-class CapitalCity(MoneyStonksLocationMixin, _AngpriakeLocation, JSONMetaObject, meta=meta):
+class CapitalCity(MoneyStonksLocationBase, _AngpriakeLocation, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
     creature = _AngpriakeCapitalCityCreature
 
@@ -61,7 +64,7 @@ class Forest(_AngpriakeLocation, JSONMetaObject, meta=meta):
     creature = _AngpriakeForestCreature
 
 
-class WorldCenter(_AngpriakeLocation, JSONMetaObject, meta=meta):
+class WorldCenter(HPDepletionLocationBase, _AngpriakeLocation, JSONMetaObject, meta=meta):
     world = AngpriakeWorld
     creature = _AngpriakeWorldCenterCreature
 
