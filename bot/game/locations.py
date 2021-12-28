@@ -57,6 +57,7 @@ class HPDepletionLocationBase:
             assert hasattr(cls, "deplete_per_hour")
         except AssertionError as exc:
             raise NotImplementedError(f"Missing required attribute for {cls.__name__}") from exc
+
     @classmethod
     async def _deplete(cls: Type[HDT], conn: asyncpg.Pool, id: int) -> None:
         while await asyncio.sleep(3600 / cls.deplete_per_hour, True):
