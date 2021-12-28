@@ -25,14 +25,6 @@ def get_fact() -> str:
     return random.choice(facts)
 
 
-with open("./bot/assets/misc/miku-api.json", "r", encoding="utf-8") as f:
-    miku_files: List[str] = json.load(f)["files"]
-
-
-def get_miku() -> str:
-    return random.choice(miku_files)
-
-
 with open("./bot/assets/misc/8ball.txt", "r", encoding="utf-8") as f:
     answers: List[str] = [row.strip("\n") for row in f.readlines()]
 
