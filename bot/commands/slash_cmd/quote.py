@@ -15,4 +15,4 @@ json: Dict[str, Any] = {
 
 @bot.slash(json)
 async def _quote_slash(interaction: discord.Interaction):
-    await interaction.response.send_message(leech.get_quote())
+    await interaction.response.send_message(embed=leech.get_quote())
