@@ -10,3 +10,5 @@
 ## Buildpacks
 - heroku/python
 - https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest
+# Contributions
+- Please don't suggest any discord.py forks here. Slash commands handling should be implemented using the built-in [slash module](https://github.com/Saratoga-CV6/haruka-rewrite/tree/main/bot/slash)

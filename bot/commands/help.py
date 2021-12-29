@@ -76,7 +76,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         help_em.append(em)
 
         # Page 3
-        em: discord.Embed = self.template(4, pref)
+        em: discord.Embed = self.template(3, pref)
         em.add_field(
             name="🎮 Boring RPG game",
             value="This game does not have much at the moment\n```\naccount, battle, buy, class, daily, inventory, location, shop, teleport, travel, use, world\n```",
