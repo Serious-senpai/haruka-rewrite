@@ -26,9 +26,9 @@ __all__ = (
 
 
 PARAMS_MAPPING: Dict[int, Callable[[discord.Interaction, str], Any]] = {
-    6: UserConverter,
-    7: ChannelConverter,
-    8: RoleConverter,
+    6: user_converter,
+    7: role_converter,
+    8: channel_converter,
 }
 
 
