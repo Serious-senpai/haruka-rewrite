@@ -1,0 +1,106 @@
+{
+    "RedrotdomWorld": {
+        "name": "Redrotdom",
+        "description": "This place used to be a prosperous kingdom before getting destroyed due to natural disasters 1000 years ago. Very few people are living here nowadays.",
+        "id": 2
+    },
+    "Village": {
+        "name": "Village",
+        "description": "The village where you were born.\nYou can earn `💲5`/h as well as change your class here",
+        "id": 0,
+        "item_ids": [0, 1, 2],
+        "class_changable": true,
+        "stonk_per_hour": 5,
+        "coordination": {
+            "x": 0,
+            "y": 0
+        }
+    },
+    "MiningCamp": {
+        "name": "Mining Camp",
+        "description": "An iron ore near the village. Several machines from 1000 years ago are still active here, but it seems that their operations are abnormal.\nYou can earn `💲10`/h here",
+        "id": 1,
+        "stonk_per_hour": 10,
+        "coordination": {
+            "x": 20,
+            "y": 50
+        }
+    },
+    "MysticForest": {
+        "name": "Mystic Forest",
+        "description": "A mysterious forest. It is said that the forest wasn't destroyed in the disaster 1000 years ago?",
+        "id": 2,
+        "level_limit": 20,
+        "coordination": {
+            "x": 100,
+            "y": 50
+        }
+    },
+    "WorldCenter": {
+        "name": "World Center",
+        "description": "The center of Redrotdom.\nYour HP depletes `❤️10`/h here so be careful!",
+        "id": 3,
+        "level_limit": 300,
+        "deplete_per_hour": 10,
+        "coordination": {
+            "x": 1000,
+            "y": 1500
+        }
+    },
+    "Greez": {
+        "name": "Greez",
+        "description": "A mini robot.",
+        "display": "🤖",
+        "exp": 50,
+        "money": 40,
+        "hp_max": 30,
+        "physical_atk": 10,
+        "magical_atk": 0,
+        "physical_res": 0.3,
+        "magical_res": 0.2,
+        "crit_rate": 0.3,
+        "crit_dmg": 0.4
+    },
+    "Unmtron": {
+        "name": "Unmtron",
+        "description": "A broken robot which was created from the lost technology. It attacks any living creatures it encounters.",
+        "display": "🤖",
+        "exp": 800,
+        "money": 800,
+        "hp_max": 150,
+        "physical_atk": 50,
+        "magical_atk": 50,
+        "physical_res": 0.9,
+        "magical_res": 0.5,
+        "crit_rate": 0.4,
+        "crit_dmg": 0.1
+    },
+    "SupremeEnforcerCyborg": {
+        "name": "Supreme Enforcer Cyborg",
+        "description": "Who tf created this destructive robot?",
+        "display": "🤖",
+        "exp": 3000000,
+        "money": 300000,
+        "hp_max": 100000,
+        "physical_atk": 25000,
+        "magical_atk": 20000,
+        "physical_res": 0.9,
+        "magical_res": 0.75,
+        "crit_rate": 0.5,
+        "crit_dmg": 0.4
+    },
+    "Unknown": {
+        "name": "????",
+        "description": "????",
+        "display": "⬛",
+        "exp": 10000000,
+        "money": 1000000,
+        "hp_max": 5000,
+        "physical_atk": 600,
+        "magical_atk": 800,
+        "physical_res": 0.9,
+        "magical_res": 0.85,
+        "crit_rate": 0.3,
+        "crit_dmg": 0.3
+    }
+}

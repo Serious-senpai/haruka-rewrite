@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Type, TypeVar
+from typing import Any, Dict, Type
 
 from game.abc import Battleable, JSONMetaObject
 from game.core import (
@@ -15,12 +15,6 @@ from game.locations import (
     HPDepletionLocationBase,
     MoneyStonksLocationBase,
 )
-
-
-ALT = TypeVar("ALT", bound="_AngpriakeLocation")
-AET = TypeVar("AET", bound="_AngpriakeEvent")
-ACT = TypeVar("ACT", bound="_AngpriakeCreature")
-APT = TypeVar("APT", bound="_AngpriakePlayer")
 
 
 with open("./bot/game/worlds/angpriake/angpriake.json", "r", encoding="utf-8") as f:

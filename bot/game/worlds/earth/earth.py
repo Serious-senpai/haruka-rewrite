@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
-from typing import Any, Dict, Type, TypeVar
+from typing import Any, Dict, Type
 
 import discord
 
@@ -16,12 +16,6 @@ from game.core import (
     BaseCreature,
 )
 from game.player import PT, BasePlayer
-
-
-ELT = TypeVar("ELT", bound="_EarthLocation")
-EET = TypeVar("EET", bound="_EarthEvent")
-ECT = TypeVar("ECT", bound="_EarthCreature")
-EPT = TypeVar("EPT", bound="_EarthPlayer")
 
 
 with open("./bot/game/worlds/earth/earth.json", "r", encoding="utf-8") as f:

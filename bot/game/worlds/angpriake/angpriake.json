@@ -50,7 +50,7 @@
     },
     "WorldCenter": {
         "name": "World Center",
-        "description": "The center of Angpriake.\nYour HP depletes `5`/h here so be careful!",
+        "description": "The center of Angpriake.\nYour HP depletes `❤️5`/h here so be careful!",
         "id": 4,
         "level_limit": 200,
         "deplete_per_hour": 5,

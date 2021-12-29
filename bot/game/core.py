@@ -341,15 +341,15 @@ class BaseCreature(Battleable):
             description=self.description,
         )
         embed.add_field(
-            name="HP",
+            name="❤️ HP",
             value=self.hp_max,
         )
         embed.add_field(
-            name="EXP per defeat",
+            name="✨ EXP per defeat",
             value=self.exp,
         )
         embed.add_field(
-            name="Money per defeat",
+            name="💲 Money per defeat",
             value=f"`💲{self.money}`",
         )
         embed = super().append_status(embed)

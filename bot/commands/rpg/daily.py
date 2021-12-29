@@ -50,6 +50,5 @@ async def _daily_cmd(ctx: commands.Context):
         embed.set_thumbnail(url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty)
         await ctx.send(embed=embed)
 
-    player.money += DAILY_REWARD
-    await player.save(money=player.money)
+    await bot.conn.execute(f"UPDATE rpg SET money = money + {DAILY_REWARD} WHERE id = '{ctx.author.id}';")
     await ctx.send(f"Claimed `💲{DAILY_REWARD}` daily reward!")

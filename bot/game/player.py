@@ -342,7 +342,7 @@ class BasePlayer(Battleable):
             return self
 
     async def leveled_up_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
-        return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**.\nHP was fully recovered.", **kwargs)
+        return await target.send(f"<@!{self.id}> reached **Lv.{self.level}**.\nHP was fully recovered (❤️{self.hp}/{self.hp_max})", **kwargs)
 
     async def isekai_notify(self, target: discord.TextChannel, **kwargs) -> discord.Message:
         return await target.send(f"<@!{self.id}> was killed and reincarnated to **{self.world.name}**", **kwargs)
@@ -479,7 +479,7 @@ class BasePlayer(Battleable):
             value=f"{self.location.name}{_ext}, {self.world.name}",
         )
         embed.add_field(
-            name="HP",
+            name="❤️ HP",
             value=f"{self.hp}/{self.hp_max}",
             inline=False,
         )
