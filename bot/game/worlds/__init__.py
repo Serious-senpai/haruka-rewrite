@@ -3,4 +3,5 @@
 __all__ = (
     "angpriake",
     "earth",
+    "redrotdom",
 )
