@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 
 import game
-import utils
 from core import bot, prefix
 from game.core import PT
 
@@ -14,7 +13,6 @@ DAILY_REWARD: int = 300
     name="daily",
     description="Claim your daily reward",
 )
-@utils.testing()
 @commands.cooldown(1, 86400, commands.BucketType.user)
 async def _daily_cmd(ctx: commands.Context):
     player: PT = await game.BasePlayer.from_user(ctx.author)

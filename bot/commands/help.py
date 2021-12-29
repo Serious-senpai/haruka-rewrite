@@ -24,13 +24,13 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         super().__init__(command_attrs=command_attrs)
 
     def template(self, page: int, pref: str) -> discord.Embed:
-        em: discord.Embed = discord.Embed(description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.\nCommands under development are not listed here, but you can still find their source code with `{pref}source <command>`.")
+        em: discord.Embed = discord.Embed(description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.")
         em.set_author(
             name=f"{bot.user} Command List",
             icon_url=bot.user.avatar.url,
         )
         em.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
-        em.set_footer(text=f"Current prefix: {pref} | Page {page}/4")
+        em.set_footer(text=f"Current prefix: {pref} | Page {page}/5")
         return em
 
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]):
@@ -76,7 +76,16 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         help_em.append(em)
 
         # Page 3
-        em: discord.Embed = self.template(3, pref)
+        em: discord.Embed = self.template(4, pref)
+        em.add_field(
+            name="🎮 Boring RPG game",
+            value="This game does not have much at the moment\n```\naccount, battle, buy, class, daily, inventory, location, shop, teleport, travel, use, world\n```",
+            inline=False,
+        )
+        help_em.append(em)
+
+        # Page 4
+        em: discord.Embed = self.template(4, pref)
         em.add_field(
             name="🖼️ SFW images",
             value=f"Remember to add the prefix `{pref}`! E.g. `{pref}*waifu`\n" + self._sfw_description,
@@ -84,8 +93,8 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         help_em.append(em)
 
-        # Page 4
-        em: discord.Embed = self.template(4, pref)
+        # Page 5
+        em: discord.Embed = self.template(5, pref)
         em.add_field(
             name="🔞 NSFW images",
             value=f"Remember to add the prefix `{pref}`! E.g. `{pref}**waifu`\n" + self._nsfw_description,

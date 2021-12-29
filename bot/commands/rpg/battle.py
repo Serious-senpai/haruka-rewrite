@@ -1,7 +1,6 @@
 from discord.ext import commands
 
 import game
-import utils
 from core import bot
 from game.core import PT
 
@@ -10,7 +9,6 @@ from game.core import PT
     name="battle",
     description="Initiate a battle in the current location",
 )
-@utils.testing()
 @game.rpg_check()
 @commands.cooldown(1, 10, commands.BucketType.user)
 async def _battle_cmd(ctx: commands.Context):

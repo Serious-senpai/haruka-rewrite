@@ -1,7 +1,6 @@
 from discord.ext import commands
 
 import game
-import utils
 from core import bot
 from game.player import PT
 
@@ -10,7 +9,6 @@ from game.player import PT
     name="class",
     description="Change your character's class. You must be at a certain location to perform this action.",
 )
-@utils.testing()
 @game.rpg_check()
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _class_cmd(ctx: commands.Context):

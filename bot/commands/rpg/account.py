@@ -4,7 +4,6 @@ import discord
 from discord.ext import commands
 
 import game
-import utils
 from core import bot
 from game.core import PT
 
@@ -15,7 +14,6 @@ from game.core import PT
     description="View a user's RPG game account information",
     usage="account <user | default: yourself>"
 )
-@utils.testing()
 @game.rpg_check()
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def _account_cmd(ctx: commands.Context, user: discord.User = None):

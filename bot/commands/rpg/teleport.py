@@ -3,7 +3,6 @@ from typing import Optional, Type
 from discord.ext import commands
 
 import game
-import utils
 from core import bot
 from game.core import LT, PT
 
@@ -14,7 +13,6 @@ from game.core import LT, PT
     description="Teleport to another location",
     usage="teleport <location ID>",
 )
-@utils.testing()
 @game.rpg_check()
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def _teleport_cmd(ctx: commands.Context, location_id: int):

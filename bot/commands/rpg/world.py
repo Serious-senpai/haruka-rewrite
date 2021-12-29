@@ -1,7 +1,6 @@
 from discord.ext import commands
 
 import game
-import utils
 from core import bot
 from game.core import PT
 
@@ -11,7 +10,6 @@ from game.core import PT
     aliases=["map"],
     description="View the current world you are in",
 )
-@utils.testing()
 @game.rpg_check()
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def _world_cmd(ctx: commands.Context):
