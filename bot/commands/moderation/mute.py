@@ -5,6 +5,7 @@ import asyncpg
 import discord
 from discord.ext import commands
 
+import utils
 from core import bot
 
 
@@ -88,4 +89,4 @@ async def _mute_cmd(ctx: commands.Context, hours: int, minutes: int, member: dis
         inline=False,
     )
     em.set_thumbnail(url=member.avatar.url if member.avatar else discord.Embed.Empty)
-    await ctx.send(embed=em)
+    await ctx.send(embed=em, reference=utils.get_reply(ctx.message))

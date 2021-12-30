@@ -53,7 +53,7 @@ class NHentaiSearch:
     @classmethod
     async def search(cls: Type[NHentaiSearch], query: str) -> List[NHentaiSearch]:
         """This function is a coroutine
-        
+
         Search for a list of doujinshis from a query. The number of
         results is not predictable so it is recommended to slice the
         returnedclist to get only the first 6 results for most use
@@ -63,7 +63,7 @@ class NHentaiSearch:
         -----
         query: ``str``
             The searching query
-        
+
         Returns
         -----
         List[``NHentaiSearch``]
@@ -168,14 +168,14 @@ class NHentai:
     @classmethod
     async def get(cls: Type[NHentai], id: Union[int, str]) -> Optional[NHentai]:
         """This function is a coroutine
-        
+
         Get a NHentai doujinshi from an ID
 
         Parameters
         -----
         id: Union[``int``, ``str``]
             The doujinshi ID
-        
+
         Returns
         -----
         Optional[``NHentai``]

@@ -3,6 +3,7 @@ import time
 from types import TracebackType
 from typing import Callable, Iterator, List, Optional, Type, TypeVar
 
+import discord
 from discord.ext import commands
 
 
@@ -10,6 +11,7 @@ T = TypeVar("T")
 
 
 def testing() -> Callable[[T], T]:
+    """A check indicates that a command is still in the development phase"""
     async def predicate(ctx: commands.Context) -> bool:
         if await ctx.bot.is_owner(ctx.author):
             return True
@@ -20,6 +22,7 @@ def testing() -> Callable[[T], T]:
 
 
 def get_all_subclasses(cls: Type) -> Iterator[Type]:
+    """A generator that yields all subclasses of a class"""
     for subclass in cls.__subclasses__():
         yield subclass
         yield from get_all_subclasses(subclass)
@@ -89,3 +92,23 @@ class TimingContextManager(contextlib.AbstractContextManager):
             return time.perf_counter() - self._start
 
         return self._result
+
+
+def get_reply(message: discord.Message) -> Optional[discord.Message]:
+    """Get the message that ``message`` is replying (to be precise,
+    refering) to
+
+    Parameters
+    -----
+    message: ``discord.Message``
+        The target message to fetch information about
+
+    Returns
+    -----
+    Optional[``discord.Message``]
+        The message that this message refers to
+    """
+    if not message.reference:
+        return
+
+    return message.reference.cached_message
