@@ -13,7 +13,7 @@ from core import bot
 
 
 PIXIV_HEADERS: Dict[str, str] = {"referer": "https://www.pixiv.net/"}
-ID_PATTERN: re.Pattern = re.compile(r"^(?<!\d)\d{8,8}(?!\d)$")
+ID_PATTERN: re.Pattern = re.compile(r"(?<!\d)\d{8,8}(?!\d)")
 CHUNK_SIZE: int = 4 << 10
 
 
