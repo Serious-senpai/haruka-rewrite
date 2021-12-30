@@ -101,36 +101,5 @@ async def get_sauce(src: str) -> List[discord.Embed]:
                     count += 1
                 except BaseException:
                     continue
-            return ret
 
         return ret
-
-
-async def search_nhentai(query: str) -> Optional[List[_nhentai.NHentaiSearch]]:
-    params = {
-        "q": query,
-    }
-    async with bot.session.get("https://nhentai.net/search/", params=params) as response:
-        if response.ok:
-            html: str = await response.text(encoding="utf-8")
-            soup: bs4.BeautifulSoup = bs4.BeautifulSoup(html, "html.parser")
-            container: bs4.BeautifulSoup = soup.find("div", attrs={"class": "container index-container"})
-            # Even when no result is found and the page
-            # displays 404, the response status is still
-            # 200 so another check is necessary.
-            if not container:
-                return
-            doujins: bs4.element.ResultSet[bs4.BeautifulSoup] = container.find_all("div", attrs={"class": "gallery"})
-            return list(_nhentai.NHentaiSearch(doujin) for doujin in doujins)
-        else:
-            return
-
-
-async def get_nhentai(id: int) -> Optional[_nhentai.NHentai]:
-    async with bot.session.get(f"https://nhentai.net/g/{id}") as response:
-        if response.ok:
-            html: str = await response.text(encoding="utf-8")
-            soup: bs4.BeautifulSoup = bs4.BeautifulSoup(html, "html.parser")
-            return _nhentai.NHentai(soup)
-        else:
-            return

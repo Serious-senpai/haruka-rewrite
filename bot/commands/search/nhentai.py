@@ -8,7 +8,6 @@ import emoji_ui
 import _nhentai
 from core import bot
 from emoji_ui import CHOICES
-from leech import search_nhentai, get_nhentai
 
 
 @bot.command(
@@ -20,17 +19,15 @@ from leech import search_nhentai, get_nhentai
 @commands.is_nsfw()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _nhentai_cmd(ctx: commands.Context, *, query: str):
-    try:
-        id: int = int(query)
-        hentai: Optional[_nhentai.NHentai] = await get_nhentai(id)
-        if not hentai:
-            raise ValueError
+    hentai: Optional[_nhentai.NHentai] = None
+    if _nhentai.ID_PATTERN.match(query):
+        hentai: Optional[_nhentai.NHentai] = await _nhentai.NHentai.get(query)
 
-    except ValueError:
+    if not hentai:
         if len(query) < 3:
             return await ctx.send("Searching query must have at least 3 characters")
 
-        rslt: Optional[List[_nhentai.NHentaiSearch]] = await search_nhentai(query)
+        rslt: List[_nhentai.NHentaiSearch] = await _nhentai.NHentaiSearch.search(query)
         if not rslt:
             return await ctx.send("No matching result was found.")
         rslt = rslt[:6]
@@ -44,10 +41,9 @@ async def _nhentai_cmd(ctx: commands.Context, *, query: str):
         display: emoji_ui.SelectMenu = emoji_ui.SelectMenu(msg, len(rslt))
         choice: Optional[int] = await display.listen(ctx.author.id)
 
-        if choice is not None:
-            hentai: _nhentai.NHentai = await get_nhentai(rslt[choice].id)
-        else:
+        if choice is None:
             return
+        hentai: _nhentai.NHentai = await _nhentai.NHentai.get(rslt[choice].id)
 
     em: discord.Embed = hentai.create_embed()
     em.set_author(
