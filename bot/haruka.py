@@ -10,6 +10,7 @@ import aiohttp
 import asyncpg
 import discord
 import topgg
+import youtube_dl
 from discord.ext import commands, tasks
 from discord.utils import escape_markdown as escape
 
@@ -56,7 +57,10 @@ class Haruka(SlashMixin, commands.Bot):
             self._connection.conn = self.conn
 
             asyncio.current_task().set_name("Haruka main task")
-            self.session: aiohttp.ClientSession = aiohttp.ClientSession()
+
+            user_agent: str = youtube_dl.utils.random_user_agent()
+            self.session: aiohttp.ClientSession = aiohttp.ClientSession(headers={"User-Agent": user_agent})
+            self.log(f"Created side session, using User-Agent: {user_agent}")
             self.loop.create_task(self.startup())
             self.uptime: datetime.datetime = datetime.datetime.now()
 
@@ -86,7 +90,7 @@ class Haruka(SlashMixin, commands.Bot):
         self.logfile.write(f"HARUKA | {content}\n")
 
     async def _change_activity_after_booting(self) -> None:
-        await asyncio.sleep(30.0)
+        await asyncio.sleep(15.0)
         await self.change_presence(activity=discord.Game("@Haruka help"))
 
     async def startup(self) -> None:
