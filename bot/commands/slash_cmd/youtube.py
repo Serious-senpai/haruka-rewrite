@@ -22,37 +22,6 @@ json: Dict[str, Any] = {
 }
 
 
-class Menu(discord.ui.Select):
-    async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        self.view.stop()
-
-        id: str = self.values.pop()
-        track: audio.InvidiousSource = await audio.InvidiousSource.build(id)
-
-        em: discord.Embed = track.create_embed()
-        em.set_author(
-            name="YouTube audio request",
-            icon_url=bot.user.avatar.url,
-        )
-
-        with utils.TimingContextManager() as measure:
-            url: Optional[str] = await audio.fetch(track)
-
-        if not url:
-            em.set_footer(text="Cannot fetch audio file")
-            return await interaction.followup.send(embed=em)
-
-        em.add_field(
-            name="Audio URL",
-            value=f"[Download]({url})",
-            inline=False,
-        )
-        em.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
-
-        await interaction.followup.send(embed=em)
-
-
 @bot.slash(json)
 async def _youtube_slash(interaction: discord.Interaction):
     await interaction.response.defer()
@@ -71,10 +40,32 @@ async def _youtube_slash(interaction: discord.Interaction):
         value=result.id,
     ) for result in results]
 
-    menu: Menu = Menu(
-        placeholder="Select a video",
-        options=options,
-    )
-    view: ui.View = ui.View(timeout=120.0)
+    menu: ui.SelectMenu = ui.SelectMenu(placeholder="Select a video", options=options)
+    view: ui.DropdownView = ui.DropdownView(timeout=120.0)
     view.add_item(menu)
     await view.send(interaction.followup, "Please select a YouTube video from the list below.")
+
+    id: str = await menu.result()
+    track: audio.InvidiousSource = await audio.InvidiousSource.build(id)
+
+    em: discord.Embed = track.create_embed()
+    em.set_author(
+        name="YouTube audio request",
+        icon_url=bot.user.avatar.url,
+    )
+
+    with utils.TimingContextManager() as measure:
+        url: Optional[str] = await audio.fetch(track)
+
+    if not url:
+        em.set_footer(text="Cannot fetch audio file")
+        return await interaction.followup.send(embed=em)
+
+    em.add_field(
+        name="Audio URL",
+        value=f"[Download]({url})",
+        inline=False,
+    )
+    em.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
+
+    await interaction.followup.send(embed=em)

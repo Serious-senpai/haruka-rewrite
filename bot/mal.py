@@ -164,7 +164,7 @@ class Anime(MALObject):
     )
 
     @classmethod
-    async def get(cls: Type[Anime], id: int) -> Anime:
+    async def get(cls: Type[Anime], id: Union[int, str]) -> Anime:
         url = f"https://myanimelist.net/anime/{id}"
         async with bot.session.get(url) as response:
             if response.ok:

@@ -21,23 +21,6 @@ json: Dict[str, Any] = {
 }
 
 
-class Menu(discord.ui.Select):
-    async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        self.view.stop()
-
-        value: str = self.values.pop()
-        manga: mal.Manga = await mal.Manga.get(value)
-
-        em: discord.Embed = manga.create_embed()
-        em.set_author(
-            name="Manga search result",
-            icon_url=bot.user.avatar.url,
-        )
-        em.set_footer(text="From myanimelist.net")
-        await interaction.followup.send(embed=em)
-
-
 @bot.slash(json)
 async def _manga_slash(interaction: discord.Interaction):
     await interaction.response.defer()
@@ -46,19 +29,24 @@ async def _manga_slash(interaction: discord.Interaction):
     if len(query) < 3:
         return await interaction.followup.send("Please provide at least 3 characters in the searching query.")
 
-    results = await mal.MALSearchResult.search(
-        query,
-        criteria="manga",
-    )
+    results: List[mal.MALSearchResult] = await mal.MALSearchResult.search(query, criteria="manga")
     if not results:
-        await interaction.followup.send(content="No matching result was found.")
+        await interaction.followup.send("No matching result was found.")
 
     options: List[discord.SelectOption] = [discord.SelectOption(label=result.title[:100], value=str(result.id)) for result in results]
 
-    menu: Menu = Menu(
-        placeholder="Select a manga",
-        options=options,
-    )
-    view: ui.View = ui.View(timeout=120.0)
+    menu: ui.SelectMenu = ui.SelectMenu(placeholder="Select a manga", options=options)
+    view: ui.DropdownView = ui.DropdownView(timeout=120.0)
     view.add_item(menu)
     await view.send(interaction.followup, "Please select a manga from the list below.")
+
+    id: str = await menu.result()
+    manga: mal.Manga = await mal.Manga.get(id)
+
+    em: discord.Embed = manga.create_embed()
+    em.set_author(
+        name="Manga search result",
+        icon_url=bot.user.avatar.url,
+    )
+    em.set_footer(text="From myanimelist.net")
+    await interaction.followup.send(embed=em)
