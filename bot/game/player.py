@@ -372,8 +372,14 @@ class BasePlayer(Battleable):
 
         return ret
 
-    async def isekai(self) -> PT:
+    async def isekai(self, world: Optional[WT] = None) -> PT:
         """Transfer this player to another world
+
+        Parameters
+        -----
+        world: Optional[``BaseWorld``]
+            The target world to transfer to. If ``None`` was passed then
+            a new world will be selected at random
 
         Returns
         -----
@@ -385,9 +391,12 @@ class BasePlayer(Battleable):
 
         player: PT = await self.location.on_leaving(self)
 
-        worlds: List[Type[WT]] = BaseWorld.__subclasses__()
-        worlds.remove(EarthWorld)  # Imagine isekai back to earth
-        player.world = random.choice(worlds)
+        if world is None:
+            worlds: List[Type[WT]] = BaseWorld.__subclasses__()
+            worlds.remove(EarthWorld)  # Imagine isekai back to earth
+            world = random.choice(worlds)
+
+        player.world = world
         player.location = player.world.get_location(0)
         player.state.update(travel=False, battle=False)
         player = await player.location.on_arrival(player)
