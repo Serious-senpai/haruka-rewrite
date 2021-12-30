@@ -4,7 +4,6 @@ import asyncpg
 import discord
 from discord.ext import commands
 
-import utils
 from core import bot
 
 
@@ -40,4 +39,4 @@ async def _unmute_cmd(ctx: commands.Context, member: discord.Member, *, reason: 
         inline=False,
     )
     em.set_thumbnail(url=member.avatar.url if member.avatar else discord.Embed.Empty)
-    await ctx.send(embed=em, reference=utils.get_reply(ctx.message))
+    await ctx.send(embed=em, reference=ctx.message.reference)

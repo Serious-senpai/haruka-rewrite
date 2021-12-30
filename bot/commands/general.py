@@ -108,7 +108,7 @@ async def _say_cmd(ctx: commands.Context, *, content: str):
     files: List[discord.File] = []
     for attachment in ctx.message.attachments:
         files.append(await attachment.to_file())
-    await ctx.send(content, files=files, reference=utils.get_reply(ctx.message))
+    await ctx.send(content, files=files, reference=ctx.message.reference)
 
 
 @bot.command(

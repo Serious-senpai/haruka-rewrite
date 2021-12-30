@@ -5,7 +5,6 @@ import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
-import utils
 from core import bot
 
 
@@ -31,11 +30,11 @@ async def _blacklist_cmd(ctx: commands.Context, user: discord.User = None, *, re
             SET id = array_remove(id, '{user.id}')
             WHERE title = 'blacklist';
         """)
-        await ctx.send(f"Removed **{escape(str(user))}** from blacklist: {reason}", reference=utils.get_reply(ctx.message))
+        await ctx.send(f"Removed **{escape(str(user))}** from blacklist: {reason}", reference=ctx.message.reference)
     else:
         await bot.conn.execute(f"""
             UPDATE misc
             SET id = array_append(id, '{user.id}')
             WHERE title = 'blacklist';
         """)
-        await ctx.send(f"Added **{escape(str(user))}** to blacklist: {reason}", reference=utils.get_reply(ctx.message))
+        await ctx.send(f"Added **{escape(str(user))}** to blacklist: {reason}", reference=ctx.message.reference)

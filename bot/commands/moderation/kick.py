@@ -3,7 +3,6 @@ from typing import List
 import discord
 from discord.ext import commands
 
-import utils
 from core import bot
 
 
@@ -65,4 +64,4 @@ async def _kick_cmd(ctx: commands.Context, users: commands.Greedy[discord.Object
     )
     em.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
 
-    await ctx.send(embed=em, reference=utils.get_reply(ctx.message))
+    await ctx.send(embed=em, reference=ctx.message.reference)
