@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Dict, List
 
 import discord
@@ -31,17 +32,21 @@ async def _anime_slash(interaction: discord.Interaction):
 
     results: List[mal.MALSearchResult] = await mal.MALSearchResult.search(query, criteria="anime")
     if not results:
-        await interaction.followup.send("No matching result was found.")
+        return await interaction.followup.send("No matching result was found.")
 
     options: List[discord.SelectOption] = [discord.SelectOption(label=result.title[:100], value=str(result.id)) for result in results]
 
     menu: ui.SelectMenu = ui.SelectMenu(placeholder="Select an anime", options=options)
-    view: ui.DropdownView = ui.DropdownView(timeout=120.0)
+    view: ui.DropdownMenu = ui.DropdownMenu(timeout=120.0)
     view.add_item(menu)
     await view.send(interaction.followup, "Please select an anime from the list below.")
 
-    id: str = await menu.result()
-    anime: mal.Anime = await mal.Anime.get(id)
+    try:
+        id: str = await menu.result()
+    except asyncio.TimeoutError:
+        return
+    else:
+        anime: mal.Anime = await mal.Anime.get(id)
 
     em: discord.Embed = anime.create_embed()
     em.set_author(

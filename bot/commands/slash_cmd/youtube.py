@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Dict, List, Optional
 
 import discord
@@ -41,12 +42,16 @@ async def _youtube_slash(interaction: discord.Interaction):
     ) for result in results]
 
     menu: ui.SelectMenu = ui.SelectMenu(placeholder="Select a video", options=options)
-    view: ui.DropdownView = ui.DropdownView(timeout=120.0)
+    view: ui.DropdownMenu = ui.DropdownMenu(timeout=120.0)
     view.add_item(menu)
     await view.send(interaction.followup, "Please select a YouTube video from the list below.")
 
-    id: str = await menu.result()
-    track: audio.InvidiousSource = await audio.InvidiousSource.build(id)
+    try:
+        id: str = await menu.result()
+    except asyncio.TimeoutError:
+        return
+    else:
+        track: audio.InvidiousSource = await audio.InvidiousSource.build(id)
 
     em: discord.Embed = track.create_embed()
     em.set_author(

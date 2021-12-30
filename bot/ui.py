@@ -6,32 +6,40 @@ import discord
 
 class SelectMenu(discord.ui.Select):
     def __init__(self, *, placeholder: str, options: List[discord.SelectOption]) -> None:
-        self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-        self.future: asyncio.Future = self.loop.create_future()
+        self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
+        self._future: asyncio.Future = self._loop.create_future()
         super().__init__(placeholder=placeholder, options=options, min_values=1, max_values=1)
 
     async def callback(self, interaction: discord.Interaction) -> None:
         self.view.stop()
-        self.future.set_result(self.values[0])
+        self._future.set_result(self.values.pop())
 
     async def result(self) -> str:
-        return await self.future
+        return await self._future
 
 
-class DropdownView(discord.ui.View):
-    def __init__(self, *args, **kwargs) -> None:
-        self.message: Optional[discord.Message] = None
-        super().__init__(*args, **kwargs)
-        asyncio.create_task(self._when_stopped())
+class DropdownMenu(discord.ui.View):
 
-    async def _when_stopped(self) -> None:
-        _timed_out: bool = await self.wait()
+    children: List[SelectMenu]
+
+    def __init__(self, *, timeout: Optional[float] = 120.0) -> None:
+        self.message: Optional[Union[discord.Message, discord.WebhookMessage]] = None
+        super().__init__(timeout=timeout)
+
+    def stop(self) -> asyncio.Task:
+        super().stop()
+        return asyncio.create_task(self._do_stop())
+
+    async def _do_stop(self) -> None:
         if self.message:
-            if _timed_out:
-                await self.message.edit("This request has timed out.", view=None)
-            else:
-                await self.message.edit("This request was received. Please wait for me a bit...", view=None)
+            await self.message.edit("This request was received. Please wait for me a bit...", view=None)
+
+    async def on_timeout(self) -> None:
+        if self.message:
+            await self.message.edit("This request has timed out.", view=None)
+            for item in self.children:
+                item._future.set_exception(asyncio.TimeoutError)
 
     async def send(self, target: Union[discord.abc.Messageable, discord.Webhook], *args, **kwargs) -> None:
         kwargs.pop("view", None)
-        self.message: Union[discord.Message, discord.WebhookMessage] = await target.send(*args, **kwargs, view=self)
+        self.message = await target.send(*args, **kwargs, view=self)

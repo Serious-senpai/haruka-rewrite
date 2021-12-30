@@ -56,7 +56,7 @@ class Haruka(SlashMixin, commands.Bot):
         async with database.Database(self, self.DATABASE_URL) as self.conn:
             self._connection.conn = self.conn
 
-            asyncio.current_task().set_name("Haruka main task")
+            asyncio.current_task().set_name("MainTask")
 
             user_agent: str = youtube_dl.utils.random_user_agent()
             self.session: aiohttp.ClientSession = aiohttp.ClientSession(headers={"User-Agent": user_agent})
@@ -299,7 +299,7 @@ class Haruka(SlashMixin, commands.Bot):
 
     @tasks.loop(minutes=10)
     async def _keep_alive(self) -> None:
-        asyncio.current_task().set_name("Keep server alive")
+        asyncio.current_task().set_name("KeepServerAlive")
         async with self.session.get(self.HOST) as response:
             if not response.status == 200:
                 self.log(f"Warning: _keep_alive task returned response code {response.status}")
