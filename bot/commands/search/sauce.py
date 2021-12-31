@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 import emoji_ui
-from leech import get_sauce
+import saucenao
 from core import bot
 
 
@@ -21,10 +21,20 @@ async def _sauce_cmd(ctx: commands.Context, src: Optional[str] = None):
         except IndexError:
             raise commands.UserInputError
 
-    results: List[discord.Embed] = await get_sauce(src)
+    results: List[saucenao.SauceResult] = await saucenao.SauceResult.get_sauce(src)
+    if not results:
+        return await ctx.send("Cannot find the image sauce!")
 
-    if len(results) > 0:
-        display: emoji_ui.Pagination = emoji_ui.Pagination(results)
-        await display.send(ctx)
-    else:
-        await ctx.send("Cannot find the image sauce")
+    total: int = len(results)
+    embeds: List[discord.Embed] = []
+    for index, result in enumerate(results):
+        embed: discord.Embed = result.create_embed()
+        embed.set_author(
+            name="Image search result",
+            icon_url=bot.user.avatar.url,
+        )
+        embed.set_footer(text=f"Displaying result {index + 1}/{total}")
+        embeds.append(embed)
+
+    display: emoji_ui.NavigatorPagination = emoji_ui.NavigatorPagination(embeds)
+    await display.send(ctx.channel)
