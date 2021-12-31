@@ -9,6 +9,21 @@ from core import bot
 
 
 class SauceResult:
+    """Represents a search result from saucenao
+
+    Attributes
+    -----
+    similarity: ``str``
+        A string that displays the similarity between the initial image and the
+        searched one (e.g. ``95.95%``)
+    thumbnail_url: ``str``
+        The URL to the small-size searched image, suitable for embedding as
+        thumbnail
+    title: ``str``
+        The title of the search result
+    url: ``str``
+        The URL to the source of the image (pixiv, twitter,...)
+    """
 
     __slots__ = (
         "similarity",
@@ -17,13 +32,20 @@ class SauceResult:
         "url",
     )
 
-    def __init__(self, *,similarity: str, thumbnail_url: str, title: str, url: str) -> None:
+    def __init__(self, *, similarity: str, thumbnail_url: str, title: str, url: str) -> None:
         self.similarity: str = similarity
         self.thumbnail_url: str = thumbnail_url
         self.title: str = title
         self.url: str = url
 
     def create_embed(self) -> discord.Embed:
+        """Create an embed displaying this search result
+
+        Returns
+        -----
+        ``discord.Embed``
+            The created embed
+        """
         embed: discord.Embed = discord.Embed(
             title=self.title,
             description=self.url,
@@ -37,6 +59,20 @@ class SauceResult:
 
     @classmethod
     async def get_sauce(cls: Type[SauceResult], url: str) -> List[SauceResult]:
+        """This function is a coroutine
+
+        Get the sauce for an image from its URL
+
+        Parameters
+        -----
+        url: ``str``
+            The URL of the initial image
+
+        Returns
+        -----
+        List[``SauceResult``]
+            A list of searched results from saucenao, sorted by similarity
+        """
         ret: List[SauceResult] = []
         async with bot.session.post("https://saucenao.com/search.php", data={"url": url}) as response:
             if response.ok:

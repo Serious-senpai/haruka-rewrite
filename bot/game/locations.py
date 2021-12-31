@@ -25,7 +25,7 @@ class MoneyStonksLocationBase:
         try:
             assert hasattr(cls, "stonk_per_hour")
         except AssertionError as exc:
-            raise NotImplementedError(f"Missing required attribute for {cls.__name__}") from exc
+            raise RuntimeError(f"Missing required attribute for {cls.__name__}") from exc
 
     @classmethod
     async def _stonks(cls: Type[MST], conn: asyncpg.Pool, id: int) -> None:
@@ -56,7 +56,7 @@ class HPDepletionLocationBase:
         try:
             assert hasattr(cls, "deplete_per_hour")
         except AssertionError as exc:
-            raise NotImplementedError(f"Missing required attribute for {cls.__name__}") from exc
+            raise RuntimeError(f"Missing required attribute for {cls.__name__}") from exc
 
     @classmethod
     async def _deplete(cls: Type[HDT], conn: asyncpg.Pool, id: int) -> None:

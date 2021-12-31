@@ -32,7 +32,7 @@ class EmojiUI:
         )
         for r in requirement:
             if r not in cls.__slots__:
-                raise NotImplementedError(f"Incorrect __slots__ definition for {cls.__name__}, missing \"{r}\"")
+                raise RuntimeError(f"Incorrect __slots__ definition for {cls.__name__}, missing \"{r}\"")
 
     def check(self, payload: discord.RawReactionActionEvent) -> bool:
         if self.user_id is not None:

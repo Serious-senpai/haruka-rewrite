@@ -19,7 +19,7 @@ class ClassObject:
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        raise NotImplementedError("This object is represented by the class itself")
+        raise RuntimeError("This object is represented by the class itself")
 
 
 class Battleable:
