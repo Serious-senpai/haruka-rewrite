@@ -91,7 +91,7 @@
     },
     "Unknown": {
         "name": "????",
-        "description": "????",
+        "description": "An unknown entity with strange appearance. Little information has been gathered about this creature.",
         "display": "⬛",
         "exp": 10000000,
         "money": 1000000,
