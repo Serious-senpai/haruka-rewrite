@@ -16,11 +16,14 @@ from core import bot
 @commands.bot_has_guild_permissions(manage_members=True)
 @commands.has_guild_permissions(manage_members=True)
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _unmute_cmd(ctx: commands.Context, member: discord.Member, *, reason: str = "*No reason given*"):
+async def _unmute_cmd(ctx: commands.Context, member: discord.Member, *, reason: str = None):
     try:
-        await member.edit(timed_out_until=None)
+        await member.edit(timed_out_until=None, reason=reason)
     except discord.HTTPException:
         return await ctx.send("Cannot unmute this member!")
+
+    if reason is None:
+        reason = "*No reason given*"
 
     embed: discord.Embed = discord.Embed()
     embed.set_author(
