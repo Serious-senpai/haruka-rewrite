@@ -154,13 +154,12 @@ class TaskManager:
         The bot associated with this TaskManager.
     remind: ``ReminderTask``
         The running ``ReminderTask``
-    unmute: ``UnmuteTask``
-        The running ``UnmuteTask``
+    travel: ``TravelTask``
+        The running ``TravelTask``
     """
     __slots__ = (
         "bot",
         "remind",
-        "unmute",
         "travel",
     )
 
