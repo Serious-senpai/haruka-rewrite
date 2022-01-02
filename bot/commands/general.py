@@ -41,20 +41,6 @@ async def _about_cmd(ctx: commands.Context):
 
 
 @bot.command(
-    name="invite",
-    description="Get my invite link!",
-)
-@commands.cooldown(1, 2, commands.BucketType.user)
-async def _invite_cmd(ctx: commands.Context):
-    em: discord.Embed = discord.Embed(
-        title="Invite me to your server",
-        description=f"My invitation link: https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=271969606&scope=applications.commands%20bot",
-    )
-    em.set_thumbnail(url=bot.user.avatar.url)
-    await ctx.send(embed=em)
-
-
-@bot.command(
     name="info",
     description="Get information about a user or yourself",
     usage="info\ninfo <user>",

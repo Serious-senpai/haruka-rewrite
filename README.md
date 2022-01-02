@@ -3,12 +3,11 @@
 [![Discord Bots](https://top.gg/api/widget/servers/848178172536946708.svg)](https://top.gg/bot/848178172536946708)
 [![Discord Bots](https://top.gg/api/widget/owner/848178172536946708.svg)](https://top.gg/bot/848178172536946708)
 
-This *used to* be a music bot, but people keep using it for NSFW content. Can't everyone be less horny?
 ## Bot commands
 See the built-in `help` command for more details.
 ### General
 ```
-about, avatar, emoji, help, info, invite, prefix, remind, say, source, svinfo
+about, avatar, emoji, help, info, prefix, remind, say, source, svinfo
 ```
 ### Fun
 ```

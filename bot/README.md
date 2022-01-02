@@ -1,6 +1,6 @@
 # Configurations
 ## Environment variables
-- `DATABASE_URL`: Heroku provides this when enabling the Postgres add-on, the URL starts with `postgres://`
+- `DATABASE_URL`: the Postgres URL, starting with `postgres://`
 
 - `HOST`: The URL of this web application Heroku is running on, like https://my-bot-app.herokuapp.com
 
