@@ -98,71 +98,6 @@ class ReminderTask(Task):
         )
 
 
-class UnmuteTask(Task):
-
-    @tasks.loop()
-    async def run(self) -> None:
-        asyncio.current_task().set_name("UnmuteTask")
-        row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM muted ORDER BY time LIMIT 1;")
-        if not row:
-            await asyncio.sleep(3600)
-            return
-
-        await discord.utils.sleep_until(row["time"])
-        await self.unmute(row)
-
-    async def unmute(self, row: asyncpg.Record, *, member: Optional[discord.Member] = None, reason: str = "Mute timed out") -> None:
-        await self.delete(row)
-
-        guild: Optional[discord.Guild] = self.bot.get_guild(int(row["guild"]))
-        if not guild:
-            return
-        muted_role: Optional[discord.Role] = discord.utils.find(lambda r: r.name == "Muted by Haruka", guild.roles)
-
-        try:
-            if not member:
-                member: discord.Member = await guild.fetch_member(row["member"])  # Union[str, int]
-            await member.remove_roles(muted_role)
-        except BaseException:
-            pass
-
-        if not member:
-            return
-
-        self.bot.loop.create_task(self.cleanup(member=member, reason="Timed out"))
-        roles: List[discord.Object] = [discord.Object(id) for id in row["roles"]]
-        try:
-            await member.add_roles(*roles, reason="Unmute: " + reason[:50])
-        except BaseException:
-            pass
-
-    async def cleanup(self, *, member: discord.Member, reason: str) -> None:
-        em: discord.Embed = discord.Embed()
-        em.set_author(
-            name="You were unmuted from the server",
-            icon_url=self.bot.user.avatar.url,
-        )
-        em.add_field(
-            name="Server",
-            value=member.guild.name,
-        )
-        em.add_field(
-            name="Reason",
-            value=reason,
-        )
-        em.set_thumbnail(url=member.guild.icon.url if member.guild.icon else discord.Embed.Empty)
-        try:
-            await member.send(embed=em)
-        except discord.Forbidden:
-            return
-
-    async def delete(self, row: asyncpg.Record) -> None:
-        await self.conn.execute(
-            "DELETE FROM muted WHERE member = $1 AND guild = $2;",
-            row["member"], row["guild"],
-        )
-
-
 class TravelTask(Task):
     ignores: List[str] = []
 
@@ -232,7 +167,6 @@ class TaskManager:
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot: haruka.Haruka = bot
         self.remind: ReminderTask = ReminderTask(self)
-        self.unmute: UnmuteTask = UnmuteTask(self)
         self.travel: TravelTask = TravelTask(self)
 
     @property
