@@ -155,7 +155,7 @@ class PartialInvidiousSource:
         )
         em.add_field(
             name="Length",
-            value=f"{self.length} seconds",
+            value=utils.format(self.length),
         )
 
         if not self.thumbnail.startswith("http"):
