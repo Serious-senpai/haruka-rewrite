@@ -79,7 +79,7 @@ class UrbanSearch:
                         html: str = await response.text(encoding="utf-8")
                         html = html.replace("<br/>", "\n").replace("\r", "\n")
                         soup: bs4.BeautifulSoup = bs4.BeautifulSoup(html, "html.parser")
-                        obj: bs4.Tag = soup.find(name="div", attrs={"class": "def-header"})
+                        obj: bs4.Tag = soup.find(name="h1")
                         title: str = obj.get_text()
 
                         meaning: Optional[str]
