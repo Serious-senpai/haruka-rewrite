@@ -629,6 +629,16 @@ class MusicClient(discord.VoiceClient):
             await bot.conn.execute(f"UPDATE youtube SET queue = array_cat(queue[:{pos - 1}], queue[{pos + 1}:]) WHERE id = '{channel_id}';")
             return track_id
 
+    @property
+    def channel_id(self) -> Optional[int]:
+        if self.channel:
+            return self.channel.id
+
+    @property
+    def guild_id(self) -> Optional[int]:
+        if self.guild:
+            return self.guild.id
+
     # A good video for debugging: https://www.youtube.com/watch?v=U03lLvhBzOw
     async def play(self, *, target: discord.abc.Messageable) -> None:
         """This function is a coroutine
@@ -728,9 +738,7 @@ class MusicClient(discord.VoiceClient):
             audios: asyncio.Queue = asyncio.Queue(maxsize=1)
 
             # Load the first audio portion asynchronously
-            audio: Optional[discord.FFmpegOpusAudio]
-
-            audio = await asyncio.to_thread(track.fetch)
+            audio: Optional[discord.FFmpegOpusAudio] = await asyncio.to_thread(track.fetch)
             audios.put_nowait(audio)
 
             self._event: asyncio.Event = asyncio.Event()
@@ -763,13 +771,13 @@ class MusicClient(discord.VoiceClient):
 
                 delta: float = time.perf_counter() - t
                 if delta > 0.5:
-                    bot.log(f"Warning: audio playing in {self.channel}/{self.guild} delayed for {1000 * delta} ms")
+                    bot.log(f"Warning: audio playing in {self.channel_id}/{self.guild_id} delayed for {1000 * delta} ms")
 
                 self._event.clear()
                 self._operable.set()  # Enable pause/resume/toggle repeat
 
                 super().play(audio, after=self._set_event)
-                self._player.setName(f"Channel {self.channel.id}/{seq}")
+                self._player.setName(f"Channel {self.channel_id}/{self.guild_id}/seq {seq}")
 
                 await self._event.wait()
                 self._operable.clear()  # Disable pause/resume/toggle repeat
@@ -791,12 +799,14 @@ class MusicClient(discord.VoiceClient):
                     await self.target.send("Done playing song, disconnected due to `stopafter` request.")
                 except discord.Forbidden:
                     pass
+
                 return
 
     def _set_event(self, exc: Optional[BaseException] = None) -> None:
         self._event.set()
         if exc is not None:
             player_name: str = getattr(self._player, "name", "None")
-            bot.log(f"Warning: Voice client in {self.channel}/{self.guild} raised an exception (ignored in _set_event method)")
+            bot.log(f"Warning: Voice client in {self.channel_id}/{self.guild_id} raised an exception (ignored in _set_event method)")
             bot.log(f"AudioPlayer instance: {self._player} (thread name {player_name})")
             bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))
+            bot.loop.create_task(bot.report("Exception while playing audio, reporting from `_set_event` method", send_state=False))
