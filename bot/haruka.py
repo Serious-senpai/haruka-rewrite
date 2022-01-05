@@ -145,12 +145,13 @@ class Haruka(SlashMixin, commands.Bot):
                 json: Dict[str, Any] = await response.json()
                 desc: List[str] = []
 
-                for commit in json[:3]:
+                for commit in json[:4]:
+                    sha: str = commit["sha"][:6]
                     message: str = commit["commit"]["message"].split("\n")[0]
                     url: str = commit["html_url"]
-                    desc.append(f"__[{message}]({url})__")
+                    desc.append(f"__[`{sha}`]({url})__ {escape(message)}")
 
-                self.latest_commits: str = "\n".join(content for content in desc)
+                self.latest_commits: str = "\n".join(desc)
                 self.log("Fetched latest repository commits")
 
             else:

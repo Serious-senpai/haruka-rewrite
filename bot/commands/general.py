@@ -21,6 +21,11 @@ async def _about_cmd(ctx: commands.Context):
     em: discord.Embed = info.user_info(bot.user)
     em.description += "\nIf you are too bored, [vote](https://top.gg/bot/848178172536946708/vote) for me on top.gg!"
     em.add_field(
+        name="Latest commits from the `main` branch",
+        value=bot.latest_commits,
+        inline=False,
+    )
+    em.add_field(
         name="Uptime",
         value=datetime.datetime.now() - bot.uptime,
     )
@@ -31,11 +36,6 @@ async def _about_cmd(ctx: commands.Context):
     em.add_field(
         name="Links",
         value=f"[Top.gg](https://top.gg/bot/848178172536946708)\n[GitHub](https://github.com/Saratoga-CV6/haruka-rewrite)\n[Website]({bot.HOST})",
-    )
-    em.add_field(
-        name="Latest commits from the `main` branch",
-        value=bot.latest_commits,
-        inline=False,
     )
     await ctx.send(embed=em)
 
