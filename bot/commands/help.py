@@ -60,7 +60,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         em: discord.Embed = self.template(2, pref)
         em.add_field(
             name="🖼️ Images",
-            value="```\nnsfw, sfw\n```",
+            value="```\nnsfw, sfw, tenor\n```",
             inline=False,
         )
         em.add_field(

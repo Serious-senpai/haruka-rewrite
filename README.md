@@ -19,7 +19,7 @@ anime, manga, nhentai, pixiv, sauce, urban, youtube
 ```
 ### Images
 ```
-nsfw, sfw
+nsfw, sfw, tenor
 ```
 ### Music
 ```
