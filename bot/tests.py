@@ -11,7 +11,7 @@ from core import bot
 
 NHENTAI_TESTS: Tuple[int, ...] = (177013,)
 PIXIV_TESTS: Tuple[int, ...] = (92390471,)
-URBAN_TESTS: Tuple[str, ...] = ("Paimon",)
+URBAN_TESTS: Tuple[str, ...] = ("paimon", "hunter")
 YTDL_TESTS: Tuple[str, ...] = ("Hy9s13hWsoc", "n89SKAymNfA")
 ANIME_TESTS: Tuple[int, ...] = (8425,)
 MANGA_TESTS: Tuple[int, ...] = (1313,)
@@ -32,7 +32,7 @@ async def pixiv_test() -> None:
 async def urban_test() -> None:
     for term in URBAN_TESTS:
         result: Optional[_urban.UrbanSearch] = await _urban.UrbanSearch.search(term)
-        bot.log(f"Finished Urban test for term {term}: {result}")
+        bot.log(f"Finished Urban test for term \"{term}\": {result}")
 
 
 async def ytdl_test() -> None:
