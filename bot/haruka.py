@@ -159,7 +159,7 @@ class Haruka(SlashMixin, commands.Bot):
                 self.latest_commits: str = "*No data*"
 
         # Run tests
-        await tests.run_all_tests()
+        await tests.run_all_tests(log=self.log)
 
         try:
             await self.report("Haruka is ready!", send_state=False)
