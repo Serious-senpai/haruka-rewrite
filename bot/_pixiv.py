@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import traceback
 from typing import Any, Dict, List, Optional, Type
 
 import bs4
@@ -21,51 +22,37 @@ class PixivUser:
     """Represents a Pixiv user"""
 
     __slots__ = (
-        "_id",
-        "_name",
-        "_image_url",
+        "id",
+        "name",
+        "image_url",
     )
 
     def __init__(self, id: int, name: str, image_url: str) -> None:
-        self._id: int = id
-        self._name: str = name
-        self._image_url: str = image_url
+        self.id: int = id
+        self.name: str = name
+        self.image_url: str = image_url
 
-    @property
-    def id(self) -> int:
-        return self._id
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def image_url(self) -> str:
-        # This URL must be fetched with an appropriate header to retrieve data
-        return self._image_url
+    def __repr__(self) -> str:
+        return f"<PixivUser name={self.name} id={self.id}>"
 
 
 class PixivArtwork:
     """Represents an artwork from Pixiv ajax"""
 
     __slots__ = (
-        "_json",
+        "json",
     )
 
     def __init__(self, json: Dict[str, Any]) -> None:
-        self._json: Dict[str, Any] = json
-
-    @property
-    def json(self) -> Dict[str, Any]:
-        return self._json
+        self.json: Dict[str, Any] = json
 
     @property
     def title(self) -> str:
-        return self.json.get("title")
+        return self.json["title"]
 
     @property
     def id(self) -> int:
-        return self.json.get("id")
+        return self.json["id"]
 
     @property
     def url(self) -> str:
@@ -78,7 +65,7 @@ class PixivArtwork:
     @property
     def image_url(self) -> str:
         # This URL must be fetched with an appropriate header to retrieve data
-        return self.json.get("url")
+        return self.json["url"]
 
     @property
     def thumbnail(self) -> str:
@@ -128,7 +115,7 @@ class PixivArtwork:
                         f.write(data)
                         data = await response.content.read(CHUNK_SIZE)
             else:
-                raise discord.HTTPException(response, f"HTTP status code {response.status}")
+                raise discord.HTTPException(response, f"Pixiv returned {response.status}")
 
     async def create_embed(self) -> discord.Embed:
         em: discord.Embed = discord.Embed(
@@ -141,6 +128,7 @@ class PixivArtwork:
             await self.stream()
         except discord.HTTPException:
             em.set_image(url=self.thumbnail)
+            bot.log(traceback.format_exc())
         else:
             em.set_image(url=f"{bot.HOST}/image/{self.id}.png")
 
@@ -167,6 +155,9 @@ class PixivArtwork:
             inline=False,
         )
         return em
+
+    def __repr__(self) -> str:
+        return f"<PixivArtwork title={self.title} id={self.id} author={self.author}>"
 
     @classmethod
     async def search(

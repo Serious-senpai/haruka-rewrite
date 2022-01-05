@@ -95,8 +95,10 @@ class Haruka(SlashMixin, commands.Bot):
 
     async def startup(self) -> None:
         await self.wait_until_ready()
+        self.loop.create_task(self._change_activity_after_booting())
 
         import game
+        import tests
         from game.core import PT
 
         # Get bot owner
@@ -107,21 +109,6 @@ class Haruka(SlashMixin, commands.Bot):
             self.owner_id: int = app_info.owner.id
 
         self.owner = await self.fetch_user(self.owner_id)
-
-        self.loop.create_task(self._change_activity_after_booting())
-
-        # Run youtube-dl tests
-        tasks: List[asyncio.Task] = []
-
-        for url in (
-            "https://www.youtube.com/watch?v=Hy9s13hWsoc",
-            "https://www.youtube.com/watch?v=n89SKAymNfA",
-        ):
-            task: asyncio.Task = self.loop.create_task(self._ytdl_test(url))
-            tasks.append(task)
-
-        self._get_external_source()
-        self.loop.create_task(self.overwrite_slash_commands())  # Ignore exceptions
 
         # Schedule all on_arrival tasks for RPG players
         rows: List[asyncpg.Record] = await self.conn.fetch("SELECT * FROM rpg;")
@@ -171,36 +158,14 @@ class Haruka(SlashMixin, commands.Bot):
                 self.log(f"Warning: Unable to fetch repository's commits (status {response.status})")
                 self.latest_commits: str = "*No data*"
 
-        await asyncio.gather(*tasks)
-        self.log(f"Finished {len(tasks)} youtube-dl tests.")
+        # Run tests
+        await tests.run_all_tests()
 
         try:
             await self.report("Haruka is ready!", send_state=False)
         except BaseException:
             self.log("Cannot send ready notification:")
             self.log(traceback.format_exc())
-
-    async def _ytdl_test(self, url: str) -> None:
-        args: List[str] = [
-            "youtube-dl",
-            "--get-url",
-            "--extract-audio",
-            "--audio-format", "opus",
-            "--rm-cache-dir",
-            "--force-ipv4",
-            url,
-        ]
-
-        process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
-            *args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
-        )
-
-        output, _ = await process.communicate()
-
-        content: str = output.decode("utf-8")
-        self.log(f"Finished a youtube-dl test:\nArguments: {args}\nOutput: {content}")
 
     def kill(self, *args) -> None:
         print("Received SIGTERM signal. Terminating bot...")

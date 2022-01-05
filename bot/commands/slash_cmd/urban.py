@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 import discord
 
 import slash
-import urban
+import _urban
 from core import bot
 
 
@@ -26,7 +26,7 @@ async def _urban_slash(interaction: discord.Interaction):
     args: Dict[str, str] = slash.parse(interaction)
     query: str = args["word"]
 
-    result: Optional[urban.UrbanSearch] = await urban.UrbanSearch.search(query)
+    result: Optional[_urban.UrbanSearch] = await _urban.UrbanSearch.search(query)
     if result:
         em: discord.Embed = result.create_embed()
         em.set_author(

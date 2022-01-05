@@ -14,10 +14,10 @@ from core import bot
 class UrbanSearch:
 
     __slots__ = (
-        "_title",
-        "_meaning",
-        "_example",
-        "_url",
+        "title",
+        "meaning",
+        "example",
+        "url",
     )
 
     def __init__(
@@ -27,26 +27,10 @@ class UrbanSearch:
         example: str,
         url: str,
     ) -> None:
-        self._title: str = title
-        self._meaning: str = meaning
-        self._example: str = example
-        self._url: str = url
-
-    @property
-    def title(self) -> str:
-        return self._title
-
-    @property
-    def meaning(self) -> str:
-        return self._meaning
-
-    @property
-    def example(self) -> str:
-        return self._example
-
-    @property
-    def url(self) -> str:
-        return self._url
+        self.title: str = title
+        self.meaning: str = meaning
+        self.example: str = example
+        self.url: str = url
 
     def create_embed(self) -> discord.Embed:
         meaning: str = escape(self.meaning)
@@ -66,15 +50,15 @@ class UrbanSearch:
 
         return em
 
+    def __repr__(self) -> str:
+        return f"<UrbanSearch title={self.title} meaning={self.meaning[:50]}>"
+
     @classmethod
     async def search(cls: Type[UrbanSearch], word: str) -> Optional[UrbanSearch]:
         url: str = f"https://www.urbandictionary.com/define.php"
-        params = {
-            "term": word,
-        }
         for _ in range(10):
             try:
-                async with bot.session.get(url, params=params) as response:
+                async with bot.session.get(url, params={"term": word}) as response:
                     if response.status == 200:
                         html: str = await response.text(encoding="utf-8")
                         html = html.replace("<br/>", "\n").replace("\r", "\n")

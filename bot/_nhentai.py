@@ -50,6 +50,9 @@ class NHentaiSearch:
     def id(self) -> int:
         return int(self.path.split("/")[2])
 
+    def __repr__(self) -> str:
+        return f"<NHentaiSearch title={self.title} id={self.id}>"
+
     @classmethod
     async def search(cls: Type[NHentaiSearch], query: str) -> List[NHentaiSearch]:
         """This function is a coroutine
@@ -164,6 +167,9 @@ class NHentai:
         )
         em.set_thumbnail(url=self.thumbnail or discord.Embed.Empty)
         return em
+
+    def __repr__(self) -> str:
+        return f"<NHentai title={self.title} id={self.id}>"
 
     @classmethod
     async def get(cls: Type[NHentai], id: Union[int, str]) -> Optional[NHentai]:

@@ -395,11 +395,14 @@ class InvidiousSource(PartialInvidiousSource):
 
         return url
 
+    def __repr__(self) -> str:
+        return f"<InvidiousSource title={self.title} id={self.id} source={self.source}>"
+
     @classmethod
     async def build(cls: Type[InvidiousSource], id: str) -> Optional[InvidiousSource]:
         """This function is a coroutine
 
-        Get a ``InvidiousSource`` from a video ID.
+        Get an ``InvidiousSource`` from a video ID.
 
         Parameters
         -----

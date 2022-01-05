@@ -105,10 +105,15 @@ class MALObject(MAL, Generic[T]):
         except BaseException:
             return
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} title={self.title} id={self.id} score={self.score}>"
+
 
 class MALSearchResult(MAL):
     """Represents a search result from MyAnimeList.
-    Note that it can be anything: anime, manga,..."""
+
+    Note that it can be anything: anime, manga,...
+    """
 
     __slots__ = (
         "_soup",
@@ -227,6 +232,7 @@ class Anime(MALObject):
 
 
 class Manga(MALObject):
+    """Represents a manga from MyAnimeList."""
 
     __slots__ = (
         "_id",
