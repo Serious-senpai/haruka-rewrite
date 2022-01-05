@@ -70,21 +70,6 @@ class Haruka(SlashMixin, commands.Bot):
             # Start the bot
             await super().start(self.TOKEN)
 
-    def _get_external_source(self) -> None:
-        import image
-        import task
-
-        self.image: image.ImageClient = image.ImageClient(
-            self,
-            image.WaifuPics,
-            image.WaifuIm,
-            image.NekosLife,
-            image.Asuna,
-        )
-        self.task: task.TaskManager = task.TaskManager(self)
-        self._connection.task = self.task
-        self.log("Loaded all external sources.")
-
     def log(self, content: Any) -> None:
         content: str = str(content).replace("\n", "\nHARUKA | ")
         self.logfile.write(f"HARUKA | {content}\n")
@@ -97,7 +82,9 @@ class Haruka(SlashMixin, commands.Bot):
         await self.wait_until_ready()
         self.loop.create_task(self._change_activity_after_booting())
 
+        import image
         import game
+        import task
         import tests
         from game.core import PT
 
@@ -120,6 +107,18 @@ class Haruka(SlashMixin, commands.Bot):
             self.loop.create_task(player.location.on_arrival(player))
             player.release()
             await asyncio.sleep(0.1)
+
+        # Load bot helpers
+        self.image: image.ImageClient = image.ImageClient(
+            self,
+            image.WaifuPics,
+            image.WaifuIm,
+            image.NekosLife,
+            image.Asuna,
+        )
+        self.task: task.TaskManager = task.TaskManager(self)
+        self._connection.task = self.task
+        self.log("Loaded all bot helpers.")
 
         # Keep the server alive
         try:
