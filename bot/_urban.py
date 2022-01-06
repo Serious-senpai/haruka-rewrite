@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import traceback
 from typing import Optional, Type
 
@@ -66,20 +67,17 @@ class UrbanSearch:
                         obj: bs4.Tag = soup.find(name="h1")
                         title: str = obj.get_text()
 
-                        meaning: Optional[str]
-                        example: Optional[str]
+                        meaning: str = ""
+                        example: str = ""
 
-                        try:
+                        with contextlib.suppress(AttributeError):
                             obj = soup.find(name="div", attrs={"class": "meaning"})
                             meaning = "\n".join(i for i in obj.get_text().split("\n") if len(i) > 0)
-                        except BaseException:
-                            meaning = None
 
-                        try:
+                        with contextlib.suppress(AttributeError):
                             obj = soup.find(name="div", attrs={"class": "example"})
                             example = "\n".join(i for i in obj.get_text().split("\n") if len(i) > 0)
-                        except BaseException:
-                            example = None
+
                         return cls(title, meaning, example, response.url)
                     else:
                         return

@@ -1,162 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from typing import Any, Dict, List, Optional, Type, Union
 
+import aiohttp
 import asyncpg
 import discord
 from discord.utils import escape_markdown as escape
 
 import audio
 import haruka
-
-
-class Playlist:
-    """Represents a music playlist constructed from
-    a database row.
-
-    This object should never be created manually, use
-    its classmethods instead.
-
-    Attributes
-    -----
-    id: ``int``
-        The playlist ID.
-    title: ``str``
-        The title of the playlist.
-    description: ``str``
-        The description of the playlist.
-    author: ``discord.User``
-        The author of the playlist.
-    queue: List[``str``]
-        List of track IDs this playlist has.
-    """
-
-    __slots__ = (
-        "id",
-        "title",
-        "description",
-        "queue",
-        "use_count",
-        "author",
-    )
-
-    def __init__(self, row: asyncpg.Record, author: Optional[discord.User]) -> None:
-        self.id: int = row["id"]
-        self.title: str = row["title"]
-        self.description: str = row["description"]
-        self.queue: List[str] = row["queue"]
-        self.use_count: int = row["use_count"]
-        self.author: Optional[discord.User] = author
-
-    def create_embed(self) -> discord.Embed:
-        """Create an embed for this playlist."""
-        embed: discord.Embed = discord.Embed(
-            title=self.title,
-            description=self.description,
-        )
-
-        if self.author:
-            embed.set_thumbnail(url=self.author.avatar.url if self.author.avatar else discord.Embed.Empty)
-
-        embed.add_field(
-            name="Playlist ID",
-            value=self.id,
-            inline=False,
-        )
-        embed.add_field(
-            name="Author",
-            value=escape(str(self.author)),
-        )
-        embed.add_field(
-            name="Tracks count",
-            value=len(self.queue),
-        )
-        embed.add_field(
-            name="Usage count",
-            value=self.use_count,
-        )
-        return embed
-
-    @classmethod
-    async def search(cls: Type[Playlist], bot: haruka.Haruka, query: str) -> List[Playlist]:
-        """This function is a coroutine
-
-        Search for a maximum of 6 playlists whose names match
-        the searching query.
-
-        Parameters
-        -----
-        bot: ``haruka.Haruka``
-            The bot that initialized the request.
-        query: ``str``
-            The searching query.
-
-        Returns
-        -----
-        List[``Playlist``]
-            A list of results, this may be empty.
-        """
-        rows: List[asyncpg.Record] = await bot.conn.fetch(
-            """SELECT *
-            FROM playlist
-            WHERE similarity(title, $1) > 0.35
-            ORDER BY similarity(title, $1)
-            LIMIT 6;
-            """,
-            query,
-        )
-        results: List[Playlist] = []
-        cached: Dict[int, Optional[discord.User]] = {}
-        for row in rows:
-            author_id: int = int(row["author_id"])
-
-            author: Optional[discord.User]
-            if author_id in cached:
-                author = cached[author_id]
-
-            else:
-                try:
-                    author = await bot.fetch_user(author_id)
-                except BaseException:
-                    author = None
-
-                cached[author_id] = author
-
-            results.append(cls(row, author))
-
-        return results
-
-    @classmethod
-    async def get(cls: Type[Playlist], bot: haruka.Haruka, id: int) -> Optional[Playlist]:
-        """This function is a coroutine
-
-        Get a playlist from the given ID.
-
-        Parameters
-        -----
-        bot: ``haruka.Haruka``
-            The bot that initialized the request.
-        id: ``int``
-            The playlist ID
-
-        Returns
-        -----
-        Optional[``Playlist``]
-            The playlist with the given ID, or ``None`` if not found.
-        """
-        row: Optional[asyncpg.Record] = await bot.conn.fetchrow("SELECT * FROM playlist WHERE id = $1", id)
-
-        if row:
-            author_id: int = int(row["author_id"])
-            author: Optional[discord.User]
-
-            try:
-                author = await bot.fetch_user(author_id)
-            except BaseException:
-                author = None
-
-            return cls(row, author)
 
 
 class YouTubePlaylist:
@@ -242,14 +96,15 @@ class YouTubePlaylist:
             if not found.
         """
         for url in audio.INVIDIOUS_URLS:
-            async with bot.session.get(f"{url}/api/v1/playlists/{id}", timeout=audio.TIMEOUT) as response:
-                if response.ok:
-                    data: Dict[str, Any] = await response.json()
+            with contextlib.suppress(aiohttp.ClientError):
+                async with bot.session.get(f"{url}/api/v1/playlists/{id}", timeout=audio.TIMEOUT) as response:
+                    if response.ok:
+                        data: Dict[str, Any] = await response.json()
 
-                    # Cache all tracks, though their descriptions are unavailable
-                    video: Dict[str, Any]
-                    for video in data["videos"]:
-                        video["api_url"] = url
-                        await asyncio.to_thread(audio.save_to_memory, video)
+                        # Cache all tracks, though their descriptions are unavailable
+                        video: Dict[str, Any]
+                        for video in data["videos"]:
+                            video["api_url"] = url
+                            await asyncio.to_thread(audio.save_to_memory, video)
 
-                    return cls(data)
+                        return cls(data)

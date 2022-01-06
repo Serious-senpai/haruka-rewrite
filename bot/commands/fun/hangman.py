@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import re
 from typing import Dict, List
 
@@ -93,11 +94,9 @@ async def _hangman_cmd(ctx: commands.Context, n: int = 5):
                 del HangmanInProgress[ctx.author.id]
                 return await ctx.send(f"<@!{ctx.author.id}> left Hangman Game! The answer is **{word}**")
 
-            try:
+            with contextlib.suppress(discord.HTTPException):
                 await msg.delete()
                 await message.delete()
-            except BaseException:
-                pass
 
             # Construct embed
             em: discord.Embed = discord.Embed(title="Hangman Game")

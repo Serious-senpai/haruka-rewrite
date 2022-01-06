@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import dataclasses
 import datetime
 import functools
@@ -520,10 +521,8 @@ class BasePlayer(Battleable):
             page += 1
             _items = []
             for _ in range(ITEMS_PER_PAGE):
-                try:
+                with contextlib.suppress(IndexError):
                     _items.append(items.popleft())
-                except IndexError:
-                    pass
 
             embed: discord.Embed = discord.Embed(
                 description="\n".join(desc.format(item=item) for item in _items) or "*None*",
@@ -569,10 +568,8 @@ class BasePlayer(Battleable):
             page += 1
             description = []
             for _ in range(ITEMS_PER_PAGE):
-                try:
+                with contextlib.suppress(IndexError):
                     description.append(desc.popleft())
-                except IndexError:
-                    pass
 
             embed: discord.Embed = discord.Embed(description="\n".join(description))
             embed.set_author(

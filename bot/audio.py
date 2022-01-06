@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import copy
 import json
 import os
@@ -197,14 +198,12 @@ class PartialInvidiousSource:
         items: List[PartialInvidiousSource] = []
 
         for url in INVIDIOUS_URLS:
-            try:
+            with contextlib.suppress(aiohttp.ClientError):
                 async with bot.session.get(f"{url}/api/v1/search", params=params, timeout=TIMEOUT) as response:
                     if response.status == 200:
                         json: List[Dict[str, Any]] = await response.json()
                         items.extend(cls(data, url) for data in json[:max_results])
                         return items
-            except BaseException:
-                continue
 
         return items
 
@@ -345,13 +344,11 @@ class InvidiousSource(PartialInvidiousSource):
             The URL to the audio. This is the same as the
             ``source`` attribute of the object.
         """
-        try:
+        with contextlib.suppress(aiohttp.ClientError):
             if self.source:
                 async with bot.session.get(self.source, timeout=TIMEOUT) as response:
                     if response.ok:
                         return self.source
-        except BaseException:
-            pass
 
         self.source = await self.get_source()
         return self.source
@@ -415,20 +412,18 @@ class InvidiousSource(PartialInvidiousSource):
             The video object with the given ID.
         """
         for url in INVIDIOUS_URLS:
-            try:
+            with contextlib.suppress(aiohttp.ClientError):
                 async with bot.session.get(
                     f"{url}/api/v1/videos/{id}",
                     timeout=TIMEOUT,
                 ) as response:
-                    if response.ok:
+                    if response.status == 200:
                         json: Dict[str, Any] = await response.json()
                         await asyncio.to_thread(
                             save_to_memory,
                             json | {"api_url": url},
                         )
                         return cls(json, url)
-            except BaseException:
-                continue
 
     @classmethod
     async def search(cls: Type[InvidiousSource], *args, **kwargs) -> None:
@@ -681,13 +676,11 @@ class MusicClient(discord.VoiceClient):
                     name="YouTube URL",
                     value=f"https://www.youtube.com/watch?v={track_id}",
                 )
-                try:
+                with contextlib.suppress(discord.Forbidden):
                     await self.target.send(embed=em)
-                except discord.Forbidden:
-                    pass
                 continue
 
-            try:
+            with contextlib.suppress(discord.Forbidden):
                 async with self.target.typing():
                     em: discord.Embed = track.create_embed()
                     em.set_author(
@@ -697,32 +690,24 @@ class MusicClient(discord.VoiceClient):
                     em.set_footer(text=f"Shuffle: {self._shuffle} | Repeat one: {self._repeat}")
 
                     if playing_info:
-                        try:
+                        with contextlib.suppress(discord.Forbidden):
                             await playing_info.delete()
-                        except discord.HTTPException:
-                            pass
 
                     playing_info = await self.target.send(embed=em)
-            except discord.Forbidden:
-                pass
 
             # Check if the URL that Invidious provided
             # us is usable
             url: Optional[str] = await track.ensure_source()
 
             if not url:
-                try:
+                with contextlib.suppress(discord.Forbidden):
                     await self.target.send("Cannot fetch the audio for this track, removing from queue.")
-                except discord.Forbidden:
-                    pass
                 continue
 
             async with bot.session.get(url, timeout=TIMEOUT) as response:
                 if not response.ok:
-                    try:
+                    with contextlib.suppress(discord.Forbidden):
                         await self.target.send(f"Cannot fetch the audio for this track ({response.status}), removing from queue.")
-                    except discord.Forbidden:
-                        pass
                     continue
 
             repeat_id = track_id
@@ -798,10 +783,8 @@ class MusicClient(discord.VoiceClient):
 
             if self._stopafter:
                 await self.disconnect(force=True)
-                try:
+                with contextlib.suppress(discord.Forbidden):
                     await self.target.send("Done playing song, disconnected due to `stopafter` request.")
-                except discord.Forbidden:
-                    pass
 
                 return
 

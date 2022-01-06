@@ -1,3 +1,5 @@
+import traceback
+
 from discord.ext import commands
 
 import utils
@@ -14,7 +16,7 @@ async def _sql_cmd(ctx: commands.Context, *, query):
     try:
         with utils.TimingContextManager() as measure:
             status: str = await bot.conn.execute(query)
-    except Exception as ex:
-        await ctx.send(f"An exception occured: {ex}")
+    except BaseException:
+        await ctx.send("```\n" + traceback.format_exc() + "\n```")
     else:
         await ctx.send(f"Process executed in {utils.format(measure.result)}\n```\n{status}\n```")

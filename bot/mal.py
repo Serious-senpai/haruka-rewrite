@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from typing import Dict, Generic, Literal, List, Optional, Type, TypeVar, Union
 
 import bs4
@@ -61,26 +62,21 @@ class MALObject(MAL, Generic[T]):
 
     @property
     def score(self) -> Optional[float]:
-        try:
+        with contextlib.suppress(AttributeError, ValueError):
             obj: str = self.soup.find(name="span", attrs={"itemprop": "ratingValue"}).get_text()
             return float(obj)
-        except BaseException:
-            return
 
     @property
     def ranked(self) -> Optional[int]:
-        try:
+        with contextlib.suppress(AttributeError, ValueError):
             obj: str = self.soup.find(name="span", attrs={"itemprop": "ratingCount"}).get_text()
             return int(obj)
-        except BaseException:
-            return
 
     @property
     def popularity(self) -> Optional[int]:
-        try:
-            return self.soup.find(name="span", attrs={"class": "numbers popularity"}).strong.extract().get_text()[1:]
-        except BaseException:
-            return
+        with contextlib.suppress(AttributeError, ValueError):
+            obj: str = self.soup.find(name="span", attrs={"class": "numbers popularity"}).strong.extract().get_text()[1:]
+            return int(obj)
 
     @property
     def genres(self) -> List[str]:
@@ -89,24 +85,20 @@ class MALObject(MAL, Generic[T]):
 
     @property
     def synopsis(self) -> Optional[str]:
-        try:
+        with contextlib.suppress(AttributeError):
             return self.soup.find(name="meta", attrs={"property": "og:description"}).get("content")
-        except BaseException:
-            return
 
     def data(self, category: str, cls: Type[T] = str) -> Optional[T]:
-        try:
+        with contextlib.suppress(AttributeError, ValueError):
             obj: bs4.BeautifulSoup = self.soup.find(
                 name="span",
                 string=category,
             ).parent
             _ = obj.span.extract()
             return cls(obj.get_text(strip=True))
-        except BaseException:
-            return
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} title={self.title} id={self.id} score={self.score}>"
+        return f"<{self.__class__.__name__} title={self.title} id={self.id} score={self.score} popularity={self.popularity}>"
 
 
 class MALSearchResult(MAL):

@@ -23,7 +23,7 @@ nsfw, sfw, tenor
 ```
 ### Music
 ```
-add, dashboard, myplaylist, pause, play, playlist, publish, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, unpublish, vping
+add, pause, play, playlist, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, vping
 ```
 ### Moderation
 ```

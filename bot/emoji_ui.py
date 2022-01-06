@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import random
 from typing import Optional, List, Set, Tuple, Type, TypeVar, Union
 
@@ -51,7 +52,7 @@ class EmojiUI:
                 if not task.done():
                     task.cancel()
 
-        try:
+        with contextlib.suppress(discord.Forbidden):
             embeds: List[discord.Embed] = self.message.embeds
             embed: Optional[discord.Embed] = None
             if embeds:
@@ -60,8 +61,6 @@ class EmojiUI:
 
             await self.message.edit("This message has timed out.", embed=embed or discord.utils.MISSING)
             await self.message.clear_reactions()
-        except BaseException:
-            pass
 
 
 class Pagination(EmojiUI):
@@ -342,10 +341,8 @@ class SelectMenu(EmojiUI):
             await self.timeout()
             return
         else:
-            try:
+            with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()
-            except discord.HTTPException:
-                pass
 
             choice: int = self.allowed_emojis.index(str(payload.emoji))
             return choice
@@ -374,10 +371,8 @@ class YesNoSelection(EmojiUI):
             await self.timeout()
             return
         else:
-            try:
+            with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()
-            except discord.HTTPException:
-                pass
 
             choice: int = self.allowed_emojis.index(str(payload.emoji))
             return choice == 1

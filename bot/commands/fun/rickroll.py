@@ -1,3 +1,5 @@
+import contextlib
+
 import discord
 from discord.ext import commands
 
@@ -11,8 +13,6 @@ from core import bot
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def _rickroll_cmd(ctx: commands.Context):
-    try:
+    with contextlib.suppress(discord.Forbidden):
         await ctx.message.delete()
-    except BaseException:
-        pass
     await ctx.send(file=discord.File("./bot/assets/misc/video0.mp4"))

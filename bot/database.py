@@ -42,17 +42,14 @@ class Database(contextlib.AbstractAsyncContextManager):
             CREATE TABLE IF NOT EXISTS youtube (id text, queue text[]);
             CREATE TABLE IF NOT EXISTS misc (title text, id text[]);
             CREATE TABLE IF NOT EXISTS remind (id text, time timestamptz, content text, url text, original timestamptz);
-            CREATE TABLE IF NOT EXISTS playlist (id SERIAL PRIMARY KEY, author_id text, title text, description text, queue text[], use_count integer);
             CREATE TABLE IF NOT EXISTS rpg (id text, description text, world int, location int, type int, level int, xp int, money int, items text, hp int, travel timestamptz, state text);
         """)
 
         for extension in (
             "pg_trgm",
         ):
-            try:
+            with contextlib.suppress(asyncpg.DuplicateObjectError):
                 await self._pool.execute(f"CREATE EXTENSION {extension};")
-            except BaseException:
-                pass
 
         # Initialize blacklist
         if not await self._pool.fetchrow("SELECT * FROM misc WHERE title = 'blacklist';"):

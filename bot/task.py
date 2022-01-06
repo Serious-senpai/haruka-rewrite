@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import random
 import traceback
 from typing import Any, List, Optional
@@ -86,10 +87,8 @@ class ReminderTask(Task):
         )
         em.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
 
-        try:
+        with contextlib.suppress(discord.Forbidden):
             await user.send(embed=em)
-        except discord.Forbidden:
-            pass
 
     async def delete(self, row: asyncpg.Record) -> None:
         await self.conn.execute(

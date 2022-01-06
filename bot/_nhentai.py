@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import re
 from typing import List, Optional, Type, Union
 
@@ -33,10 +34,8 @@ class NHentaiSearch:
 
     @property
     def thumbnail(self) -> Optional[str]:
-        try:
+        with contextlib.suppress(AttributeError):
             return self.soup.find("img").get("data-src")
-        except AttributeError:
-            return
 
     @property
     def thumb(self) -> Optional[str]:
@@ -114,10 +113,8 @@ class NHentai:
 
     @property
     def thumbnail(self) -> Optional[str]:
-        try:
+        with contextlib.suppress(AttributeError):
             return self.soup.find("img").get("data-src")
-        except AttributeError:
-            pass
 
     @property
     def thumb(self) -> Optional[str]:
@@ -129,10 +126,8 @@ class NHentai:
 
     @property
     def subtitle(self) -> Optional[str]:
-        try:
+        with contextlib.suppress(AttributeError):
             return self.soup.find("h2", attrs={"class": "title"}).find("span", attrs={"class": "pretty"}).get_text()
-        except BaseException:
-            return
 
     @property
     def sections(self) -> List[bs4.BeautifulSoup]:

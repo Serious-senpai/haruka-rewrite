@@ -1,7 +1,8 @@
-import aiohttp
 import asyncio
 import sys
 import time
+
+import aiohttp
 
 
 async def ping(url: str):
@@ -14,13 +15,10 @@ async def ping(url: str):
             print(await response.text())
 
 
+url: str
 try:
-    asyncio.run(ping(sys.argv[1]))
+    url = sys.argv[1]
 except IndexError:
-    url: str = input("Target host > ")
-    try:
-        asyncio.run(ping(url))
-    except Exception as ex:
-        print(f"{ex.__class__.__name__}: {ex}")
-except Exception as ex:
-    print(f"{ex.__class__.__name__}: {ex}")
+    url = input("Target host > ")
+
+asyncio.run(ping(url))

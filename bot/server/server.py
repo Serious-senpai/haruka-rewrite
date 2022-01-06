@@ -67,7 +67,6 @@ class WebApp:
             [
                 web.get("/", self._main_page),
                 web.get("/reload", self._reload_page),
-                web.get("/playlist", self._playlist_search_page),
             ]
         )
         self.runner: web.AppRunner = web.AppRunner(app)
@@ -139,48 +138,6 @@ class WebApp:
     async def _reload_page(self, request: web.Request) -> web.Response:
         await asyncio.to_thread(self.reload)
         raise web.HTTPFound("/")
-
-    async def _playlist_search_page(self, request: web.Request) -> web.Response:
-        query: Optional[str] = request.query.get("query")
-        if not query:
-            raise web.HTTPFound("/")
-
-        rows: List[asyncpg.Record] = await self.pool.fetch(
-            """SELECT *
-            FROM playlist
-            WHERE similarity(title, $1) > 0.35
-            ORDER BY similarity(title, $1)
-            LIMIT 6;
-            """,
-            query,
-        )
-
-        content: str
-        value: str
-
-        if not rows:
-            content = "No matching result was found."
-        else:
-            content = "<tr><th>ID</th><th>Title</th><th>Description</th><th>Discord author ID</th><th>Number of songs</th></tr>"
-            for row in rows:
-                content += "<tr>"
-                for key in (
-                    "id",
-                    "title",
-                    "description",
-                    "author_id",
-                ):
-                    value = str(row[key])
-                    content += f"<td>{html.escape(value)}</td>"
-                content += f"<td>{len(row['queue'])}</td>"
-                content += "</tr>"
-            content = "<table>" + content + "</table>"
-
-        return web.Response(
-            text=self.index.edit("Menu", content),
-            status=200,
-            content_type="text/html",
-        )
 
 
 app: WebApp = WebApp()

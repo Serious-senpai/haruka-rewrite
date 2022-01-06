@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from typing import List, Optional, Type
 
 import bs4
@@ -95,7 +96,7 @@ def parse_result(html: bs4.BeautifulSoup) -> Optional[SauceResult]:
     if not table:
         return
 
-    try:
+    with contextlib.suppress(AttributeError):
         thumbnail_url: str = table.find("div", attrs={"class": "resultimage"}).find("img").get("src")
 
         content: bs4.Tag = table.find("td", attrs={"class": "resulttablecontent"})
@@ -103,5 +104,3 @@ def parse_result(html: bs4.BeautifulSoup) -> Optional[SauceResult]:
         similarity: str = content.find("div", attrs={"class": "resultsimilarityinfo"}).get_text()
         url: str = content.find("div", attrs={"class": "resultcontentcolumn"}).find("a").get("href")
         return SauceResult(similarity=similarity, thumbnail_url=thumbnail_url, title=title, url=url)
-    except BaseException:
-        return
