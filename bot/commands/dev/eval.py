@@ -34,11 +34,8 @@ async def _eval_cmd(ctx: commands.Context, *, code: str):
         return await ctx.send("Another `eval` operation is in progress, please wait for it to terminate.")
 
     output: io.StringIO = io.StringIO()
-    env: Dict[str, Any] = {
-        "bot": bot,
-        "ctx": ctx,
-        "__stdout": output,
-    }
+    env: Dict[str, Any] = {}
+    env.update(__stdout=output, bot=bot, ctx=ctx)
 
     code = code.strip("`")
     code = code.removeprefix("python")
