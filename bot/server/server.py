@@ -1,14 +1,21 @@
 import asyncio
 import contextlib
-import html
 import os
 import signal
 from io import TextIOWrapper
-from typing import Any, List, Optional
+from typing import Any
 
 import aiohttp
 import asyncpg
 from aiohttp import web
+
+
+try:
+    import uvloop
+except ImportError:
+    pass
+else:
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 
 if not os.path.exists("./server"):
@@ -32,16 +39,6 @@ class HTMLPage:
     @property
     def page(self) -> str:
         return self._page
-
-    def split(self, category: str) -> List[str]:
-        return self.page.split(f"<!--{category}-->")
-
-    def edit(self, category: str, content: str) -> str:
-        parts: List[str] = self.split(category)
-        return content.join(parts[::2])
-
-    def remove(self, category: str) -> str:
-        return self.edit(category, "")
 
 
 class WebApp:
@@ -136,7 +133,7 @@ class WebApp:
         )
 
     async def _reload_page(self, request: web.Request) -> web.Response:
-        await asyncio.to_thread(self.reload)
+        self.reload()
         raise web.HTTPFound("/")
 
 
