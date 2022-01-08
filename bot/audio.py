@@ -676,11 +676,11 @@ class MusicClient(discord.VoiceClient):
                     name="YouTube URL",
                     value=f"https://www.youtube.com/watch?v={track_id}",
                 )
-                with contextlib.suppress(discord.Forbidden):
+                with contextlib.suppress(discord.HTTPException):
                     await self.target.send(embed=em)
                 continue
 
-            with contextlib.suppress(discord.Forbidden):
+            with contextlib.suppress(discord.HTTPException):
                 async with self.target.typing():
                     em: discord.Embed = track.create_embed()
                     em.set_author(
@@ -690,7 +690,7 @@ class MusicClient(discord.VoiceClient):
                     em.set_footer(text=f"Shuffle: {self._shuffle} | Repeat one: {self._repeat}")
 
                     if playing_info:
-                        with contextlib.suppress(discord.Forbidden):
+                        with contextlib.suppress(discord.HTTPException):
                             await playing_info.delete()
 
                     playing_info = await self.target.send(embed=em)
@@ -700,13 +700,13 @@ class MusicClient(discord.VoiceClient):
             url: Optional[str] = await track.ensure_source()
 
             if not url:
-                with contextlib.suppress(discord.Forbidden):
+                with contextlib.suppress(discord.HTTPException):
                     await self.target.send("Cannot fetch the audio for this track, removing from queue.")
                 continue
 
             async with bot.session.get(url, timeout=TIMEOUT) as response:
                 if not response.ok:
-                    with contextlib.suppress(discord.Forbidden):
+                    with contextlib.suppress(discord.HTTPException):
                         await self.target.send(f"Cannot fetch the audio for this track ({response.status}), removing from queue.")
                     continue
 
@@ -783,7 +783,7 @@ class MusicClient(discord.VoiceClient):
 
             if self._stopafter:
                 await self.disconnect(force=True)
-                with contextlib.suppress(discord.Forbidden):
+                with contextlib.suppress(discord.HTTPException):
                     await self.target.send("Done playing song, disconnected due to `stopafter` request.")
 
                 return

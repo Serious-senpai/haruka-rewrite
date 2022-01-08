@@ -52,7 +52,7 @@ class EmojiUI:
                 if not task.done():
                     task.cancel()
 
-        with contextlib.suppress(discord.Forbidden):
+        with contextlib.suppress(discord.HTTPException):
             embeds: List[discord.Embed] = self.message.embeds
             embed: Optional[discord.Embed] = None
             if embeds:

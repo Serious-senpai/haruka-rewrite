@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 from typing import Optional
 
 import discord
@@ -37,10 +38,8 @@ async def prepare_disconnect(voice_client: Optional[MusicClient]) -> None:
 
     if _is_alone_in(voice_client):
         await voice_client.disconnect(force=True)
-        try:
+        with contextlib.suppress(discord.HTTPException):
             await voice_client.target.send(f"<#{voice_client.channel.id}> has been idle for 5 minutes. Disconnected.")
-        except discord.Forbidden:
-            pass
 
 
 @bot.event
@@ -52,9 +51,7 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
             if voice_client.is_playing():
                 await voice_client._operable.wait()
                 voice_client.pause()
-                try:
+                with contextlib.suppress(discord.HTTPException):
                     await voice_client.target.send(f"All members have left <#{voice_client.channel.id}>. Paused audio.")
-                except discord.Forbidden:
-                    pass
 
             bot.loop.create_task(prepare_disconnect(voice_client))
