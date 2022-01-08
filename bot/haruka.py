@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import io
 import os
 import signal
 import sys
@@ -51,7 +52,7 @@ class Haruka(SlashMixin, commands.Bot):
         import database
         import game
 
-        self.logfile = open("./log.txt", "a", encoding="utf-8")
+        self.logfile: io.TextIOWrapper = open("./log.txt", "a", encoding="utf-8")
         signal.signal(signal.SIGTERM, self.kill)
         async with database.Database(self, self.DATABASE_URL) as self.conn:
             self._connection.conn = self.conn
@@ -73,6 +74,7 @@ class Haruka(SlashMixin, commands.Bot):
     def log(self, content: Any) -> None:
         content: str = str(content).replace("\n", "\nHARUKA | ")
         self.logfile.write(f"HARUKA | {content}\n")
+        self.logfile.flush()
 
     async def _change_activity_after_booting(self) -> None:
         await asyncio.sleep(15.0)
@@ -199,7 +201,6 @@ class Haruka(SlashMixin, commands.Bot):
         send_state: bool = True,
         send_log: bool = True,
     ) -> None:
-        self.logfile.flush()
         await self.owner.send(
             message,
             embed=self.display_status if send_state else None,
