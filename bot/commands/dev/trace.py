@@ -13,12 +13,13 @@ from core import bot
 )
 @commands.is_owner()
 async def _trace_cmd(ctx: commands.Context, keytype: Literal["filename", "lineno", "traceback"] = "filename"):
-    snap: tracemalloc.Snapshot = tracemalloc.take_snapshot()
+    async with ctx.typing():
+        snap: tracemalloc.Snapshot = tracemalloc.take_snapshot()
 
-    total_size: int = sum(trace.size for trace in snap.traces)
-    report: str = "Currently allocating `{:.2f}` MB of memory".format(total_size / 1024 ** 2)
+        total_size: int = sum(trace.size for trace in snap.traces)
+        report: str = "Currently allocating `{:.2f}` MB of memory".format(total_size / 1024 ** 2)
 
-    stats: List[tracemalloc.Statistic] = snap.statistics(keytype, cumulative=True if not keytype == "traceback" else False)
-    report += "\nShowing the top 8:```\n" + "\n".join("{:.2f} MB".format(stat.size / 1024 ** 2) + f":: {stat.traceback}" for stat in stats[:8]) + "\n```"
+        stats: List[tracemalloc.Statistic] = snap.statistics(keytype, cumulative=True if not keytype == "traceback" else False)
+        report += "\nShowing the top 8:```\n" + "\n".join("{:.2f} MB".format(stat.size / 1024 ** 2) + f":: {stat.traceback}" for stat in stats[:8]) + "\n```"
 
-    await ctx.send(report)
+        await ctx.send(report)

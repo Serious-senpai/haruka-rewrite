@@ -22,6 +22,6 @@ async def _export_cmd(ctx: commands.Context):
         return await ctx.send("This voice channel has no music in its queue!")
 
     await ctx.send(
-        "This is the music queue file. You can import this queue into another voice channel with `import`",
+        "This is the music queue file.\nYou can import this queue into another voice channel with `import`",
         file=discord.File(io.BytesIO(json.dumps(queue).encode("utf-8")), filename="queue.json"),
     )
