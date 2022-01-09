@@ -53,7 +53,7 @@ async def ytdl_test(*, log: Callable[..., Any]) -> None:
         track: Optional[audio.InvidiousSource] = await audio.InvidiousSource.build(id)
         if track is None:
             log(f"Failed youtube-dl test for ID {id}: Cannot build track")
-            return
+            continue
 
         ytdl_result: Optional[str] = await track.get_source()
         log(f"Finished youtube-dl test for ID {id}: {ytdl_result}")
