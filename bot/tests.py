@@ -11,7 +11,21 @@ import mal
 NHENTAI_TESTS: Tuple[int, ...] = (177013,)
 PIXIV_TESTS: Tuple[int, ...] = (92390471,)
 URBAN_TESTS: Tuple[str, ...] = ("paimon", "hunter")
-YTDL_TESTS: Tuple[str, ...] = ("Hy9s13hWsoc", "n89SKAymNfA")
+YTDL_TESTS: Tuple[str, ...] = (
+    "Hy9s13hWsoc",
+    "n89SKAymNfA",
+    "yZIXLfi8CZQ",
+    "a9LDPn-MO4I",
+    "IB3lcPjvWLA",
+    "T4XJQO3qol8",
+    "HtVdAasjOgU",
+    "lqQg6PlCWgI",
+    "qEJwOuvDf7I",
+    "FIl7x6_3R5Y",
+    "CsmdDsKjzN8",
+    "sJL6WA-aGkQ",
+    "Z4Vy8R84T1U",
+)
 ANIME_TESTS: Tuple[int, ...] = (8425,)
 MANGA_TESTS: Tuple[int, ...] = (1313,)
 
