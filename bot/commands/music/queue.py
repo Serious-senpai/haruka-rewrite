@@ -3,8 +3,8 @@ from typing import List, Optional
 import discord
 from discord.ext import commands
 
+import audio
 import emoji_ui
-from audio import MusicClient, PartialInvidiousSource
 from core import bot
 
 
@@ -16,14 +16,14 @@ INLINE: bool = False
     name="queue",
     description="View the music queue of a voice channel"
 )
-@commands.guild_only()
+@audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _queue_cmd(ctx: commands.Context):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")
 
     channel: discord.abc.Connectable = ctx.author.voice.channel
-    track_ids: List[str] = await MusicClient.queue(channel.id)
+    track_ids: List[str] = await audio.MusicClient.queue(channel.id)
 
     names: List[str] = []
     values: List[str] = []
@@ -31,7 +31,7 @@ async def _queue_cmd(ctx: commands.Context):
 
     async with ctx.typing():
         for _index, track_id in enumerate(track_ids):
-            track: Optional[PartialInvidiousSource] = await PartialInvidiousSource.build(track_id)
+            track: Optional[audio.PartialInvidiousSource] = await audio.PartialInvidiousSource.build(track_id)
             if track:
                 names.append(f"**#{_index + 1}** {track.title}")
                 values.append(track.channel)

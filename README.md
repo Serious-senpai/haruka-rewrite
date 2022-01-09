@@ -21,7 +21,7 @@ nsfw, sfw, tenor
 ```
 ### Music
 ```
-add, pause, play, playlist, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, vping
+add, export, import, pause, play, playlist, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, vping
 ```
 ### Moderation
 ```

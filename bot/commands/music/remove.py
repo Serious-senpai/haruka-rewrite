@@ -3,7 +3,7 @@ from typing import Optional, Union
 import discord
 from discord.ext import commands
 
-from audio import InvidiousSource, MusicClient
+import audio
 from core import bot
 
 
@@ -12,7 +12,7 @@ from core import bot
     description="Remove a track from the current queue. Use `remove all` to remove all tracks.",
     usage="remove <track position | all | default: 1>"
 )
-@commands.guild_only()
+@audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _remove_cmd(ctx: commands.Context, pos: Union[int, str] = 1):
     if not ctx.author.voice:
@@ -27,10 +27,10 @@ async def _remove_cmd(ctx: commands.Context, pos: Union[int, str] = 1):
     if not isinstance(pos, int):
         raise commands.UserInputError
 
-    id: Optional[str] = await MusicClient.remove(channel.id, pos=pos)
+    id: Optional[str] = await audio.MusicClient.remove(channel.id, pos=pos)
 
     if id is not None:
-        track: InvidiousSource = await InvidiousSource.build(id)
+        track: audio.InvidiousSource = await audio.InvidiousSource.build(id)
         em: discord.Embed = track.create_embed()
         em.set_author(
             name=f"{ctx.author.name} removed 1 song from {channel.name}",

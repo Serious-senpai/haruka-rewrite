@@ -4,6 +4,7 @@ from urllib import parse
 import discord
 from discord.ext import commands
 
+import audio
 import _playlist
 from core import bot
 
@@ -13,12 +14,9 @@ from core import bot
     description="Load a public playlist from YouTube into the voice channel.",
     usage="playlist <playlist ID>\nplaylist <youtube URL>",
 )
-@commands.guild_only()
+@audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _playlist_cmd(ctx: commands.Context, *, url: str):
-    if not ctx.author.voice:
-        return await ctx.send("Please join a voice channel first.")
-
     channel: discord.VoiceChannel = ctx.author.voice.channel
 
     try:

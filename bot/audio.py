@@ -9,11 +9,12 @@ import random
 import shlex
 import time
 import traceback
-from typing import Any, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar
 
 import aiohttp
 import asyncpg
 import discord
+from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
 import emoji_ui
@@ -21,7 +22,18 @@ import utils
 from core import bot
 
 
+T = TypeVar("T")
 TIMEOUT: aiohttp.ClientTimeout = aiohttp.ClientTimeout(total=15)
+
+
+def in_voice() -> Callable[[T], T]:
+    async def predicate(ctx: commands.Context) -> bool:
+        if not getattr(ctx.author, "voice", None):
+            await ctx.send("Please join a voice channel first.")
+            return False
+
+        return True
+    return commands.check(predicate)
 
 
 with open("./bot/assets/misc/iv_instances.txt", "r", encoding="utf-8") as f:
