@@ -14,20 +14,22 @@ URBAN_TESTS: Tuple[str, ...] = ("paimon", "hunter")
 YTDL_TESTS: Tuple[str, ...] = (
     "Hy9s13hWsoc",
     "n89SKAymNfA",
-    "yZIXLfi8CZQ",
-    "a9LDPn-MO4I",
-    "IB3lcPjvWLA",
-    "T4XJQO3qol8",
-    "HtVdAasjOgU",
-    "lqQg6PlCWgI",
-    "qEJwOuvDf7I",
-    "FIl7x6_3R5Y",
-    "CsmdDsKjzN8",
-    "sJL6WA-aGkQ",
-    "Z4Vy8R84T1U",
+    "a9LDPn-MO4I",  # 256k DASH audio (format 141) via DASH manifest
+    "IB3lcPjvWLA",  # DASH manifest with encrypted signature
+    "T4XJQO3qol8",  # Controversy video
+    "FIl7x6_3R5Y",  # Extraction from multiple DASH manifests (https://github.com/ytdl-org/youtube-dl/pull/6097)
+    "Z4Vy8R84T1U",  # Video with unsupported adaptive stream type formats
+    "sJL6WA-aGkQ",  # Geo restricted to JP
 )
 ANIME_TESTS: Tuple[int, ...] = (8425,)
 MANGA_TESTS: Tuple[int, ...] = (1313,)
+
+
+class MiniInvidiousObject:
+    """Class which only contains a video ID for testing"""
+
+    def __init__(self, id: str) -> None:
+        self.id: str = id
 
 
 async def nhentai_test(*, log: Callable[..., Any]) -> None:
@@ -50,12 +52,8 @@ async def urban_test(*, log: Callable[..., Any]) -> None:
 
 async def ytdl_test(*, log: Callable[..., Any]) -> None:
     for id in YTDL_TESTS:
-        track: Optional[audio.InvidiousSource] = await audio.InvidiousSource.build(id)
-        if track is None:
-            log(f"Failed youtube-dl test for ID {id}: Cannot build track")
-            continue
-
-        ytdl_result: Optional[str] = await track.get_source()
+        track: MiniInvidiousObject = MiniInvidiousObject(id)
+        ytdl_result: Optional[str] = await audio.InvidiousSource.get_source(track)
         log(f"Finished youtube-dl test for ID {id}: {ytdl_result}")
 
 

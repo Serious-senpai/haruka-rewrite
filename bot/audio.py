@@ -392,17 +392,17 @@ class InvidiousSource(PartialInvidiousSource):
             stderr=asyncio.subprocess.PIPE,
         )
 
-        try:
-            stdout, stderr = await process.communicate()
-            url: Optional[str] = stdout.decode("utf-8").split("\n")[0]
-        except BaseException:
-            bot.log(f"Error while getting URL for track {self.id}.")
-            bot.log(traceback.format_exc())
-            bot.log("stdout from youtube-dl:" + stdout.decode("utf-8"))
-            bot.log("stderr from youtube-dl:" + stderr.decode("utf-8"))
-            url = None
+        __stdout, __stderr = await process.communicate()
+        # These strings may be empty
+        stdout: str = __stdout.decode("utf-8").strip("\n")
+        stderr: str = __stderr.decode("utf-8").strip("\n")
 
-        return url
+        if not stdout:
+            bot.log(f"youtube-dl cannot fetch source for track ID {self.id}:\n{stderr}")
+            await bot.report(f"Cannot fetch source for track `{self.id}`", send_state=False)
+            return
+
+        return stdout
 
     def __repr__(self) -> str:
         return f"<InvidiousSource title={self.title} id={self.id} source={self.source}>"
