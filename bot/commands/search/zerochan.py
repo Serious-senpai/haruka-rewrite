@@ -10,6 +10,7 @@ from core import bot
 
 @bot.command(
     name="zerochan",
+    aliases=["zero"],
     description="Search zerochan for images",
     usage="zerochan <query>",
 )

@@ -77,7 +77,7 @@ class Haruka(SlashMixin, commands.Bot):
         self.logfile.flush()
 
     async def _change_activity_after_booting(self) -> None:
-        await asyncio.sleep(15.0)
+        await asyncio.sleep(20.0)
         await self.change_presence(activity=discord.Game("@Haruka help"))
 
     async def startup(self) -> None:
@@ -98,6 +98,9 @@ class Haruka(SlashMixin, commands.Bot):
             self.owner_id: int = app_info.owner.id
 
         self.owner = await self.fetch_user(self.owner_id)
+
+        # Overwrite slash commands
+        await self.overwrite_slash_commands()
 
         # Schedule all on_arrival tasks for RPG players
         rows: List[asyncpg.Record] = await self.conn.fetch("SELECT * FROM rpg;")

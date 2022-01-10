@@ -112,7 +112,7 @@ class SlashMixin:
         await self.wait_until_ready()
 
         # Now register all slash commands
-        self.log("Overwriting slash commands: " + ", ".join(json["name"] for json in self._json))
+        self.log(f"Overwriting {len(self._json)} slash commands: " + ", ".join(json["name"] for json in self._json))
         data: List[Dict[str, Any]] = await self.http.bulk_upsert_global_commands(self.user.id, self._json)
         self.log(f"Returned JSON:\n{data}")
 

@@ -1,13 +1,14 @@
 import contextlib
 import time
 from types import TracebackType
-from typing import Callable, Iterator, List, Optional, Type, TypeVar
+from typing import Callable, Iterator, List, Optional, Tuple, Type, TypeVar
 
 import discord
 from discord.ext import commands
 
 
 T = TypeVar("T")
+TESTING_GUILD_IDS: Tuple[int, ...] = (764494394430193734, 886311355211190372)
 
 
 def testing() -> Callable[[T], T]:
@@ -15,7 +16,7 @@ def testing() -> Callable[[T], T]:
     async def predicate(ctx: commands.Context) -> bool:
         if await ctx.bot.is_owner(ctx.author):
             return True
-        if ctx.guild and ctx.guild.id in (764494394430193734, 886311355211190372):
+        if ctx.guild and ctx.guild.id in TESTING_GUILD_IDS:
             return True
         return False
     return commands.check(predicate)
