@@ -59,6 +59,17 @@ async def _info_cmd(ctx: commands.Context, *, user: discord.User = None):
 
 
 @bot.command(
+    name="ping",
+    description="Measure the bot's latency",
+)
+@commands.cooldown(1, 10, commands.BucketType.user)
+async def _ping_cmd(ctx: commands.Context):
+    with utils.TimingContextManager() as measure:
+        message: discord.Message = await ctx.send("🏓 **Ping!**")
+    await message.edit(f"🏓 **Pong!** in {utils.format(measure.result)} (average {utils.format(bot.latency)})")
+
+
+@bot.command(
     name="prefix",
     description="View or change the bot's prefix in this server.\nThis requires the `Manage Server` permission.",
     usage="prefix\nprefix <prefix>",

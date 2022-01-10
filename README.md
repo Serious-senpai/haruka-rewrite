@@ -5,11 +5,11 @@
 See the built-in `help` command for more details.
 ### General
 ```
-about, avatar, emoji, help, info, prefix, remind, say, source, svinfo
+about, avatar, emoji, help, info, ping, prefix, remind, say, source, svinfo
 ```
 ### Fun
 ```
-8ball, card, fact, ping, quote, rickroll, roll
+8ball, card, fact, quote, rickroll, roll
 ```
 ### Searching tool
 ```
