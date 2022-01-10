@@ -7,7 +7,7 @@ from core import bot
 @bot.command(
     name="quote",
     description="Send you a random anime quote.",
-    usage="quote <anime>",
+    usage="quote <anime | default: random>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _quote_cmd(ctx: commands.Context, *, anime: str = None):
