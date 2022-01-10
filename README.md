@@ -9,7 +9,7 @@ about, avatar, emoji, help, info, prefix, remind, say, source, svinfo
 ```
 ### Fun
 ```
-8ball, card, fact, hangman, ping, quote, rickroll, roll
+8ball, card, fact, ping, quote, rickroll, roll
 ```
 ### Searching tool
 ```

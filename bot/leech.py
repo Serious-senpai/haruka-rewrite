@@ -7,14 +7,6 @@ import discord
 from core import bot
 
 
-with open("./bot/assets/misc/wordlist.txt", "r", encoding="utf-8") as f:
-    wordlist: List[str] = [row.strip("\n") for row in f.readlines()]
-
-
-def get_word() -> str:
-    return random.choice(wordlist)
-
-
 with open("./bot/assets/misc/fact.txt", "r", encoding="utf-8") as f:
     facts: List[str] = [row.strip("\n") for row in f.readlines()]
 

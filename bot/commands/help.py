@@ -47,7 +47,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         em.add_field(
             name="✨ Fun",
-            value="```\n8ball, card, fact, hangman, ping, quote, rickroll, roll\n```",
+            value="```\n8ball, card, fact, ping, quote, rickroll, roll\n```",
             inline=False
         )
         em.add_field(
