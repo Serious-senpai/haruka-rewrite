@@ -3,6 +3,7 @@ import random
 from typing import Dict, List, Optional
 
 import discord
+from discord.utils import escape_markdown as escape
 
 import utils
 from core import bot
@@ -40,7 +41,7 @@ async def get_quote(anime: Optional[str] = None) -> discord.Embed:
         original_name = random.choice(list(quotes_k.keys()))
 
     element: Dict[str, str]= random.choice(quotes[original_name])
-    embed: discord.Embed = discord.Embed(description=element["quote"])
+    embed: discord.Embed = discord.Embed(description=escape(element["quote"]))
     embed.set_author(
         name="From " + original_name,
         icon_url=bot.user.avatar.url,
