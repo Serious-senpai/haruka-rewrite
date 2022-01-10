@@ -36,7 +36,8 @@ async def get_quote(anime: Optional[str] = None) -> discord.Embed:
         anime = anime.casefold()
         original_name = quotes_k.get(anime)
         if original_name is None:
-            original_name = await utils.fuzzy_match(anime, quotes_k.keys())
+            anime = await utils.fuzzy_match(anime, quotes_k.keys())
+            original_name = quotes_k[anime]
     else:
         original_name = random.choice(list(quotes_k.values()))
 
