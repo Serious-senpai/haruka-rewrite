@@ -52,7 +52,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         em.add_field(
             name="🔍 Searching",
-            value="```\nanime, manga, nhentai, pixiv, sauce, urban, youtube\n```",
+            value="```\nanime, manga, nhentai, pixiv, sauce, tenor, urban, youtube, zerochan\n```",
         )
         help_em.append(em)
 
@@ -60,7 +60,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         em: discord.Embed = self.template(2, pref)
         em.add_field(
             name="🖼️ Images",
-            value="```\nnsfw, sfw, tenor\n```",
+            value="```\nnsfw, sfw\n```",
             inline=False,
         )
         em.add_field(
