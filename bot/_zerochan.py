@@ -1,7 +1,6 @@
 from typing import Optional, List
 from urllib import parse
 
-import discord
 from bs4 import BeautifulSoup
 
 from core import bot

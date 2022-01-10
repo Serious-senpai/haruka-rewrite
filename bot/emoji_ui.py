@@ -53,13 +53,7 @@ class EmojiUI:
                     task.cancel()
 
         with contextlib.suppress(discord.HTTPException):
-            embeds: List[discord.Embed] = self.message.embeds
-            embed: Optional[discord.Embed] = None
-            if embeds:
-                embed = embeds[0]
-                embed.color = 0x607d8b
-
-            await self.message.edit("This message has timed out.", embed=embed or discord.utils.MISSING)
+            await self.message.edit("This message has timed out.")
             await self.message.clear_reactions()
 
 
