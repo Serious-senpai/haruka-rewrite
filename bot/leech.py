@@ -1,9 +1,10 @@
 import json
 import random
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import discord
 
+import utils
 from core import bot
 
 
@@ -24,15 +25,25 @@ def get_8ball() -> str:
 
 
 with open("./bot/assets/misc/quotes.json", "r", encoding="utf-8") as f:
-    quotes: List[Dict[str, str]] = json.load(f)
+    quotes: Dict[str, List[Dict[str, str]]] = json.load(f)
+    quotes_k: Dict[str, str] = dict((k.casefold(), k) for k in quotes.keys())
 
 
-def get_quote() -> discord.Embed:
-    quote: Dict[str, str] = random.choice(quotes)
-    embed: discord.Embed = discord.Embed(description=quote["quote"])
+async def get_quote(anime: Optional[str] = None) -> discord.Embed:
+    original_name: Optional[str]
+    if anime is not None:
+        anime = anime.casefold()
+        original_name = quotes_k.get(anime)
+        if original_name is None:
+            original_name = await utils.fuzzy_match(anime, quotes_k.keys())
+    else:
+        original_name = random.choice(list(quotes_k.keys()))
+
+    element: Dict[str, str]= random.choice(quotes[original_name])
+    embed: discord.Embed = discord.Embed(description=element["quote"])
     embed.set_author(
-        name="From " + quote["anime"],
+        name="From " + original_name,
         icon_url=bot.user.avatar.url,
     )
-    embed.set_footer(text=quote["character"])
+    embed.set_footer(text=element["character"])
     return embed

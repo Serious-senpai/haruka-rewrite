@@ -1,5 +1,3 @@
-import asyncio
-import sys
 from typing import Dict, List, Mapping, Optional
 
 import discord
@@ -140,6 +138,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         await self.context.send(embed=em)
 
     async def prepare_help_command(self, ctx: commands.Context, command: Optional[str] = None) -> None:
+        await ctx.bot.wait_until_ready()
         self.sfw_keys: List[str] = list(ctx.bot.image.sfw.keys())
         self.sfw_keys.sort()
         self._sfw_description: str = "```\n" + ", ".join(f"*{s.replace(' ', '_')}" for s in self.sfw_keys) + "\n```"
@@ -152,21 +151,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         if len(string) > 20:
             return "There is no such long command."
 
-        args: List[str]
-        if sys.platform == "win32":
-            args = ["py"]
-        else:
-            args = ["python"]
-        args.append("./bot/levenshtein.py")
-        args.append(string)
-        args.extend(bot.all_commands.keys())
-
-        process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
-            *args,
-            stdout=asyncio.subprocess.PIPE,
-        )
-        stdout, _ = await process.communicate()
-        word: str = stdout.decode("utf-8").replace("\n", "").replace("\r", "")
+        word: str = await utils.fuzzy_match(string, bot.all_commands.keys())
         return f"No command called `{string}` was found. Did you mean `{word}`?"
 
 

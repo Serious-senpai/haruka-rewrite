@@ -1,4 +1,6 @@
+import asyncio
 import contextlib
+import sys
 import time
 from types import TracebackType
 from typing import Callable, Iterator, List, Optional, Tuple, Type, TypeVar
@@ -113,3 +115,22 @@ def get_reply(message: discord.Message) -> Optional[discord.Message]:
         return
 
     return message.reference.cached_message
+
+
+async def fuzzy_match(string: str, against: Iterator[str]) -> str:
+    args: List[str]
+    if sys.platform == "win32":
+        args = ["py"]
+    else:
+        args = ["python"]
+    args.append("./bot/levenshtein.py")
+    args.append(string)
+    args.extend(against)
+
+    process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+    )
+    stdout, _ = await process.communicate()
+    word: str = stdout.decode("utf-8").replace("\n", "").replace("\r", "")
+    return word
