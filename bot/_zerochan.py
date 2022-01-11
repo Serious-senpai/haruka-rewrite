@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from core import bot
 
 
-async def search(query: str, *, max_results: Optional[int] = None) -> List[str]:
+async def search(query: str, *, max_results: int = 200) -> List[str]:
     """This function is a coroutine
 
     Search zerochan.net for a list of image URLs.
@@ -15,7 +15,7 @@ async def search(query: str, *, max_results: Optional[int] = None) -> List[str]:
     -----
     query: ``str``
         The searching query
-    max_results: Optional[``int``]
+    max_results: ``int``
         The maximum number of results to return
 
     Returns
@@ -39,7 +39,7 @@ async def search(query: str, *, max_results: Optional[int] = None) -> List[str]:
 
         if ext:
             ret.extend(ext)
-            if max_results is not None and len(ret) >= max_results:
+            if len(ret) >= max_results:
                 return ret[:max_results]
         else:
             break
