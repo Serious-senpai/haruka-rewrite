@@ -8,7 +8,9 @@ from typing import (
     Dict,
     List,
     Optional,
+    Type,
     Union,
+    TYPE_CHECKING,
 )
 
 import discord
@@ -16,6 +18,8 @@ from discord.types import interactions
 
 from .converter import *
 from .errors import *
+if TYPE_CHECKING:
+    import haruka
 
 
 __all__ = (
@@ -60,9 +64,10 @@ class SlashMixin:
     ``commands.Bot``
     """
 
-    def _clear_counter(self, *args: Any, **kwargs: Any) -> None:
-        self._slash_commands: Dict[str, Command] = {}
-        self._json: List[Dict[str, Any]] = []
+    def __init_subclass__(cls: Type[haruka.Haruka], **kwargs) -> None:
+        cls._slash_commands: Dict[str, Command] = {}
+        cls._json: List[Dict[str, Any]] = []
+        super().__init_subclass__(**kwargs)
 
     def add_slash_command(self, command: Command) -> None:
         """Register a slash command to the internal commands

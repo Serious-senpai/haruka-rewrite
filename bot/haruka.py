@@ -51,7 +51,6 @@ class Haruka(commands.Bot, SlashMixin):
         """Clear the text command and slash command counter"""
         self._command_count: Dict[str, List[commands.Context]] = {}
         self._slash_command_count: Dict[str, List[discord.Interaction]] = {}
-        super()._clear_counter()
 
     async def start(self) -> None:
         asyncio.current_task().set_name("MainTask")
