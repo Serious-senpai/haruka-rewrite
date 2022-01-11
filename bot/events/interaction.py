@@ -10,10 +10,8 @@ from core import bot
 async def on_interaction(interaction: discord.Interaction):
     if interaction.type == discord.InteractionType.application_command:
         """Execute slash commands"""
-        row: asyncpg.Record = await bot.conn.fetchrow("SELECT * FROM misc WHERE title = 'blacklist';")
-        blacklist_ids: List[str] = row["id"]
-
-        if str(interaction.user.id) in blacklist_ids:
+        row: asyncpg.Record = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{interaction.user.id}';")
+        if row is not None:
             return await interaction.response.send_message("You are currently in the blacklist.", ephemeral=True)
 
         await bot.process_slash_commands(interaction)

@@ -1,4 +1,4 @@
-from typing import List
+from typing import Optional
 
 import asyncpg
 import discord
@@ -14,27 +14,14 @@ from core import bot
     usage="blacklist <user | None: view blacklist>",
 )
 @commands.is_owner()
-async def _blacklist_cmd(ctx: commands.Context, user: discord.User = None, *, reason: str = "*No reason given*"):
-    row: asyncpg.Record = await bot.conn.fetchrow("SELECT * FROM misc WHERE title = 'blacklist';")
-    blacklist_ids: List[str] = row["id"]
-
-    if not user:
-        return await ctx.send(f"Currently having {len(blacklist_ids)} user(s) in blacklist.")
-
+async def _blacklist_cmd(ctx: commands.Context, user: discord.User, *, reason: str = "*No reason given*"):
     if user.id == ctx.author.id:
         return await ctx.send(f"Please don't blacklist yourself, <@!{ctx.author.id}>?")
 
-    if str(user.id) in blacklist_ids:
-        await bot.conn.execute(f"""
-            UPDATE misc
-            SET id = array_remove(id, '{user.id}')
-            WHERE title = 'blacklist';
-        """)
+    row: Optional[asyncpg.Record] = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{user.id}';")
+    if row is not None:
+        await bot.conn.execute(f"DELETE FROM blacklist WHERE id = '{user.id}';")
         await ctx.send(f"Removed **{escape(str(user))}** from blacklist: {reason}", reference=ctx.message.reference)
     else:
-        await bot.conn.execute(f"""
-            UPDATE misc
-            SET id = array_append(id, '{user.id}')
-            WHERE title = 'blacklist';
-        """)
+        await bot.conn.execute(f"INSERT INTO blacklist VALUES ('{user.id}');")
         await ctx.send(f"Added **{escape(str(user))}** to blacklist: {reason}", reference=ctx.message.reference)

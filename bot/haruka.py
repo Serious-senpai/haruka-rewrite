@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import datetime
 import io
 import os
@@ -18,7 +19,7 @@ from discord.utils import escape_markdown as escape
 from slash import SlashMixin
 
 
-class Haruka(SlashMixin, commands.Bot):
+class Haruka(commands.Bot, SlashMixin):
 
     if sys.platform == "win32":
         loop: asyncio.ProactorEventLoop
@@ -31,45 +32,66 @@ class Haruka(SlashMixin, commands.Bot):
             loop: uvloop.Loop
 
     def __init__(self, *args, **kwargs) -> None:
-        # Initial state
+        self.logfile: io.TextIOWrapper = open("./log.txt", "a", encoding="utf-8")
         self.owner: Optional[discord.User] = None
-        self.clear_counter()
+        self._clear_counter()
         self._load_env()
+        signal.signal(signal.SIGTERM, self.kill)
 
         super().__init__(*args, **kwargs)
 
     def _load_env(self) -> None:
+        """Load the environment variables"""
         self.TOKEN: str = os.environ["TOKEN"]
-        self.HOST: str = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
         self.DATABASE_URL: str = os.environ["DATABASE_URL"]
+        self.HOST: str = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
         self.TOPGG_TOKEN: Optional[str] = os.environ.get("TOPGG_TOKEN")
 
-    def clear_counter(self) -> None:
+    def _clear_counter(self) -> None:
+        """Clear the text command and slash command counter"""
         self._command_count: Dict[str, List[commands.Context]] = {}
         self._slash_command_count: Dict[str, List[discord.Interaction]] = {}
+        super()._clear_counter()
 
     async def start(self) -> None:
-        import database
-        import game
+        asyncio.current_task().set_name("MainTask")
 
-        self.logfile: io.TextIOWrapper = open("./log.txt", "a", encoding="utf-8")
-        signal.signal(signal.SIGTERM, self.kill)
-        async with database.Database(self, self.DATABASE_URL) as self.conn:
-            self._connection.conn = self.conn
+        # Prepare database connection
+        await self.prepare_database()
 
-            asyncio.current_task().set_name("MainTask")
+        # Create side session
+        user_agent: str = youtube_dl.utils.random_user_agent()
+        self.session: aiohttp.ClientSession = aiohttp.ClientSession(headers={"User-Agent": user_agent})
+        self.log(f"Created side session, using User-Agent: {user_agent}")
 
-            user_agent: str = youtube_dl.utils.random_user_agent()
-            self.session: aiohttp.ClientSession = aiohttp.ClientSession(headers={"User-Agent": user_agent})
-            self.log(f"Created side session, using User-Agent: {user_agent}")
-            self.loop.create_task(self.startup())
-            self.uptime: datetime.datetime = datetime.datetime.now()
+        # Start the bot
+        self.loop.create_task(self.startup())
+        self.uptime: datetime.datetime = datetime.datetime.now()
+        await super().start(self.TOKEN)
 
-            self.players: game.PlayerCache = game.PlayerCache()
-            self._connection.players = self.players
+    async def prepare_database(self) -> None:
+        self.conn: asyncpg.Pool = await asyncpg.create_pool(
+            self.DATABASE_URL,
+            min_size=2,
+            max_size=10,
+            max_inactive_connection_lifetime=3.0,
+        )
+        self._connection.conn = self.conn
+        self.log("Created connection pool")
 
-            # Start the bot
-            await super().start(self.TOKEN)
+        await self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS prefix (id text, pref text);
+            CREATE TABLE IF NOT EXISTS youtube (id text, queue text[]);
+            CREATE TABLE IF NOT EXISTS blacklist (id text);
+            CREATE TABLE IF NOT EXISTS remind (id text, time timestamptz, content text, url text, original timestamptz);
+            CREATE TABLE IF NOT EXISTS rpg (id text, description text, world int, location int, type int, level int, xp int, money int, items text, hp int, travel timestamptz, state text);
+        """)
+
+        for extension in ("pg_trgm",):
+            with contextlib.suppress(asyncpg.DuplicateObjectError):
+                await self.conn.execute(f"CREATE EXTENSION {extension};")
+
+        self.log("Successfully initialized database.")
 
     def log(self, content: Any) -> None:
         content: str = str(content).replace("\n", "\nHARUKA | ")
@@ -83,7 +105,9 @@ class Haruka(SlashMixin, commands.Bot):
     async def startup(self) -> None:
         await self.wait_until_ready()
         self.loop.create_task(self._change_activity_after_booting())
+        await self.__do_startup()
 
+    async def __do_startup(self) -> None:
         import image
         import game
         import task
@@ -101,6 +125,10 @@ class Haruka(SlashMixin, commands.Bot):
 
         # Overwrite slash commands
         await self.overwrite_slash_commands()
+
+        # Prepare player cache
+        self.players: game.PlayerCache = game.PlayerCache()
+        self._connection.players = self.players
 
         # Schedule all on_arrival tasks for RPG players
         rows: List[asyncpg.Record] = await self.conn.fetch("SELECT * FROM rpg;")
@@ -185,9 +213,6 @@ class Haruka(SlashMixin, commands.Bot):
         try:
             await self.report("Terminating bot. This is the final report.")
             print("Final report has been sent.")
-        except BaseException:
-            print("Unable to send log file during termination.")
-            traceback.print_exc()
         finally:
             await super().close()
 

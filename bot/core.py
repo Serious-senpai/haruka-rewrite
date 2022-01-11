@@ -105,6 +105,5 @@ bot: haruka.Haruka = haruka.Haruka(
 
 @bot.check
 async def _blacklist_check(ctx: commands.Context):
-    row: asyncpg.Record = await bot.conn.fetchrow("SELECT * FROM misc WHERE title = 'blacklist';")
-    blacklist_ids: List[str] = row["id"]
-    return not str(ctx.author.id) in blacklist_ids
+    row: Optional[asyncpg.Record] = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{ctx.author.id}';")
+    return row is None

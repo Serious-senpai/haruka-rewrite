@@ -60,10 +60,9 @@ class SlashMixin:
     ``commands.Bot``
     """
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def _clear_counter(self, *args: Any, **kwargs: Any) -> None:
         self._slash_commands: Dict[str, Command] = {}
         self._json: List[Dict[str, Any]] = []
-        super().__init__(*args, **kwargs)
 
     def add_slash_command(self, command: Command) -> None:
         """Register a slash command to the internal commands
