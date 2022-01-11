@@ -11,7 +11,7 @@ from core import bot
 @bot.command(
     name="blacklist",
     description="Add or remove a user from blacklist.",
-    usage="blacklist <user | None: view blacklist>",
+    usage="blacklist <user>",
 )
 @commands.is_owner()
 async def _blacklist_cmd(ctx: commands.Context, user: discord.User, *, reason: str = "*No reason given*"):
