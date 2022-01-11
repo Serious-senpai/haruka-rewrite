@@ -26,12 +26,12 @@ async def _zerochan_slash(interaction: discord.Interaction):
     await interaction.response.defer()
     args: Dict[str, str] = slash.parse(interaction)
     query: str = args["query"]
-    urls: List[str] = await _zerochan.search(query)
+    urls: List[str] = await _zerochan.search(query, max_results=20)
     if not urls:
         return await interaction.followup.send("No matching result was found.")
 
     embed: discord.Embed = discord.Embed()
-    embed.set_image(url=random.choice(urls[:10]))
+    embed.set_image(url=random.choice(urls))
     embed.set_author(
         name=f"Zerochan search for {query}",
         icon_url=bot.user.avatar.url,
