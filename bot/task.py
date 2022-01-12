@@ -4,15 +4,16 @@ import asyncio
 import contextlib
 import random
 import traceback
-from typing import Any, List, Optional
+from typing import Any, List, Optional, TYPE_CHECKING
 
 import asyncpg
 import discord
 from discord.ext import tasks
 
 import game
-import haruka
 from game.core import PT
+if TYPE_CHECKING:
+    import haruka
 
 
 class Task:

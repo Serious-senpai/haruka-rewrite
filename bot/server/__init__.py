@@ -1,2 +1,2 @@
 #!/bot/server
-from .server import *
+from .main import *

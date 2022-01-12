@@ -4,13 +4,14 @@ import asyncio
 import functools
 import random
 import re
-from typing import Any, Dict, List, Literal, Optional, Tuple, Type, TypeVar
+from typing import Any, Dict, List, Literal, Optional, Tuple, Type, TypeVar, TYPE_CHECKING
 
 import aiohttp
 import discord
 from discord.ext import commands
 
-import haruka
+if TYPE_CHECKING:
+    import haruka
 
 
 IT = TypeVar("IT", bound="ImageSource")
