@@ -13,11 +13,11 @@ about, avatar, emoji, help, info, ping, prefix, remind, say, source, svinfo
 ```
 ### Searching tool
 ```
-anime, manga, nhentai, pixiv, sauce, tenor, urban, youtube, zerochan
+anime, manga, nhentai, sauce, urban, youtube
 ```
 ### Images
 ```
-nsfw, sfw
+danbooru, nsfw, pixiv, sfw, tenor, zerochan
 ```
 ### Music
 ```
