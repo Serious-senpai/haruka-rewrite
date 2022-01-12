@@ -70,7 +70,7 @@ class Haruka(commands.Bot, SlashMixin):
         self.runner: web.AppRunner = web.AppRunner(app)
         await self.runner.setup()
         port: int = int(os.environ.get("PORT", 8080))
-        site: web.TCPSite = web.TCPSite(self.runner, "localhost", port)
+        site: web.TCPSite = web.TCPSite(self.runner, None, port)
         await site.start()
         print(f"Started serving on port {port}")
 
