@@ -1,35 +1,22 @@
 ﻿import asyncio
-import contextlib
-import multiprocessing
-import os
 import sys
 
 from discord.ext import commands
 
 
-def _run_server():
-    with contextlib.suppress(KeyboardInterrupt):
-        if sys.platform == "win32":
-            os.system("py ./bot/server/server.py")
-        else:
-            os.system("python3 ./bot/server/server.py")
-
-
 if __name__ == "__main__":
     import tracemalloc
-    tracemalloc.start()
 
+
+    tracemalloc.start()
     with open("./log.txt", "w") as f:
         f.write(f"HARUKA BOT\nRunning on Python {sys.version}\n" + "-" * 50 + "\n")
 
-    print(f"Running on {sys.platform}\nPython {sys.version}")
-    process: multiprocessing.Process = multiprocessing.Process(target=_run_server)
-    print("Server is starting")
-    process.start()
 
     from core import bot
     from events import *
     from commands import *
+    print(f"Running on {sys.platform}\nPython {sys.version}")
 
     @bot.event
     async def on_ready():
@@ -57,4 +44,3 @@ if __name__ == "__main__":
         bot.loop.run_until_complete(asyncio.shield(bot.close()))
     finally:
         bot.cleanup()
-        process.join()

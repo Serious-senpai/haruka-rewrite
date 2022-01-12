@@ -13,9 +13,11 @@ import asyncpg
 import discord
 import topgg
 import youtube_dl
+from aiohttp import web
 from discord.ext import commands, tasks
 from discord.utils import escape_markdown as escape
 
+import server
 from slash import SlashMixin
 
 
@@ -62,6 +64,15 @@ class Haruka(commands.Bot, SlashMixin):
         user_agent: str = youtube_dl.utils.random_user_agent()
         self.session: aiohttp.ClientSession = aiohttp.ClientSession(headers={"User-Agent": user_agent})
         self.log(f"Created side session, using User-Agent: {user_agent}")
+
+        # Start server asynchronously
+        app: server.WebApp = server.WebApp(bot=self)
+        runner = web.AppRunner(app)
+        await runner.setup()
+        port: int = int(os.environ.get("PORT", 8080))
+        site = web.TCPSite(runner, "localhost", port)
+        await site.start()
+        print(f"Started serving on port {port}")
 
         # Start the bot
         self.loop.create_task(self.startup())
