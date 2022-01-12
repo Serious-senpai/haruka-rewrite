@@ -67,10 +67,10 @@ class Haruka(commands.Bot, SlashMixin):
 
         # Start server asynchronously
         app: server.WebApp = server.WebApp(bot=self)
-        runner: web.AppRunner = web.AppRunner(app)
-        await runner.setup()
+        self.runner: web.AppRunner = web.AppRunner(app)
+        await self.runner.setup()
         port: int = int(os.environ.get("PORT", 8080))
-        site: web.TCPSite = web.TCPSite(runner, "localhost", port)
+        site: web.TCPSite = web.TCPSite(self.runner, "localhost", port)
         await site.start()
         print(f"Started serving on port {port}")
 
@@ -216,6 +216,8 @@ class Haruka(commands.Bot, SlashMixin):
         self.loop.create_task(self.close())
 
     async def close(self) -> None:
+        await self.runner.cleanup()
+        self.log("Closed server.")
         await self.conn.close()
         self.log("Closed database connection pool for bot.")
         await self.session.close()

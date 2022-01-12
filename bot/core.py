@@ -107,3 +107,25 @@ bot: haruka.Haruka = haruka.Haruka(
 async def _blacklist_check(ctx: commands.Context):
     row: Optional[asyncpg.Record] = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{ctx.author.id}';")
     return row is None
+
+
+@bot.event
+async def on_ready():
+    bot.log(f"Logged in as {bot.user}")
+    print(f"Logged in as {bot.user}")
+
+
+@bot.before_invoke
+async def _before_invoke(ctx: commands.Context):
+    # Count text commands
+    if ctx.command.root_parent:
+        return
+
+    if await bot.is_owner(ctx.author):
+        return
+
+    name: str = ctx.command.name
+    if name not in bot._command_count:
+        bot._command_count[name] = []
+
+    bot._command_count[name].append(ctx)
