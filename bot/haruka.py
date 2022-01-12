@@ -67,10 +67,10 @@ class Haruka(commands.Bot, SlashMixin):
 
         # Start server asynchronously
         app: server.WebApp = server.WebApp(bot=self)
-        runner = web.AppRunner(app)
+        runner: web.AppRunner = web.AppRunner(app)
         await runner.setup()
         port: int = int(os.environ.get("PORT", 8080))
-        site = web.TCPSite(runner, "localhost", port)
+        site: web.TCPSite = web.TCPSite(runner, "localhost", port)
         await site.start()
         print(f"Started serving on port {port}")
 

@@ -48,13 +48,6 @@ async def _reload_page(request: WebRequest) -> web.Response:
 
 
 class WebApp(web.Application):
-    if TYPE_CHECKING:
-        index: str
-        logfile: io.TextIOWrapper
-        pool: asyncpg.Pool
-        session: aiohttp.ClientSession
-        bot: haruka.Haruka
-
     def __init__(self, *args, **kwargs) -> None:
         self.bot: haruka.Haruka = kwargs.pop("bot")
         self.pool: asyncpg.Pool = self.bot.conn
