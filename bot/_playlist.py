@@ -15,30 +15,38 @@ import haruka
 
 class YouTubePlaylist:
     """Represents a playlist from YouTube."""
-    __slots__ = ("title", "id", "author", "thumbnail", "description", "videos", "view")
+
+    __slots__ = ("title", "id", "author", "thumbnail", "description", "videos", "view", "url")
     if TYPE_CHECKING:
         title: str
         id: str
         author: str
-        description: str
+        description: Optional[str]
         view: int
         videos: List[Dict[str, Any]]
         thumbnail: str
+        url: str
 
     def __init__(self, data: Dict[str, Any]) -> None:
         self.title = data["title"]
         self.id = data["playlistId"]
         self.author = data["author"]
-        self.description = data.get("description", "No description")
+        self.description = data.get("description")
         self.view = data["viewCount"]
         self.videos = data["videos"]
         self.thumbnail = data["authorThumbnails"].pop()["url"]
+        self.url = f"https://www.youtube.com/playlist?list={self.id}"
 
     def create_embed(self) -> discord.Embed:
-        embed = discord.Embed(
-            title=escape(self.title),
-            description=escape(self.description),
-        )
+        title = escape(self.title)
+        if self.description is not None:
+            description = escape(self.description)
+            if len(description) > 400:
+                description = description[:400] + f" [...]({self.url})"
+        else:
+            description = discord.Embed.Empty
+
+        embed = discord.Embed(title=title, description=description, url=self.url)
         embed.set_thumbnail(url=self.thumbnail)
         embed.add_field(
             name="Author",

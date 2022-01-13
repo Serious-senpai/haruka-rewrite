@@ -138,11 +138,16 @@ class PartialInvidiousSource:
         ``discord.Embed``
             The embed with information about the video
         """
-        embed = discord.Embed(
-            title=escape(self.title),
-            description=escape(self.description) if self.description else discord.Embed.Empty,
-            url=f"https://www.youtube.com/watch?v={self.id}",
-        )
+        title = escape(self.title)
+        url = f"https://www.youtube.com/watch?v={self.id}"
+        if self.description is not None:
+            description = escape(self.description.replace("\n\n", "\n"))
+            if len(description) > 300:
+                description = description[:300] + f" [...]({url})"
+        else:
+            description = discord.Embed.Empty
+
+        embed = discord.Embed(title=title, description=description, url=url)
         embed.add_field(
             name="Channel",
             value=escape(self.channel),

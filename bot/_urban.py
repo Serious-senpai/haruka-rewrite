@@ -35,13 +35,13 @@ class UrbanSearch:
         self.url = url
 
     def create_embed(self) -> discord.Embed:
+        title = escape(self.title)
         meaning = escape(self.meaning)
         example = escape(self.example)
-        title = escape(self.title)
         desc = f"{meaning}\n---------------\n{example}"
 
         if len(desc) > 4096:
-            desc = desc[:4090] + " [...]"
+            desc = desc[:4090] + f" [...]({self.url})"
 
         embed = discord.Embed(
             title=f"{title}",

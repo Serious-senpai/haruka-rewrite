@@ -1,5 +1,5 @@
-﻿import sys
-import asyncio
+﻿import asyncio
+import sys
 import tracemalloc
 
 tracemalloc.start()  # noqa

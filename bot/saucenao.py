@@ -5,6 +5,7 @@ from typing import List, Optional, Type
 
 import bs4
 import discord
+from discord.utils import escape_markdown as escape
 
 from core import bot
 
@@ -48,8 +49,9 @@ class SauceResult:
             The created embed
         """
         embed: discord.Embed = discord.Embed(
-            title=self.title,
+            title=escape(self.title),
             description=self.url,
+            url=self.url,
         )
         embed.set_thumbnail(url=self.thumbnail_url)
         embed.add_field(

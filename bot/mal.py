@@ -93,6 +93,16 @@ class MALObject(MAL, Generic[T]):
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} title={self.title} id={self.id} score={self.score} popularity={self.popularity}>"
 
+    def create_embed(self) -> discord.Embed:
+        title = escape(self.title)
+        if self.synopsis:
+            description = escape(self.synopsis)
+            if len(description) > 4000:
+                description = description[:4000] + f" [...]({self.url})"
+
+        embed = discord.Embed(title=title, description=description, url=self.url)
+        return embed
+
 
 class MALSearchResult(MAL):
     """Represents a search result from MyAnimeList.
@@ -158,10 +168,7 @@ class Anime(MALObject):
                 return
 
     def create_embed(self) -> discord.Embed:
-        embed = discord.Embed(
-            title=escape(self.title),
-            description=escape(self.synopsis[:4096]),
-        )
+        embed = super().create_embed()
         embed.set_thumbnail(url=self.image_url)
         embed.add_field(
             name="Genres",
@@ -226,10 +233,7 @@ class Manga(MALObject):
                 return
 
     def create_embed(self) -> discord.Embed:
-        embed = discord.Embed(
-            title=escape(self.title),
-            description=escape(self.synopsis[:4096]),
-        )
+        embed = super().create_embed()
         embed.set_thumbnail(url=self.image_url)
         embed.add_field(
             name="Genres",
