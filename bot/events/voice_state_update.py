@@ -45,7 +45,7 @@ async def prepare_disconnect(voice_client: Optional[MusicClient]) -> None:
 @bot.event
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
     if not member.bot:
-        voice_client: Optional[MusicClient] = member.guild.voice_client
+        voice_client = member.guild.voice_client
 
         if voice_client and _is_alone_in(voice_client):
             if voice_client.is_playing():

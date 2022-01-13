@@ -26,7 +26,7 @@ if TYPE_CHECKING:
         def app(self) -> WebApp: ...
 
 
-routes: web.RouteTableDef = web.RouteTableDef()
+routes = web.RouteTableDef()
 routes.static("/assets", "./bot/assets/server")
 routes.static("/image", "./server/image")
 routes.static("/audio", "./server/audio")
@@ -48,11 +48,18 @@ async def _reload_page(request: WebRequest) -> web.Response:
 
 
 class WebApp(web.Application):
+
+    if TYPE_CHECKING:
+        bot: haruka.Haruka
+        pool: asyncpg.Pool
+        logfile: io.TextIOWrapper
+        session: aiohttp.ClientSession
+
     def __init__(self, *args, **kwargs) -> None:
-        self.bot: haruka.Haruka = kwargs.pop("bot")
-        self.pool: asyncpg.Pool = self.bot.conn
-        self.logfile: io.TextIOWrapper = self.bot.logfile
-        self.session: aiohttp.ClientSession = self.bot.session
+        self.bot = kwargs.pop("bot")
+        self.pool = self.bot.conn
+        self.logfile = self.bot.logfile
+        self.session = self.bot.session
 
         super().__init__(*args, **kwargs)
         self.add_routes(routes)
@@ -63,6 +70,6 @@ class WebApp(web.Application):
             self.index = f.read()
 
     def log(self, content: Any) -> None:
-        content: str = str(content).replace("\n", "\nSERVER | ")
+        content = str(content).replace("\n", "\nSERVER | ")
         self.logfile.write(f"SERVER | {content}\n")
         self.logfile.flush()

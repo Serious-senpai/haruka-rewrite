@@ -32,12 +32,17 @@ class MAL:
 class MALObject(MAL, Generic[T]):
     """Represents an anime, manga,... from MyAnimeList."""
 
-    __slots__ = ("id",)
+    __slots__ = ("id", "url", "title", "image_url", "score", "ranked", "popularity", "synopsis", "genres")
     if TYPE_CHECKING:
         id: int
         url: str
         title: str
         image_url: Optional[str]
+        score: Optional[float]
+        ranked: Optional[int]
+        popularity: Optional[int]
+        synopsis: Optional[str]
+        genres: List[str]
 
     def __init__(self, id: int, soup: bs4.BeautifulSoup) -> None:
         super().__init__(soup)
@@ -139,6 +144,8 @@ class MALSearchResult(MAL):
 class Anime(MALObject):
     """Represents an anime from MyAnimeList."""
 
+    __slots__ = ()
+
     @classmethod
     async def get(cls: Type[Anime], id: Union[int, str]) -> Anime:
         url = f"https://myanimelist.net/anime/{id}"
@@ -204,6 +211,8 @@ class Anime(MALObject):
 
 class Manga(MALObject):
     """Represents a manga from MyAnimeList."""
+
+    __slots__ = ()
 
     @classmethod
     async def get(cls: Type[Manga], id: int) -> Manga:
