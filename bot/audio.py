@@ -256,7 +256,7 @@ class InvidiousSource(PartialInvidiousSource):
         self.source = None
         super().__init__(*args, **kwargs)
 
-        for adaptiveFormat in self._json["adaptiveFormats"]:
+        for adaptiveFormat in self.json["adaptiveFormats"]:
             if adaptiveFormat.get("encoding") == "opus":
                 self.source = adaptiveFormat["url"]
                 break
