@@ -1,6 +1,5 @@
 import asyncio
 import traceback
-from typing import Dict
 
 import discord
 from discord.ext import commands
@@ -9,7 +8,8 @@ import utils
 from core import bot
 
 
-COOLDOWN_NOTIFY: Dict[int, Dict[str, bool]] = {}
+bot.owner_bypass = True
+COOLDOWN_NOTIFY = {}
 
 
 @bot.event
@@ -18,18 +18,17 @@ async def on_command_error(ctx: commands.Context, error: Exception):
         return
 
     elif isinstance(error, commands.CommandOnCooldown):
-        if await bot.is_owner(ctx.author):
-            return await ctx.reinvoke()
+        if bot.owner_bypass and await bot.is_owner(ctx.author):
+            await ctx.reinvoke()
+            return
 
         if ctx.author.id not in COOLDOWN_NOTIFY:
-            COOLDOWN_NOTIFY[ctx.author.id] = {
-                ctx.command.name: True,
-            }
+            COOLDOWN_NOTIFY[ctx.author.id] = {}
+
+        if not COOLDOWN_NOTIFY[ctx.author.id].get(ctx.command.name, False):
+            COOLDOWN_NOTIFY[ctx.author.id][ctx.command.name] = True
         else:
-            if not COOLDOWN_NOTIFY[ctx.author.id].get(ctx.command.name, False):
-                COOLDOWN_NOTIFY[ctx.author.id][ctx.command.name] = True
-            else:
-                return
+            return
 
         await ctx.send(f"⏱️ <@!{ctx.author.id}> This command is on cooldown!\nYou can use it after **{utils.format(error.retry_after)}**!")
 
@@ -69,14 +68,6 @@ async def on_command_error(ctx: commands.Context, error: Exception):
         return
 
     else:
-        try:
-            await ctx.send("...")
-        except BaseException:
-            bot.log("An exception occurred when trying to send a notification message:")
-            bot.log(traceback.format_exc())
-        else:
-            bot.log("Notification message was successfully sent.")
-
-        bot.log(f"'{ctx.message.content}' in {ctx.guild}/{ctx.channel} from {ctx.author} ({ctx.author.id}):")
+        bot.log(f"'{ctx.message.content}' in {ctx.message.id}/{ctx.channel.id} from {ctx.author} ({ctx.author.id}):")
         bot.log("".join(traceback.format_exception(error.__class__, error, error.__traceback__)))
         await bot.report("An error has just occured and was handled by `on_command_error`", send_state=False)
