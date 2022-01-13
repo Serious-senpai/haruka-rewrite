@@ -21,8 +21,8 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
     if not source:
         return
 
-    em = source.create_embed()
-    em.set_author(
+    embed = source.create_embed()
+    embed.set_author(
         name=f"{ctx.author.name}'s request",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
     )
@@ -32,13 +32,13 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
             url = await audio.fetch(source)
 
         if not url:
-            em.set_footer(text="Cannot fetch audio file")
-            return await ctx.send(embed=em)
+            embed.set_footer(text="Cannot fetch audio file")
+            return await ctx.send(embed=embed)
 
-        em.add_field(
+        embed.add_field(
             name="Audio URL",
             value=f"[Download]({url})",
             inline=False,
         )
-        em.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
-        await ctx.send(embed=em)
+        embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
+        await ctx.send(embed=embed)

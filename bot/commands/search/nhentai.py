@@ -31,11 +31,11 @@ async def _nhentai_cmd(ctx: commands.Context, *, query: str):
         rslt = rslt[:6]
 
         desc = "\n".join(f"{CHOICES[index]} **{obj.id}** {escape(obj.title)}" for index, obj in enumerate(rslt))
-        em = discord.Embed(
+        embed = discord.Embed(
             title=f"Search results for {query}",
             description=desc,
         )
-        msg = await ctx.send(embed=em)
+        msg = await ctx.send(embed=embed)
         display = emoji_ui.SelectMenu(msg, len(rslt))
         choice = await display.listen(ctx.author.id)
 
@@ -43,9 +43,9 @@ async def _nhentai_cmd(ctx: commands.Context, *, query: str):
             return
         hentai = await _nhentai.NHentai.get(rslt[choice].id)
 
-    em = hentai.create_embed()
-    em.set_author(
+    embed = hentai.create_embed()
+    embed.set_author(
         name=f"{ctx.author.name}'s request",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
     )
-    await ctx.send(embed=em)
+    await ctx.send(embed=embed)

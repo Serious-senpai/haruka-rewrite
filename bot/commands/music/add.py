@@ -31,9 +31,9 @@ async def _add_cmd(ctx: commands.Context, *, query: str):
 
     await audio.MusicClient.add(channel.id, track.id)
 
-    em = track.create_embed()
-    em.set_author(
+    embed = track.create_embed()
+    embed.set_author(
         name=f"{ctx.author.name} added 1 song to {channel.name}",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
     )
-    await ctx.send(embed=em)
+    await ctx.send(embed=embed)

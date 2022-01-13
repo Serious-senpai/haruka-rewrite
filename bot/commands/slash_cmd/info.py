@@ -23,5 +23,5 @@ async def info_(interaction: discord.Interaction):
     args = slash.parse(interaction)
     user = args.get("user", interaction.user)
 
-    em = info.user_info(user)
-    await interaction.response.send_message(embed=em)
+    embed = info.user_info(user)
+    await interaction.response.send_message(embed=embed)

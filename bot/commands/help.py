@@ -22,70 +22,70 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         super().__init__(command_attrs=command_attrs)
 
     def template(self, page: int, pref: str) -> discord.Embed:
-        em: discord.Embed = discord.Embed(description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.")
-        em.set_author(
+        embed: discord.Embed = discord.Embed(description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.")
+        embed.set_author(
             name=f"{bot.user} Command List",
             icon_url=bot.user.avatar.url,
         )
-        em.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
-        em.set_footer(text=f"Current prefix: {pref} | Page {page}/4")
-        return em
+        embed.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
+        embed.set_footer(text=f"Current prefix: {pref} | Page {page}/4")
+        return embed
 
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]):
         # Initialize
         pref: str = await prefix(bot, self.context.message)
         help_em: List[discord.Embed] = []
 
-        em: discord.Embed = self.template(1, pref)
-        em.add_field(
+        embed: discord.Embed = self.template(1, pref)
+        embed.add_field(
             name="💬 General",
             value="```\nabout, avatar, emoji, help, info, ping, prefix, remind, say, source, svinfo\n```",
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="✨ Fun",
             value="```\n8ball, card, fact, quote, rickroll, roll\n```",
             inline=False
         )
-        em.add_field(
+        embed.add_field(
             name="🔍 Searching",
             value="```\nanime, manga, nhentai, sauce, urban, youtube\n```",
         )
-        help_em.append(em)
+        help_em.append(embed)
 
-        em: discord.Embed = self.template(2, pref)
-        em.add_field(
+        embed: discord.Embed = self.template(2, pref)
+        embed.add_field(
             name="🖼️ Images",
             value="```\ndanbooru, nsfw, pixiv, sfw, tenor, zerochan\n```",
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="🎶 Music",
             value="```\nadd, export, import, pause, play, playlist, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, vping\n```",
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="🛡️ Moderation",
             value="```\nban, kick, mute, unmute\n```",
             inline=False,
         )
-        help_em.append(em)
+        help_em.append(embed)
 
-        em: discord.Embed = self.template(3, pref)
-        em.add_field(
+        embed: discord.Embed = self.template(3, pref)
+        embed.add_field(
             name="🖼️ SFW images",
             value=f"Remember to add the prefix `{pref}`! E.g. `{pref}*waifu`\n" + self._sfw_description,
             inline=False,
         )
-        help_em.append(em)
+        help_em.append(embed)
 
-        em: discord.Embed = self.template(4, pref)
-        em.add_field(
+        embed: discord.Embed = self.template(4, pref)
+        embed.add_field(
             name="🔞 NSFW images",
             value=f"Remember to add the prefix `{pref}`! E.g. `{pref}**waifu`\n" + self._nsfw_description,
             inline=False,
         )
-        help_em.append(em)
+        help_em.append(embed)
 
         display: emoji_ui.Pagination = emoji_ui.Pagination(help_em)
         await display.send(self.context)
@@ -117,12 +117,12 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         elif command.name == "nsfw":
             description += ", ".join(f"`{key}`" for key in self.nsfw_keys)
 
-        em: discord.Embed = discord.Embed(
+        embed: discord.Embed = discord.Embed(
             title=command.qualified_name,
             description=f"```\n{pref}{usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
         )
-        em.set_author(name=f"{self.context.author.name}, this is an instruction for {command.qualified_name}!", icon_url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
-        await self.context.send(embed=em)
+        embed.set_author(name=f"{self.context.author.name}, this is an instruction for {command.qualified_name}!", icon_url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
+        await self.context.send(embed=embed)
 
     async def prepare_help_command(self, ctx: commands.Context, command: Optional[str] = None) -> None:
         await ctx.bot.wait_until_ready()

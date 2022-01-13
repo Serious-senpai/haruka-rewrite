@@ -14,11 +14,11 @@ from core import bot
 async def _urban_cmd(ctx: commands.Context, *, query: str):
     result = await _urban.UrbanSearch.search(query)
     if result:
-        em = result.create_embed()
-        em.set_author(
+        embed = result.create_embed()
+        embed.set_author(
             name=f"{ctx.author.name} searched for {query}",
             icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
         )
-        await ctx.send(embed=em)
+        await ctx.send(embed=embed)
     else:
         await ctx.send("No matching result was found.")

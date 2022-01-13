@@ -43,14 +43,14 @@ class UrbanSearch:
         if len(desc) > 4096:
             desc = desc[:4090] + " [...]"
 
-        em = discord.Embed(
+        embed = discord.Embed(
             title=f"{title}",
             description=desc,
             url=self.url,
         )
-        em.set_footer(text="From Urban Dictionary")
+        embed.set_footer(text="From Urban Dictionary")
 
-        return em
+        return embed
 
     def __repr__(self) -> str:
         return f"<UrbanSearch title={self.title} meaning={self.meaning[:50]}>"

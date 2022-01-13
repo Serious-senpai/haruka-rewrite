@@ -158,55 +158,55 @@ class Anime(MALObject):
                 return
 
     def create_embed(self) -> discord.Embed:
-        em = discord.Embed(
+        embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.synopsis[:4096]),
         )
-        em.set_thumbnail(url=self.image_url)
-        em.add_field(
+        embed.set_thumbnail(url=self.image_url)
+        embed.add_field(
             name="Genres",
             value=", ".join(self.genres),
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="Score",
             value=self.score,
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="Aired",
             value=self.data("Aired:"),
         )
-        em.add_field(
+        embed.add_field(
             name="Status",
             value=self.data("Status:"),
         )
-        em.add_field(
+        embed.add_field(
             name="Ranked",
             value=f"#{self.ranked}",
         )
-        em.add_field(
+        embed.add_field(
             name="Popularity",
             value=f"#{self.popularity}",
         )
-        em.add_field(
+        embed.add_field(
             name="Episodes",
             value=self.data("Episodes:", int),
         )
-        em.add_field(
+        embed.add_field(
             name="Type",
             value=self.data("Type:"),
         )
-        em.add_field(
+        embed.add_field(
             name="Broadcast",
             value=self.data("Broadcast:"),
         )
-        em.add_field(
+        embed.add_field(
             name="Link reference",
             value=f"[MyAnimeList link]({self.url})",
             inline=False,
         )
-        return em
+        return embed
 
 
 class Manga(MALObject):
@@ -226,48 +226,48 @@ class Manga(MALObject):
                 return
 
     def create_embed(self) -> discord.Embed:
-        em = discord.Embed(
+        embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.synopsis[:4096]),
         )
-        em.set_thumbnail(url=self.image_url)
-        em.add_field(
+        embed.set_thumbnail(url=self.image_url)
+        embed.add_field(
             name="Genres",
             value=", ".join(self.genres),
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="Score",
             value=self.score,
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="Published",
             value=self.data("Published:")
         )
-        em.add_field(
+        embed.add_field(
             name="Ranked",
             value=f"#{self.ranked}",
         )
-        em.add_field(
+        embed.add_field(
             name="Popularity",
             value=f"#{self.popularity}",
         )
-        em.add_field(
+        embed.add_field(
             name="Episodes",
             value=self.data("Episodes:", int),
         )
-        em.add_field(
+        embed.add_field(
             name="Chapters",
             value=self.data("Chapters:", int),
         )
-        em.add_field(
+        embed.add_field(
             name="Type",
             value=self.data("Type:"),
         )
-        em.add_field(
+        embed.add_field(
             name="Link reference",
             value=f"[MyAnimeList link]({self.url})",
             inline=False,
         )
-        return em
+        return embed

@@ -316,14 +316,14 @@ class ImageClient(Generic[IT]):
         self.bot.log(f"Loaded {len(self.sources)} ImageSource objects, preparing commands...")
 
         async def _wrapped_callback(category: str, mode: Literal["sfw", "nsfw"], ctx: commands.Context):
-            em = discord.Embed()
-            em.set_author(
+            embed = discord.Embed()
+            embed.set_author(
                 name=f"{ctx.author.name}, this is your image!",
                 icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
             )
-            em.set_image(url=await self.get(category, mode=mode))
+            embed.set_image(url=await self.get(category, mode=mode))
 
-            await ctx.send(embed=em)
+            await ctx.send(embed=embed)
 
         command: commands.Command
         for category in self.sfw:

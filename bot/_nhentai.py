@@ -106,7 +106,7 @@ class NHentai:
         return self.thumbnail
 
     def create_embed(self) -> discord.Embed:
-        em = discord.Embed(
+        embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.subtitle) if self.subtitle else discord.Embed.Empty,
             url=self.url,
@@ -119,7 +119,7 @@ class NHentai:
                 continue
 
             name = section.get_text().strip().replace(":", "")
-            em.add_field(
+            embed.add_field(
                 name=name,
                 value=", ".join(
                     obj.find("span", attrs={"class": "name"}).get_text() for obj in content
@@ -127,13 +127,13 @@ class NHentai:
                 inline=name not in ("Characters", "Tags"),
             )
 
-        em.add_field(
+        embed.add_field(
             name="Link",
             value=self.url,
             inline=False,
         )
-        em.set_thumbnail(url=self.thumbnail or discord.Embed.Empty)
-        return em
+        embed.set_thumbnail(url=self.thumbnail or discord.Embed.Empty)
+        return embed
 
     def __repr__(self) -> str:
         return f"<NHentai title={self.title} id={self.id}>"

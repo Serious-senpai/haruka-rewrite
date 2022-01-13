@@ -31,11 +31,11 @@ async def _remove_cmd(ctx: commands.Context, pos: Union[int, str] = 1):
 
     if id is not None:
         track = await audio.InvidiousSource.build(id)
-        em = track.create_embed()
-        em.set_author(
+        embed = track.create_embed()
+        embed.set_author(
             name=f"{ctx.author.name} removed 1 song from {channel.name}",
             icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
         )
-        await ctx.send(embed=em)
+        await ctx.send(embed=embed)
     else:
         await ctx.send("No song with this position.")

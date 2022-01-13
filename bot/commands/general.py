@@ -18,26 +18,26 @@ from core import bot, prefix
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _about_cmd(ctx: commands.Context):
-    em: discord.Embed = info.user_info(bot.user)
-    em.description += "\nIf you are too bored, [vote](https://top.gg/bot/848178172536946708/vote) for me on top.gg!"
-    em.add_field(
+    embed: discord.Embed = info.user_info(bot.user)
+    embed.description += "\nIf you are too bored, [vote](https://top.gg/bot/848178172536946708/vote) for me on top.gg!"
+    embed.add_field(
         name="Latest commits from the `main` branch",
         value=bot.latest_commits,
         inline=False,
     )
-    em.add_field(
+    embed.add_field(
         name="Uptime",
         value=datetime.datetime.now() - bot.uptime,
     )
-    em.add_field(
+    embed.add_field(
         name="Latency",
         value=utils.format(bot.latency),
     )
-    em.add_field(
+    embed.add_field(
         name="Links",
         value=f"[Top.gg](https://top.gg/bot/848178172536946708)\n[GitHub](https://github.com/Saratoga-CV6/haruka-rewrite)\n[Website]({bot.HOST})",
     )
-    await ctx.send(embed=em)
+    await ctx.send(embed=embed)
 
 
 @bot.command(
@@ -152,17 +152,17 @@ async def _emoji_cmd(ctx: commands.Context):
     pages: int = 1 + int(len(emojis) / 50)
     index: List[discord.Embed] = []
     for page in range(pages):
-        em: discord.Embed = discord.Embed(
+        embed: discord.Embed = discord.Embed(
             title=escape(ctx.guild.name),
             description="".join(f"<a:{emoji.name}:{emoji.id}>" if emoji.animated else f"<:{emoji.name}:{emoji.id}>" for emoji in emojis[page * 50:page * 50 + 50]),
         )
-        em.set_author(
+        embed.set_author(
             name="These are the server's emojis!",
             icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
         )
-        em.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
-        em.set_footer(text=f"Showing page {page + 1}/{pages}")
-        index.append(em)
+        embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
+        embed.set_footer(text=f"Showing page {page + 1}/{pages}")
+        index.append(embed)
     display: emoji_ui.Pagination = emoji_ui.Pagination(index)
     await display.send(ctx.channel)
 
@@ -192,24 +192,24 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
     )
     bot.task.remind.restart()
 
-    em: discord.Embed = discord.Embed()
-    em.add_field(
+    embed: discord.Embed = discord.Embed()
+    embed.add_field(
         name="Content",
         value=content,
         inline=False,
     )
-    em.add_field(
+    embed.add_field(
         name="After",
         value=f"{hours}h {minutes}m",
         inline=False,
     )
-    em.set_author(
+    embed.set_author(
         name="Created new reminder",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
     )
-    em.set_thumbnail(url=bot.user.avatar.url)
-    em.set_footer(text="Make sure you can receive Direct Message from me")
-    await ctx.send(embed=em)
+    embed.set_thumbnail(url=bot.user.avatar.url)
+    embed.set_footer(text="Make sure you can receive Direct Message from me")
+    await ctx.send(embed=embed)
 
 
 @bot.command(

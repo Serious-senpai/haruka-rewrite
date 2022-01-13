@@ -47,10 +47,10 @@ async def _manga_slash(interaction: discord.Interaction):
     else:
         manga = await mal.Manga.get(id)
 
-    em = manga.create_embed()
-    em.set_author(
+    embed = manga.create_embed()
+    embed.set_author(
         name="Manga search result",
         icon_url=bot.user.avatar.url,
     )
-    em.set_footer(text="From myanimelist.net")
-    await interaction.followup.send(embed=em)
+    embed.set_footer(text="From myanimelist.net")
+    await interaction.followup.send(embed=embed)

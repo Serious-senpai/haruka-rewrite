@@ -180,7 +180,7 @@ class Haruka(commands.Bot, SlashMixin):
                 for commit in js[:4]:
                     sha = commit["sha"][:6]
                     message = commit["commit"]["message"].split("\n")[0]
-                    url= commit["html_url"]
+                    url = commit["html_url"]
                     desc.append(f"__[`{sha}`]({url})__ {escape(message)}")
 
                 self.latest_commits = "\n".join(desc)
@@ -249,49 +249,49 @@ class Haruka(commands.Bot, SlashMixin):
 
         desc = "**Commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._command_count.items())) + "\n**Slash commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._slash_command_count.items()))
 
-        em = discord.Embed(
+        embed = discord.Embed(
             title="Internal status",
             description=desc,
         )
-        em.set_thumbnail(url=self.user.avatar.url)
+        embed.set_thumbnail(url=self.user.avatar.url)
 
-        em.add_field(
+        embed.add_field(
             name="Cached servers",
             value=f"{len(guilds)} servers",
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="Cached users",
             value=f"{len(users)} users",
         )
-        em.add_field(
+        embed.add_field(
             name="Cached emojis",
             value=f"{len(emojis)} emojis",
         )
-        em.add_field(
+        embed.add_field(
             name="Cached stickers",
             value=f"{len(stickers)} stickers",
         )
-        em.add_field(
+        embed.add_field(
             name="Cached voice clients",
             value=f"{len(voice_clients)} voice clients",
         )
-        em.add_field(
+        embed.add_field(
             name="Cached DM channels",
             value=f"{len(private_channels)} channels",
         )
-        em.add_field(
+        embed.add_field(
             name="Cached messages",
             value=f"{len(messages)} messages",
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="Uptime",
             value=datetime.datetime.now() - self.uptime,
             inline=False,
         )
 
-        return em
+        return embed
 
     @tasks.loop(minutes=10)
     async def _keep_alive(self) -> None:

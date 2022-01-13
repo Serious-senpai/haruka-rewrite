@@ -25,11 +25,11 @@ async def _anime_cmd(ctx: commands.Context, *, query):
         return await ctx.send("No matching result was found.")
 
     desc = "\n".join(f"{CHOICES[i[0]]} {i[1].title}" for i in enumerate(rslt))
-    em = discord.Embed(
+    embed = discord.Embed(
         title=f"Search results for {query}",
         description=escape(desc),
     )
-    message = await ctx.send(embed=em)
+    message = await ctx.send(embed=embed)
 
     display = emoji_ui.SelectMenu(message, len(rslt))
     choice = await display.listen(ctx.author.id)
@@ -37,11 +37,11 @@ async def _anime_cmd(ctx: commands.Context, *, query):
     if choice is not None:
         anime = await mal.Anime.get(rslt[choice].id)
         if anime:
-            em = anime.create_embed()
-            em.set_author(
+            embed = anime.create_embed()
+            embed.set_author(
                 name=f"{ctx.author.name}'s request",
                 icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
             )
-            await ctx.send(embed=em)
+            await ctx.send(embed=embed)
         else:
             return await ctx.send("An unexpected error has occurred.")

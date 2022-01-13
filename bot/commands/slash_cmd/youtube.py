@@ -53,8 +53,8 @@ async def _youtube_slash(interaction: discord.Interaction):
     else:
         track: audio.InvidiousSource = await audio.InvidiousSource.build(id)
 
-    em: discord.Embed = track.create_embed()
-    em.set_author(
+    embed: discord.Embed = track.create_embed()
+    embed.set_author(
         name="YouTube audio request",
         icon_url=bot.user.avatar.url,
     )
@@ -63,14 +63,14 @@ async def _youtube_slash(interaction: discord.Interaction):
         url: Optional[str] = await audio.fetch(track)
 
     if not url:
-        em.set_footer(text="Cannot fetch audio file")
-        return await interaction.followup.send(embed=em)
+        embed.set_footer(text="Cannot fetch audio file")
+        return await interaction.followup.send(embed=embed)
 
-    em.add_field(
+    embed.add_field(
         name="Audio URL",
         value=f"[Download]({url})",
         inline=False,
     )
-    em.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
+    embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
 
-    await interaction.followup.send(embed=em)
+    await interaction.followup.send(embed=embed)

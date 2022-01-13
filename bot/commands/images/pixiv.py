@@ -54,13 +54,13 @@ async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
     index = []
     async with ctx.typing():
         for i, artwork in enumerate(rslt[:6]):
-            em = await artwork.create_embed()
-            em.set_footer(text=f"Displaying result #{i + 1}")
-            em.set_author(
+            embed = await artwork.create_embed()
+            embed.set_footer(text=f"Displaying result #{i + 1}")
+            embed.set_author(
                 name=f"{ctx.author.name} searched for {query}",
                 icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
             )
-            index.append(em)
+            index.append(embed)
 
     display = emoji_ui.Pagination(index)
     await display.send(ctx.channel)

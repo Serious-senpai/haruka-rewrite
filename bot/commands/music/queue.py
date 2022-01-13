@@ -40,8 +40,8 @@ async def _queue_cmd(ctx: commands.Context):
         pages = 1 + int(len(track_ids) / SONGS_PER_PAGE)
 
         for page in range(pages):
-            em = discord.Embed(title=f"Music queue of channel {channel.name}")
-            em.set_footer(
+            embed = discord.Embed(title=f"Music queue of channel {channel.name}")
+            embed.set_footer(
                 text=f"Currently has {len(track_ids)} song(s) | Page {page + 1}/{pages}"
             )
 
@@ -49,14 +49,14 @@ async def _queue_cmd(ctx: commands.Context):
                 try:
                     name = names.pop(0)
                     value = values.pop(0)
-                    em.add_field(
+                    embed.add_field(
                         name=name,
                         value=value,
                         inline=INLINE,
                     )
                 except IndexError:
                     break
-            index.append(em)
+            index.append(embed)
 
     display = emoji_ui.NavigatorPagination(index)
     await display.send(ctx)

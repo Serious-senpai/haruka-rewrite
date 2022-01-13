@@ -87,7 +87,7 @@ class PixivArtwork:
                 raise discord.HTTPException(response, f"Pixiv returned {response.status}")
 
     async def create_embed(self) -> discord.Embed:
-        em = discord.Embed(
+        embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.description) if self.description else discord.Embed.Empty,
             url=self.url,
@@ -96,34 +96,34 @@ class PixivArtwork:
         try:
             await self.stream()
         except discord.HTTPException:
-            em.set_image(url=self.thumbnail)
+            embed.set_image(url=self.thumbnail)
             bot.log(traceback.format_exc())
         else:
-            em.set_image(url=f"{bot.HOST}/image/{self.id}.png")
+            embed.set_image(url=f"{bot.HOST}/image/{self.id}.png")
 
-        em.add_field(
+        embed.add_field(
             name="Tags",
             value=", ".join(escape(tag) for tag in self.tags) if self.tags else "*No tags given*",
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="Artwork ID",
             value=self.id,
         )
-        em.add_field(
+        embed.add_field(
             name="Author",
             value=f"[{escape(self.author.name)}](https://www.pixiv.net/en/users/{self.author.id})",
         )
-        em.add_field(
+        embed.add_field(
             name="Size",
             value=f"{self.width} x {self.height}",
         )
-        em.add_field(
+        embed.add_field(
             name="Artwork link",
             value=self.url,
             inline=False,
         )
-        return em
+        return embed
 
     def __repr__(self) -> str:
         return f"<PixivArtwork title={self.title} id={self.id} author={self.author}>"

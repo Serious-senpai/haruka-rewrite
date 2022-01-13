@@ -47,10 +47,10 @@ async def _anime_slash(interaction: discord.Interaction):
     else:
         anime = await mal.Anime.get(id)
 
-    em = anime.create_embed()
-    em.set_author(
+    embed = anime.create_embed()
+    embed.set_author(
         name="Anime search result",
         icon_url=bot.user.avatar.url,
     )
-    em.set_footer(text="From myanimelist.net")
-    await interaction.followup.send(embed=em)
+    embed.set_footer(text="From myanimelist.net")
+    await interaction.followup.send(embed=embed)

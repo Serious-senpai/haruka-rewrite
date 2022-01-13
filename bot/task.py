@@ -71,22 +71,22 @@ class ReminderTask(Task):
         except BaseException:
             return
 
-        em: discord.Embed = discord.Embed(
+        embed: discord.Embed = discord.Embed(
             description=row["content"],
             timestamp=row["original"],
         )
-        em.set_author(
+        embed.set_author(
             name=f"{user.name}, this is your reminder.",
             icon_url=self.bot.user.avatar.url,
         )
-        em.add_field(
+        embed.add_field(
             name="Original message URL",
             value=row["url"],
         )
-        em.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
 
         with contextlib.suppress(discord.Forbidden):
-            await user.send(embed=em)
+            await user.send(embed=embed)
 
     async def delete(self, row: asyncpg.Record) -> None:
         await self.conn.execute(

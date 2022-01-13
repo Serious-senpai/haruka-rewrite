@@ -138,27 +138,27 @@ class PartialInvidiousSource:
         ``discord.Embed``
             The embed with information about the video
         """
-        em = discord.Embed(
+        embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.description) if self.description else discord.Embed.Empty,
             url=f"https://www.youtube.com/watch?v={self.id}",
         )
-        em.add_field(
+        embed.add_field(
             name="Channel",
             value=escape(self.channel),
             inline=False,
         )
-        em.add_field(
+        embed.add_field(
             name="Length",
             value=utils.format(self.length),
         )
 
         if not self.thumbnail.startswith("http"):
-            em.set_thumbnail(url=self._api_url + self.thumbnail)
+            embed.set_thumbnail(url=self._api_url + self.thumbnail)
         else:
-            em.set_thumbnail(url=self.thumbnail)
+            embed.set_thumbnail(url=self.thumbnail)
 
-        return em
+        return embed
 
     @classmethod
     async def search(
@@ -664,33 +664,33 @@ class MusicClient(discord.VoiceClient):
             track = await InvidiousSource.build(track_id)
 
             if track is None:
-                em = discord.Embed(description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.")
-                em.set_author(
+                embed = discord.Embed(description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.")
+                embed.set_author(
                     name="Warning",
                     icon_url=bot.user.avatar.url,
                 )
-                em.add_field(
+                embed.add_field(
                     name="YouTube URL",
                     value=f"https://www.youtube.com/watch?v={track_id}",
                 )
                 with contextlib.suppress(discord.HTTPException):
-                    await self.target.send(embed=em)
+                    await self.target.send(embed=embed)
                 continue
 
             with contextlib.suppress(discord.HTTPException):
                 async with self.target.typing():
-                    em = track.create_embed()
-                    em.set_author(
+                    embed = track.create_embed()
+                    embed.set_author(
                         name=f"Playing in {self.channel}",
                         icon_url=bot.user.avatar.url,
                     )
-                    em.set_footer(text=f"Shuffle: {self._shuffle} | Repeat one: {self._repeat}")
+                    embed.set_footer(text=f"Shuffle: {self._shuffle} | Repeat one: {self._repeat}")
 
                     if playing_info:
                         with contextlib.suppress(discord.HTTPException):
                             await playing_info.delete()
 
-                    playing_info = await self.target.send(embed=em)
+                    playing_info = await self.target.send(embed=embed)
 
             # Check if the URL that Invidious provided
             # us is usable
