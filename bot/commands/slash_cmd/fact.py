@@ -1,12 +1,10 @@
-from typing import Any, Dict
-
 import discord
 
 import leech
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "fact",
     "type": 1,
     "description": "Send you a random fact.",

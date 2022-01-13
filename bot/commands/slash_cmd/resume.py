@@ -1,13 +1,10 @@
-from typing import Any, Dict, Optional
-
 import discord
 
 import slash
-from audio import MusicClient
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "resume",
     "type": 1,
     "description": "Resume the paused audio",
@@ -18,10 +15,10 @@ json: Dict[str, Any] = {
 @slash.guild_only()
 async def _resume_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    player: Optional[MusicClient] = interaction.guild.voice_client
+    player = interaction.guild.voice_client
 
     if player:
-        await player._operable.wait()
+        await player.operable.wait()
         if player.is_paused():
             player.resume()
             return await interaction.followup.send("Resumed audio.")

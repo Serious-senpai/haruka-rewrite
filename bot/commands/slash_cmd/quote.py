@@ -1,5 +1,3 @@
-from typing import Any, Dict, Optional
-
 import discord
 
 import leech
@@ -7,7 +5,7 @@ import slash
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "quote",
     "type": 1,
     "description": "Send you a random anime quote.",
@@ -23,6 +21,6 @@ json: Dict[str, Any] = {
 @bot.slash(json)
 async def _quote_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    args: Dict[str, str] = slash.parse(interaction)
-    anime: Optional[str] = args.get("anime")
+    args = slash.parse(interaction)
+    anime = args.get("anime")
     await interaction.followup.send(embed=await leech.get_quote(anime))

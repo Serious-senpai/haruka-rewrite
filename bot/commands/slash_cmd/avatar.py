@@ -1,12 +1,10 @@
-from typing import Any, Dict
-
 import discord
 
 import slash
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "avatar",
     "type": 1,
     "description": "Get the avatar from a user.",
@@ -21,10 +19,10 @@ json: Dict[str, Any] = {
 
 @bot.slash(json)
 async def _avatar_slash(interaction: discord.Interaction):
-    args: Dict[str, discord.User] = slash.parse(interaction)
-    user: discord.User = args.get("user", interaction.user)
+    args = slash.parse(interaction)
+    user = args.get("user", interaction.user)
 
-    embed: discord.Embed = discord.Embed()
+    embed = discord.Embed()
     embed.set_author(
         name=f"This is {user.name}'s avatar",
         icon_url=bot.user.avatar.url,

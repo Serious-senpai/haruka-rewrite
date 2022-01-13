@@ -1,4 +1,3 @@
-from typing import Optional
 from urllib import parse
 
 import discord
@@ -17,20 +16,20 @@ from core import bot
 @audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _playlist_cmd(ctx: commands.Context, *, url: str):
-    channel: discord.VoiceChannel = ctx.author.voice.channel
+    channel = ctx.author.voice.channel
 
     try:
-        query: str = parse.urlparse(url).query
-        playlist_id: str = parse.parse_qs(query)["list"][0]
+        query = parse.urlparse(url).query
+        playlist_id = parse.parse_qs(query)["list"][0]
     except BaseException:
         raise commands.UserInputError
     else:
-        result: Optional[_playlist.YouTubePlaylist] = await _playlist.YouTubePlaylist.get(bot, playlist_id)
+        result = await _playlist.YouTubePlaylist.get(bot, playlist_id)
         if not result:
             return await ctx.send("Cannot find this playlist. Make sure that this playlist isn't private.")
 
         await result.load(bot.conn, channel.id)
-        embed: discord.Embed = result.create_embed()
+        embed = result.create_embed()
         embed.set_author(
             name=f"{ctx.author.name} loaded a YouTube playlist into {channel.name}",
             icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

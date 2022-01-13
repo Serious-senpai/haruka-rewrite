@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import random
-from typing import Optional, List, Set, Tuple, Type, TypeVar, Union
+from typing import Optional, List, Set, Tuple, Type, TypeVar, Union, TYPE_CHECKING
 
 import discord
 
@@ -14,26 +14,19 @@ ET = TypeVar("ET", bound="EmojiUI")
 
 
 # Frequently used emoji lists
-CHECKER: Tuple[str, ...] = ("❌", "✔️")
-CHOICES: Tuple[str, ...] = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣")
-NAVIGATOR: Tuple[str, ...] = ("⬅️", "➡️")
+CHECKER = ("❌", "✔️")
+CHOICES = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣")
+NAVIGATOR = ("⬅️", "➡️")
 
 
 class EmojiUI:
     """Base class for emoji-based UIs."""
-    message: Optional[discord.Message]
-    user_id: Optional[int]
-    allowed_emojis: Tuple[str, ...]
 
-    def __init_subclass__(cls: Type[ET]) -> None:
-        requirement: Tuple[str, ...] = (
-            "message",
-            "user_id",
-            "allowed_emojis",
-        )
-        for r in requirement:
-            if r not in cls.__slots__:
-                raise RuntimeError(f"Incorrect __slots__ definition for {cls.__name__}, missing \"{r}\"")
+    __slots__ = ("message", "user_id", "allowed_emojis")
+    if TYPE_CHECKING:
+        message: Optional[discord.Message]
+        user_id: Optional[int]
+        allowed_emojis: Tuple[str, ...]
 
     def check(self, payload: discord.RawReactionActionEvent) -> bool:
         if self.user_id is not None:
@@ -72,16 +65,12 @@ class Pagination(EmojiUI):
         The message used to interact.
     """
 
-    __slots__ = (
-        "pages",
-        # Subclass requirements
-        "message",
-        "user_id",
-        "allowed_emojis",
-    )
+    __slots__ = ("pages",)
+    if TYPE_CHECKING:
+        pages: List[discord.Embed]
 
     def __init__(self, pages: List[discord.Embed]) -> None:
-        self.pages: List[discord.Embed] = pages
+        self.pages = pages
 
         if len(self.pages) > 6:
             raise ValueError("Number of pages exceeded the limit of 6.")
@@ -121,8 +110,8 @@ class Pagination(EmojiUI):
             )
 
             if done:
-                payload: discord.RawReactionActionEvent = done.pop().result()
-                page: int = self.allowed_emojis.index(str(payload.emoji))
+                payload = done.pop().result()
+                page = self.allowed_emojis.index(str(payload.emoji))
                 await self.message.edit(embed=self.pages[page])
             else:
                 return await self.timeout(pending)
@@ -141,16 +130,12 @@ class RandomPagination(EmojiUI):
         The message used to interact.
     """
 
-    __slots__ = (
-        "pages",
-        # Subclass requirements
-        "message",
-        "user_id",
-        "allowed_emojis",
-    )
+    __slots__ = ("pages",)
+    if TYPE_CHECKING:
+        pages: List[discord.Embed]
 
     def __init__(self, pages: List[discord.Embed]) -> None:
-        self.pages: List[discord.Embed] = pages
+        self.pages = pages
         self.message = None
         self.allowed_emojis = ("🔄",)
 
@@ -210,16 +195,12 @@ class NavigatorPagination(EmojiUI):
         The message used to interact.
     """
 
-    __slots__ = (
-        "pages",
-        # Subclass requirements
-        "message",
-        "user_id",
-        "allowed_emojis",
-    )
+    __slots__ = ("pages",)
+    if TYPE_CHECKING:
+        pages: List[discord.Embed]
 
     def __init__(self, pages: List[discord.Embed]) -> None:
-        self.pages: List[discord.Embed] = pages
+        self.pages = pages
         self.message = None
         self.allowed_emojis = NAVIGATOR[:]
 
@@ -241,7 +222,7 @@ class NavigatorPagination(EmojiUI):
         """
         self.message = await target.send(embed=self.pages[0])
         self.user_id = user_id
-        page: int = 0
+        page = 0
 
         for emoji in self.allowed_emojis:
             await self.message.add_reaction(emoji)
@@ -256,8 +237,8 @@ class NavigatorPagination(EmojiUI):
             )
 
             if done:
-                payload: discord.RawReactionActionEvent = done.pop().result()
-                action: int = self.allowed_emojis.index(str(payload.emoji))
+                payload = done.pop().result()
+                action = self.allowed_emojis.index(str(payload.emoji))
 
                 if action == 0:
                     if page > 0:
@@ -290,21 +271,18 @@ class SelectMenu(EmojiUI):
         The number of options.
     """
 
-    __slots__ = (
-        "nargs",
-        # Subclass requirements
-        "message",
-        "user_id",
-        "allowed_emojis",
-    )
+    __slots__ = ("nargs",)
+    if TYPE_CHECKING:
+        nargs: int
+        message: discord.Message
 
     def __init__(self, message: discord.Message, nargs: int) -> None:
-        self.nargs: int = nargs
+        self.nargs = nargs
 
         if self.nargs > 6:
             raise ValueError("Number of options exceeded the limit of 6")
 
-        self.message: discord.Message = message
+        self.message = message
         self.allowed_emojis = CHOICES[:self.nargs]
 
     async def listen(self, user_id: int) -> Optional[int]:
@@ -330,7 +308,7 @@ class SelectMenu(EmojiUI):
             await self.message.add_reaction(emoji)
 
         try:
-            payload: discord.RawReactionActionEvent = await bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
+            payload = await bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
             await self.timeout()
             return
@@ -338,21 +316,17 @@ class SelectMenu(EmojiUI):
             with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()
 
-            choice: int = self.allowed_emojis.index(str(payload.emoji))
+            choice = self.allowed_emojis.index(str(payload.emoji))
             return choice
 
 
 class YesNoSelection(EmojiUI):
-    __slots__ = (
-        # Subclass requirements
-        "message",
-        "user_id",
-        "allowed_emojis",
-    )
+
+    __slots__ = ()
 
     def __init__(self, message: discord.Message) -> None:
-        self.message: discord.Message = message
-        self.allowed_emojis: Tuple[str, ...] = CHECKER
+        self.message = message
+        self.allowed_emojis = CHECKER
 
     async def listen(self, user_id: Optional[int] = None) -> Optional[bool]:
         self.user_id = user_id
@@ -360,7 +334,7 @@ class YesNoSelection(EmojiUI):
             await self.message.add_reaction(emoji)
 
         try:
-            payload: discord.RawReactionActionEvent = await bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
+            payload = await bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
             await self.timeout()
             return
@@ -368,5 +342,5 @@ class YesNoSelection(EmojiUI):
             with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()
 
-            choice: int = self.allowed_emojis.index(str(payload.emoji))
+            choice = self.allowed_emojis.index(str(payload.emoji))
             return choice == 1

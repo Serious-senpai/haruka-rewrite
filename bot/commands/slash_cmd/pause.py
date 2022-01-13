@@ -21,7 +21,7 @@ async def _pause_slash(interaction: discord.Interaction):
     player: Optional[MusicClient] = interaction.guild.voice_client
 
     if player:
-        await player._operable.wait()
+        await player.operable.wait()
         if player.is_playing():
             player.pause()
             return await interaction.followup.send("Paused audio.")

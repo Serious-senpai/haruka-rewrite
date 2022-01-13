@@ -1,9 +1,8 @@
 import functools
 import sys
-from typing import List, Tuple
 
 
-IGNORE: Tuple[str, ...] = (
+IGNORE = (
     "bash",
     "blacklist",
     "cancel",
@@ -42,13 +41,9 @@ def lev(i: str, j: str) -> int:
     )
 
 
-string: str = sys.argv[1]
-words: List[str] = sys.argv[2:]
-val: int = 9999
-
-# Typing
-measure: int
-ret: str
+string = sys.argv[1]
+words = sys.argv[2:]
+val = 9999
 
 for word in words:
     if word in IGNORE:

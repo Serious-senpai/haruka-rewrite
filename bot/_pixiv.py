@@ -4,7 +4,7 @@ import json
 import os
 import re
 import traceback
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type, TYPE_CHECKING
 
 import bs4
 import discord
@@ -13,24 +13,24 @@ from discord.utils import escape_markdown as escape
 from core import bot
 
 
-PIXIV_HEADERS: Dict[str, str] = {"referer": "https://www.pixiv.net/"}
-ID_PATTERN: re.Pattern = re.compile(r"(?<!\d)\d{8,8}(?!\d)")
-CHUNK_SIZE: int = 4 << 10
+PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
+ID_PATTERN = re.compile(r"(?<!\d)\d{8,8}(?!\d)")
+CHUNK_SIZE = 4 << 10
 
 
 class PixivUser:
     """Represents a Pixiv user"""
 
-    __slots__ = (
-        "id",
-        "name",
-        "image_url",
-    )
+    __slots__ = ("id", "name", "image_url")
+    if TYPE_CHECKING:
+        id: int
+        name: str
+        image_url: str
 
     def __init__(self, id: int, name: str, image_url: str) -> None:
-        self.id: int = id
-        self.name: str = name
-        self.image_url: str = image_url
+        self.id = id
+        self.name = name
+        self.image_url = image_url
 
     def __repr__(self) -> str:
         return f"<PixivUser name={self.name} id={self.id}>"
@@ -39,66 +39,37 @@ class PixivUser:
 class PixivArtwork:
     """Represents an artwork from Pixiv ajax"""
 
-    __slots__ = (
-        "json",
-    )
+    __slots__ = ("title", "id", "image_url", "width", "height", "nsfw", "description", "tags", "url", "thumbnail", "author")
+    if TYPE_CHECKING:
+        title: str
+        id: int
+        image_url: str
+        width: int
+        height: int
+        nsfw: bool
+        description: Optional[str]
+        tags: Optional[List[str]]
+        url: str
+        thumbnail: str
+        author: PixivUser
 
     def __init__(self, json: Dict[str, Any]) -> None:
-        self.json: Dict[str, Any] = json
+        self.title = json["title"]
+        self.id = json["id"]
+        self.image_url = json["url"]
+        self.width = json["width"]
+        self.height = json["height"]
 
-    @property
-    def title(self) -> str:
-        return self.json["title"]
+        self.nsfw = json.get("xRestrict", False)
+        self.description = json.get("description")
+        self.tags = json.get("tags")
+        self.url = f"https://www.pixiv.net/en/artworks/{self.id}"
+        self.thumbnail = f"https://embed.pixiv.net/decorate.php?illust_id={self.id}"
 
-    @property
-    def id(self) -> int:
-        return self.json["id"]
-
-    @property
-    def url(self) -> str:
-        return f"https://www.pixiv.net/en/artworks/{self.id}"
-
-    @property
-    def nsfw(self) -> bool:
-        return self.json.get("xRestrict", False)
-
-    @property
-    def image_url(self) -> str:
-        # This URL must be fetched with an appropriate header to retrieve data
-        return self.json["url"]
-
-    @property
-    def thumbnail(self) -> str:
-        # This URL returns a partial image of the artwork
-        return f"https://embed.pixiv.net/decorate.php?illust_id={self.id}"
-
-    @property
-    def thumb(self) -> str:
-        return self.thumbnail
-
-    @property
-    def description(self) -> str:
-        # This string can (usually) be empty
-        return self.json.get("description", "")
-
-    @property
-    def width(self) -> int:
-        return self.json.get("width")
-
-    @property
-    def height(self) -> int:
-        return self.json.get("height")
-
-    @property
-    def tags(self) -> Optional[List[str]]:
-        return self.json.get("tags")
-
-    @property
-    def author(self) -> PixivUser:
-        id = self.json.get("userId")
-        name = self.json.get("userName")
-        image_url = self.json.get("profileImageUrl")
-        return PixivUser(id, name, image_url)
+        author_id = json["userId"]
+        author_name = json["userName"]
+        author_avatar_url = json["profileImageUrl"]
+        self.author = PixivUser(author_id, author_name, author_avatar_url)
 
     async def stream(self) -> None:
         if os.path.isfile(f"./server/image/{self.id}.png"):
@@ -110,15 +81,13 @@ class PixivArtwork:
         ) as response:
             if response.ok:
                 with open(f"./server/image/{self.id}.png", "wb", buffering=0) as f:
-                    data: bytes = await response.content.read(CHUNK_SIZE)
-                    while data:
+                    while data := await response.content.read(CHUNK_SIZE):
                         f.write(data)
-                        data = await response.content.read(CHUNK_SIZE)
             else:
                 raise discord.HTTPException(response, f"Pixiv returned {response.status}")
 
     async def create_embed(self) -> discord.Embed:
-        em: discord.Embed = discord.Embed(
+        em = discord.Embed(
             title=escape(self.title),
             description=escape(self.description) if self.description else discord.Embed.Empty,
             url=self.url,
@@ -184,14 +153,14 @@ class PixivArtwork:
     ) -> Optional[PixivArtwork]:
         async with bot.session.get(f"https://pixiv.net/en/artworks/{id}") as response:
             if response.ok:
-                html: str = await response.text(encoding="utf-8")
-                soup: bs4.BeautifulSoup = bs4.BeautifulSoup(html, "html.parser")
-                content: Optional[str] = soup.find("meta", attrs={"name": "preload-data"}).get("content")
+                html = await response.text(encoding="utf-8")
+                soup = bs4.BeautifulSoup(html, "html.parser")
+                content = soup.find("meta", attrs={"name": "preload-data"}).get("content")
                 if content:
-                    data: Dict[str, Any] = json.loads(content)
-                    illust: Dict[str, Any] = data["illust"][str(id)]
-                    user_id: int = int(illust.get("userId"))
-                    ret: Dict[str, Any] = {
+                    data = json.loads(content)
+                    illust = data["illust"][str(id)]
+                    user_id = int(illust.get("userId"))
+                    ret = {
                         "title": illust.get("title"),
                         "id": id,
                         "xRestrict": illust.get("xRestrict"),

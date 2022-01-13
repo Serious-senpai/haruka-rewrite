@@ -1,12 +1,10 @@
-from typing import Any, Dict
-
 import discord
 
 import slash
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "say",
     "type": 1,
     "description": "Say something, can be used to send animated emojis.",
@@ -21,5 +19,5 @@ json: Dict[str, Any] = {
 
 @bot.slash(json)
 async def _say_slash(interaction: discord.Interaction):
-    args: Dict[str, str] = slash.parse(interaction)
+    args = slash.parse(interaction)
     await interaction.response.send_message(args["content"])

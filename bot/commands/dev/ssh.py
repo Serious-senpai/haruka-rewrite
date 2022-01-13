@@ -21,7 +21,7 @@ def save_to(content: str) -> discord.File:
 )
 @commands.is_owner()
 async def _ssh_cmd(ctx: commands.Context, *, cmd: str):
-    process: asyncio.subprocess.Process = await asyncio.create_subprocess_shell(
+    process = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT,
@@ -34,11 +34,11 @@ async def _ssh_cmd(ctx: commands.Context, *, cmd: str):
         process.kill()
         await ctx.send(f"Process didn't complete within 30 seconds and was killed. Return code `{process.returncode}`")
     else:
-        output: str = stdout.decode("utf-8")
-        notify: str = f"Process completed with return code {process.returncode} after {utils.format(measure.result)}"
+        output = stdout.decode("utf-8")
+        notify = f"Process completed with return code {process.returncode} after {utils.format(measure.result)}"
 
         if output:
-            f: discord.File = await asyncio.to_thread(save_to, output)
+            f = await asyncio.to_thread(save_to, output)
             await ctx.send(notify, file=f)
         else:
             await ctx.send(notify)

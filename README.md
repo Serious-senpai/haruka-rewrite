@@ -27,10 +27,6 @@ add, export, import, pause, play, playlist, queue, remove, repeat, resume, shuff
 ```
 ban, kick, mute, unmute
 ```
-### RPG Game
-```
-account, battle, buy, class, daily, inventory, location, shop, teleport, travel, use, world
-```
 # Developer notes
 ### Key features
 - Stream and download music from [YouTube](http://youtube.com) without having to install an opus library or host a Lavalink server

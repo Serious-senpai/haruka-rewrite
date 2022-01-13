@@ -1,6 +1,5 @@
 import io
 import json
-from typing import List
 
 import discord
 from discord.ext import commands
@@ -16,8 +15,8 @@ from core import bot
 @audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _export_cmd(ctx: commands.Context):
-    channel: discord.abc.Connectable = ctx.author.voice.channel
-    queue: List[str] = await audio.MusicClient.queue(channel.id)
+    channel = ctx.author.voice.channel
+    queue = await audio.MusicClient.queue(channel.id)
     if not queue:
         return await ctx.send("This voice channel has no music in its queue!")
 

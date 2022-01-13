@@ -1,6 +1,5 @@
-from typing import List, Optional
+from typing import Optional
 
-import discord
 from discord.ext import commands
 
 import emoji_ui
@@ -21,14 +20,14 @@ async def _sauce_cmd(ctx: commands.Context, src: Optional[str] = None):
         except IndexError:
             raise commands.UserInputError
 
-    results: List[saucenao.SauceResult] = await saucenao.SauceResult.get_sauce(src)
+    results = await saucenao.SauceResult.get_sauce(src)
     if not results:
         return await ctx.send("Cannot find the image sauce!")
 
-    total: int = len(results)
-    embeds: List[discord.Embed] = []
+    total = len(results)
+    embeds = []
     for index, result in enumerate(results):
-        embed: discord.Embed = result.create_embed()
+        embed = result.create_embed()
         embed.set_author(
             name="Image search result",
             icon_url=bot.user.avatar.url,
@@ -36,5 +35,5 @@ async def _sauce_cmd(ctx: commands.Context, src: Optional[str] = None):
         embed.set_footer(text=f"Displaying result {index + 1}/{total}")
         embeds.append(embed)
 
-    display: emoji_ui.NavigatorPagination = emoji_ui.NavigatorPagination(embeds)
+    display = emoji_ui.NavigatorPagination(embeds)
     await display.send(ctx.channel)

@@ -25,7 +25,7 @@ async def _unmute_cmd(ctx: commands.Context, member: discord.Member, *, reason: 
     if reason is None:
         reason = "*No reason given*"
 
-    embed: discord.Embed = discord.Embed()
+    embed = discord.Embed()
     embed.set_author(
         name=f"{ctx.author.name} unmuted 1 member",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

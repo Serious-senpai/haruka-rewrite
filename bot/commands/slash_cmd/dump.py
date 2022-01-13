@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 import discord
 
 import slash
@@ -7,7 +5,7 @@ from core import bot
 
 
 bot._dump_bin = {}
-json: Dict[str, Any] = {
+json = {
     "name": "dump",
     "type": 1,
     "description": "This command does nothing.",
@@ -55,8 +53,8 @@ json: Dict[str, Any] = {
 @bot.slash(json)
 async def _test_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    args: Dict[str, Any] = slash.parse(interaction)
-    content: str = "```"
+    args = slash.parse(interaction)
+    content = "```"
 
     for key, arg in args.items():
         content += f"\n{key} ({arg.__class__.__name__}): {arg}"

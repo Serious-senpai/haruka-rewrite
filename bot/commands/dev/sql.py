@@ -15,7 +15,7 @@ from core import bot
 async def _sql_cmd(ctx: commands.Context, *, query):
     try:
         with utils.TimingContextManager() as measure:
-            status: str = await bot.conn.execute(query)
+            status = await bot.conn.execute(query)
     except BaseException:
         await ctx.send("```\n" + traceback.format_exc() + "\n```")
     else:

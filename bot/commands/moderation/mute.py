@@ -22,7 +22,7 @@ async def _mute_cmd(ctx: commands.Context, hours: int, minutes: int, member: dis
     if hours == 0 and minutes == 0:
         return await ctx.send("Specified time must be greater than 0.")
 
-    target: datetime.datetime = discord.utils.utcnow() + datetime.timedelta(seconds=3600 * hours + 60 * minutes)
+    target = discord.utils.utcnow() + datetime.timedelta(seconds=3600 * hours + 60 * minutes)
     try:
         await member.edit(timed_out_until=target, reason=reason)
     except discord.Forbidden:
@@ -31,7 +31,7 @@ async def _mute_cmd(ctx: commands.Context, hours: int, minutes: int, member: dis
     if reason is None:
         reason = "*No reason given*"
 
-    embed: discord.Embed = discord.Embed()
+    embed = discord.Embed()
     embed.set_author(
         name="Muted 1 member",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

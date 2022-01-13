@@ -1,11 +1,9 @@
-from typing import Any, Dict
-
 import discord
 
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "rr",
     "type": 1,
     "description": "Send a rickroll video",

@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 import discord
 
 import info
@@ -7,7 +5,7 @@ import slash
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "info",
     "type": 1,
     "description": "Get the information about a user.",
@@ -22,8 +20,8 @@ json: Dict[str, Any] = {
 
 @bot.slash(json)
 async def info_(interaction: discord.Interaction):
-    args: Dict[str, discord.User] = slash.parse(interaction)
-    user: discord.User = args.get("user", interaction.user)
+    args = slash.parse(interaction)
+    user = args.get("user", interaction.user)
 
-    em: discord.Embed = info.user_info(user)
+    em = info.user_info(user)
     await interaction.response.send_message(embed=em)

@@ -1,56 +1,57 @@
 import io
 import os
 import random
-from typing import Optional, List, Tuple, Type, TypeVar
+from typing import Generic, Optional, List, Type, TypeVar, TYPE_CHECKING
 
 from PIL import Image
 
 
 CT = TypeVar("CT", bound="BaseCard")
-
-
-SUITS: Tuple[str, ...] = ("a", "b", "c", "d")
-cardlist: List[str] = [f for f in os.listdir(f"./bot/assets/cards")]
+SUITS = ("a", "b", "c", "d")
+cardlist = [f for f in os.listdir(f"./bot/assets/cards")]
 
 
 class BaseCard:
 
-    __slots__ = (
-        "id",
-        "value",
-        "suit",
-    )
+    __slots__ = ("id", "value", "suit")
+    if TYPE_CHECKING:
+        id: str
+        value: int
+        suit: int
 
     def __init__(self, filename: str) -> None:
-        self.id: str = filename.removesuffix(".png")
-        self.value: int = int(self.id[:-1])
-        self.suit: int = SUITS.index(self.id[-1:])
+        self.id = filename.removesuffix(".png")
+        self.value = int(self.id[:-1])
+        self.suit = SUITS.index(self.id[-1:])
 
     @property
     def image(self) -> Image:
         return Image.open(f"./bot/assets/cards/{self.id}.png")
 
 
-class BaseHand:
+class BaseHand(Generic[CT]):
 
-    __slots__ = (
-        "cards",
-    )
+    __slots__ = ("cards",)
     cardtype: Type[CT] = BaseCard
+    if TYPE_CHECKING:
+        cards: List[CT]
 
     def __init__(self, cards: Optional[List[CT]] = None) -> None:
-        self.cards: List[CT] = cards or []
+        if cards is not None:
+            self.cards = cards
+        else:
+            self.cards = []
 
     @property
     def image(self) -> Image:
-        n: int = len(self.cards)
-        img: Image = Image.new("RGBA", (80 * n, 100))
+        n = len(self.cards)
+        img = Image.new("RGBA", (80 * n, 100))
         for index, card in enumerate(self.cards):
             img.paste(card.image, (80 * index, 0, 80 * index + 80, 100))
         return img
 
     def make_image(self) -> io.BytesIO:
-        _data: io.BytesIO = io.BytesIO()
+        _data = io.BytesIO()
         self.image.save(_data, format="PNG")
         _data.seek(0)
         return _data
@@ -73,15 +74,12 @@ class BaseHand:
 
 class PlayingCard(BaseCard):
 
-    __slots__ = (
-        "id",
-        "value",
-        "suit",
-        "set",
-    )
+    __slots__ = ("set",)
+    if TYPE_CHECKING:
+        set: bool
 
     def __init__(self, filename: str, set: bool = True) -> None:
-        self.set: bool = set
+        self.set = set
         super().__init__(filename)
 
     def flip(self) -> bool:

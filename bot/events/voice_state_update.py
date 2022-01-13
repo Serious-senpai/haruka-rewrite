@@ -49,7 +49,7 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
 
         if voice_client and _is_alone_in(voice_client):
             if voice_client.is_playing():
-                await voice_client._operable.wait()
+                await voice_client.operable.wait()
                 voice_client.pause()
                 with contextlib.suppress(discord.HTTPException):
                     await voice_client.target.send(f"All members have left <#{voice_client.channel.id}>. Paused audio.")

@@ -1,6 +1,6 @@
 import json
 import random
-from typing import Dict, List, Optional
+from typing import Optional
 
 import discord
 from discord.utils import escape_markdown as escape
@@ -10,7 +10,7 @@ from core import bot
 
 
 with open("./bot/assets/misc/fact.txt", "r", encoding="utf-8") as f:
-    facts: List[str] = [row.strip("\n") for row in f.readlines()]
+    facts = [row.strip("\n") for row in f.readlines()]
 
 
 def get_fact() -> str:
@@ -18,7 +18,7 @@ def get_fact() -> str:
 
 
 with open("./bot/assets/misc/8ball.txt", "r", encoding="utf-8") as f:
-    answers: List[str] = [row.strip("\n") for row in f.readlines()]
+    answers = [row.strip("\n") for row in f.readlines()]
 
 
 def get_8ball() -> str:
@@ -26,8 +26,8 @@ def get_8ball() -> str:
 
 
 with open("./bot/assets/misc/quotes.json", "r", encoding="utf-8") as f:
-    quotes: Dict[str, List[Dict[str, str]]] = json.load(f)
-    quotes_k: Dict[str, str] = dict((k.casefold(), k) for k in quotes.keys())
+    quotes = json.load(f)
+    quotes_k = dict((k.casefold(), k) for k in quotes.keys())
 
 
 async def get_quote(anime: Optional[str] = None) -> discord.Embed:
@@ -41,8 +41,8 @@ async def get_quote(anime: Optional[str] = None) -> discord.Embed:
     else:
         original_name = random.choice(list(quotes_k.values()))
 
-    element: Dict[str, str] = random.choice(quotes[original_name])
-    embed: discord.Embed = discord.Embed(description=escape(element["quote"]))
+    element = random.choice(quotes[original_name])
+    embed = discord.Embed(description=escape(element["quote"]))
     embed.set_author(
         name="From " + original_name,
         icon_url=bot.user.avatar.url,

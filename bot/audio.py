@@ -9,10 +9,9 @@ import random
 import shlex
 import time
 import traceback
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, TYPE_CHECKING
 
 import aiohttp
-import asyncpg
 import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
@@ -23,7 +22,7 @@ from core import bot
 
 
 T = TypeVar("T")
-TIMEOUT: aiohttp.ClientTimeout = aiohttp.ClientTimeout(total=15)
+TIMEOUT = aiohttp.ClientTimeout(total=15)
 
 
 def in_voice() -> Callable[[T], T]:
@@ -37,7 +36,7 @@ def in_voice() -> Callable[[T], T]:
 
 
 with open("./bot/assets/misc/iv_instances.txt", "r", encoding="utf-8") as f:
-    INVIDIOUS_URLS: List[str] = ["https://" + instance.strip("\n") for instance in f.readlines()]
+    INVIDIOUS_URLS = ["https://" + instance.strip("\n") for instance in f.readlines()]
 
 
 if not os.path.exists("./tracks"):
@@ -64,9 +63,7 @@ def get_from_memory(id: str) -> Optional[Dict[str, Any]]:
     """
     if os.path.isfile(f"./tracks/{id}.json"):
         with open(f"./tracks/{id}.json", "r") as f:
-            data: Dict[str, Any] = json.load(f)
-
-        return data
+            return json.load(f)
 
 
 def save_to_memory(data: Dict[str, Any]) -> None:
@@ -82,7 +79,7 @@ def save_to_memory(data: Dict[str, Any]) -> None:
         A dictionary containing the snippet information
         about the track.
     """
-    id: str = data["videoId"]
+    id = data["videoId"]
     with open(f"./tracks/{id}.json", "w") as f:
         json.dump(data, f)
 
@@ -95,54 +92,39 @@ class PartialInvidiousSource:
     """
 
     __slots__ = (
-        "_json",
-        "_api_url"
+        "json",
+        "_api_url",
+        "id",
+        "title",
+        "channel",
+        "length",
+        "description",
+        "thumbnail",
     )
+    if TYPE_CHECKING:
+        json: Dict[str, Any]
+        _api_url: str
+        id: str
+        title: str
+        channel: str
+        length: int
+        description: Optional[str]
+        thumbnail: str
 
     def __init__(self, json: Dict[str, Any], api_url: str) -> None:
-        self._json: Dict[str, Any] = json
-        self._api_url: str = api_url
+        self.json = json
+        self._api_url = api_url
+        self.id = json["videoId"]
+        self.title = json["title"]
+        self.channel = json["author"]
+        self.length = json["lengthSeconds"]
 
-    @property
-    def id(self) -> str:
-        """The ID of the video from Invidious as well as YouTube"""
-        return self._json["videoId"]
+        self.description = json.get("description")
 
-    @property
-    def title(self) -> str:
-        """The title of the video"""
-        return self._json["title"]
-
-    @property
-    def channel(self) -> str:
-        """The channel that published the video"""
-        return self._json["author"]
-
-    @property
-    def description(self) -> Optional[str]:
-        """The description of the video"""
-        desc: Optional[str] = self._json.get("description")
-
-        if desc:
-            desc = desc.replace("\n\n", "\n")
-            if len(desc) > 300:
-                desc = desc[:300] + " ..."
-
-        return desc
-
-    @property
-    def thumbnail(self) -> str:
-        """The URL to the thumbnail of the video"""
-        for image in self._json["videoThumbnails"]:
+        for image in json["videoThumbnails"]:
+            self.thumbnail = image["url"]
             if "maxres" in image["quality"]:
-                return image["url"]
-
-        return self._json["videoThumbnails"].pop()["url"]
-
-    @property
-    def length(self) -> int:
-        """The length of the video"""
-        return self._json["lengthSeconds"]
+                break
 
     def create_embed(self) -> discord.Embed:
         """Make a ``discord.Embed`` that represents
@@ -156,7 +138,7 @@ class PartialInvidiousSource:
         ``discord.Embed``
             The embed with information about the video
         """
-        em: discord.Embed = discord.Embed(
+        em = discord.Embed(
             title=escape(self.title),
             description=escape(self.description) if self.description else discord.Embed.Empty,
             url=f"https://www.youtube.com/watch?v={self.id}",
@@ -207,13 +189,13 @@ class PartialInvidiousSource:
             "page": 0,
             "type": "video",
         }
-        items: List[PartialInvidiousSource] = []
+        items = []
 
         for url in INVIDIOUS_URLS:
             with contextlib.suppress(aiohttp.ClientError):
                 async with bot.session.get(f"{url}/api/v1/search", params=params, timeout=TIMEOUT) as response:
                     if response.status == 200:
-                        json: List[Dict[str, Any]] = await response.json()
+                        json = await response.json()
                         items.extend(cls(data, url) for data in json[:max_results])
                         return items
 
@@ -239,18 +221,18 @@ class PartialInvidiousSource:
         Optional[``PartialInvidiousSource``]
             The track with the given ID, or ``None`` if not found.
         """
-        data: Optional[Dict[str, Any]] = await asyncio.to_thread(get_from_memory, id)
+        data = await asyncio.to_thread(get_from_memory, id)
         if data is not None:
             return cls(data, data["api_url"])
 
-        track: Optional[InvidiousSource] = await InvidiousSource.build(id)
+        track = await InvidiousSource.build(id)
         if track:
             # Construct json
-            data = track._json
-            data["api_url"] = track._api_url
+            js = track.json
+            js["api_url"] = track._api_url
             # Save to disk
-            await asyncio.to_thread(save_to_memory, data)
-            return cls(data, track._api_url)
+            await asyncio.to_thread(save_to_memory, js)
+            return cls(js, track._api_url)
 
 
 class InvidiousSource(PartialInvidiousSource):
@@ -264,24 +246,20 @@ class InvidiousSource(PartialInvidiousSource):
     they should also use this class.
     """
 
-    __slots__ = (
-        "_json",
-        "_api_url",
-        "part",
-        "left",
-        "playable",
-        "source",
-    )
+    __slots__ = ("part", "left", "playable", "source")
+    if TYPE_CHECKING:
+        playable: bool
+        source: Optional[str]
 
     def __init__(self, *args, **kwargs) -> None:
-        self.playable: bool = False
-        self.source: Optional[str] = None
+        self.playable = False
+        self.source = None
         super().__init__(*args, **kwargs)
 
         for adaptiveFormat in self._json["adaptiveFormats"]:
             if adaptiveFormat.get("encoding") == "opus":
                 self.source = adaptiveFormat["url"]
-                return
+                break
 
     def initialize(self) -> None:
         """Initialize this track before playing
@@ -291,8 +269,8 @@ class InvidiousSource(PartialInvidiousSource):
         loading. However, users can also call this
         method manually.
         """
-        self.part: int = 0
-        self.left: int = copy.deepcopy(self.length)
+        self.part = 0
+        self.left = copy.copy(self.length)
         self.playable = True
 
     def fetch(self) -> Optional[discord.FFmpegOpusAudio]:
@@ -318,7 +296,7 @@ class InvidiousSource(PartialInvidiousSource):
         if self.left <= 0:
             return
 
-        before: Tuple[str, ...] = (
+        before = (
             "-start_at_zero",
             "-copyts",
             "-ss", str(30 * self.part),
@@ -328,8 +306,8 @@ class InvidiousSource(PartialInvidiousSource):
             "-reconnect_delay_max", "1",
         )
 
-        before_options: str = shlex.join(before)
-        options: str = "-vn",
+        before_options = shlex.join(before)
+        options = "-vn",
 
         # This may result in race conditions
         # so there must be only one thread
@@ -376,7 +354,7 @@ class InvidiousSource(PartialInvidiousSource):
         Optional[``str``]
             The fetched URL, or ``None`` if an error occured.
         """
-        args: List[str] = [
+        args = (
             "youtube-dl",
             "--get-url",
             "--extract-audio",
@@ -384,9 +362,9 @@ class InvidiousSource(PartialInvidiousSource):
             "--rm-cache-dir",
             "--force-ipv4",
             f"https://www.youtube.com/watch?v={self.id}",
-        ]
+        )
 
-        process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
+        process = await asyncio.create_subprocess_exec(
             *args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -394,8 +372,8 @@ class InvidiousSource(PartialInvidiousSource):
 
         __stdout, __stderr = await process.communicate()
         # These strings may be empty
-        stdout: str = __stdout.decode("utf-8").strip("\n")
-        stderr: str = __stderr.decode("utf-8").strip("\n")
+        stdout = __stdout.decode("utf-8").strip("\n")
+        stderr = __stderr.decode("utf-8").strip("\n")
 
         if not stdout:
             bot.log(f"youtube-dl cannot fetch source for track ID {self.id}:\n{stderr}")
@@ -430,12 +408,10 @@ class InvidiousSource(PartialInvidiousSource):
                     timeout=TIMEOUT,
                 ) as response:
                     if response.status == 200:
-                        json: Dict[str, Any] = await response.json()
-                        await asyncio.to_thread(
-                            save_to_memory,
-                            json | {"api_url": url},
-                        )
-                        return cls(json, url)
+                        js = await response.json()
+                        js["api_url"] = url
+                        await asyncio.to_thread(save_to_memory, js)
+                        return cls(js, url)
 
     @classmethod
     async def search(cls: Type[InvidiousSource], *args, **kwargs) -> None:
@@ -476,13 +452,13 @@ async def embed_search(
         - The user timed out for the interaction
     """
     with utils.TimingContextManager() as measure:
-        results: List[PartialInvidiousSource] = await PartialInvidiousSource.search(query)
+        results = await PartialInvidiousSource.search(query)
 
     if not results:
         await target.send("No matching result was found.")
         return
 
-    embed: discord.Embed = discord.Embed()
+    embed = discord.Embed()
     embed.set_author(
         name=f"Search results for {query}",
         icon_url=bot.user.avatar.url,
@@ -495,9 +471,9 @@ async def embed_search(
             inline=False,
         )
 
-    message: discord.Message = await target.send(embed=embed)
-    display: emoji_ui.SelectMenu = emoji_ui.SelectMenu(message, len(results))
-    track_index: Optional[int] = await display.listen(user_id)
+    message = await target.send(embed=embed)
+    display = emoji_ui.SelectMenu(message, len(results))
+    track_index = await display.listen(user_id)
 
     if track_index is not None:
         return await InvidiousSource.build(results[track_index].id)
@@ -522,11 +498,11 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
     if os.path.isfile(f"./server/audio/{track.id}.mp3"):
         return bot.HOST + f"/audio/{track.id}.mp3"
 
-    url: Optional[str] = await track.ensure_source()
+    url = await track.ensure_source()
     if not url:
         return
 
-    args: List[str] = [
+    args = (
         "ffmpeg",
         "-reconnect", "1",
         "-reconnect_streamed", "1",
@@ -534,8 +510,8 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
         "-f", "mp3",
         "-vn",
         f"./server/audio/{track.id}.mp3",
-    ]
-    process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
+    )
+    process = await asyncio.create_subprocess_exec(
         *args,
         stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.DEVNULL,
@@ -553,14 +529,20 @@ class MusicClient(discord.VoiceClient):
     implementing the music queue system.
     """
 
-    channel: discord.VoiceChannel
+    if TYPE_CHECKING:
+        channel: discord.VoiceChannel
+        _repeat: bool
+        _shuffle: bool
+        _stopafter: bool
+        _operable: asyncio.Event
+        target: Optional[discord.abc.Messageable]
 
     def __init__(self, *args, **kwargs) -> None:
-        self._repeat: bool = False
-        self._shuffle: bool = False
-        self._stopafter: bool = False
-        self._operable: asyncio.Event = asyncio.Event()
-        self.target: Optional[discord.abc.Messageable] = None
+        self._repeat = False
+        self._shuffle = False
+        self._stopafter = False
+        self._operable = asyncio.Event()
+        self.target = None
         super().__init__(*args, **kwargs)
 
     @classmethod
@@ -580,7 +562,7 @@ class MusicClient(discord.VoiceClient):
             The list of IDs of tracks in the voice channel,
             this list can be empty.
         """
-        row: Optional[asyncpg.Record] = await bot.conn.fetchrow(f"SELECT * FROM youtube WHERE id = '{channel_id}';")
+        row = await bot.conn.fetchrow(f"SELECT * FROM youtube WHERE id = '{channel_id}';")
         if not row:
             await bot.conn.execute(f"INSERT INTO youtube VALUES ('{channel_id}', $1);", [])
             track_ids = []
@@ -627,10 +609,10 @@ class MusicClient(discord.VoiceClient):
         Optional[``str``]
             The ID of the removed track, or ``None`` if the operation failed
         """
-        queue: List[str] = await cls.queue(channel_id)
-        pos: int = pos or random.randint(1, len(queue))
+        queue = await cls.queue(channel_id)
+        pos = pos or random.randint(1, len(queue))
         try:
-            track_id: str = queue[pos - 1]
+            track_id = queue[pos - 1]
             if pos < 1:
                 raise IndexError
         except IndexError:
@@ -649,6 +631,10 @@ class MusicClient(discord.VoiceClient):
         if self.guild:
             return self.guild.id
 
+    @property
+    def operable(self) -> asyncio.Event:
+        return self._operable
+
     # A good video for debugging: https://www.youtube.com/watch?v=U03lLvhBzOw
     async def play(self, *, target: discord.abc.Messageable) -> None:
         """This function is a coroutine
@@ -660,12 +646,11 @@ class MusicClient(discord.VoiceClient):
         target ``discord.abc.Messageable``
             The channel to send audio playing info.
         """
-        repeat_id: Optional[str] = None
-        playing_info: Optional[discord.Message] = None
+        repeat_id = None
+        playing_info = None
         self.target = target
 
         while True:
-            track_id: Optional[str]
             if self._repeat and repeat_id is not None:
                 track_id = repeat_id  # Warning: not popping from the queue
             elif self._shuffle:
@@ -676,10 +661,10 @@ class MusicClient(discord.VoiceClient):
             if not track_id:
                 return await self.disconnect(force=True)
 
-            track: Optional[InvidiousSource] = await InvidiousSource.build(track_id)
+            track = await InvidiousSource.build(track_id)
 
             if track is None:
-                em: discord.Embed = discord.Embed(description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.")
+                em = discord.Embed(description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.")
                 em.set_author(
                     name="Warning",
                     icon_url=bot.user.avatar.url,
@@ -694,7 +679,7 @@ class MusicClient(discord.VoiceClient):
 
             with contextlib.suppress(discord.HTTPException):
                 async with self.target.typing():
-                    em: discord.Embed = track.create_embed()
+                    em = track.create_embed()
                     em.set_author(
                         name=f"Playing in {self.channel}",
                         icon_url=bot.user.avatar.url,
@@ -709,7 +694,7 @@ class MusicClient(discord.VoiceClient):
 
             # Check if the URL that Invidious provided
             # us is usable
-            url: Optional[str] = await track.ensure_source()
+            url = await track.ensure_source()
 
             if not url:
                 with contextlib.suppress(discord.HTTPException):
@@ -735,13 +720,13 @@ class MusicClient(discord.VoiceClient):
             # only 1 to prevent race conditions as mentioned
             # above (as well as to save memory for storing
             # buffer)
-            audios: asyncio.Queue = asyncio.Queue(maxsize=1)
+            audios = asyncio.Queue(maxsize=1)
 
             # Load the first audio portion asynchronously
-            audio: Optional[discord.FFmpegOpusAudio] = await asyncio.to_thread(track.fetch)
+            audio = await asyncio.to_thread(track.fetch)
             audios.put_nowait(audio)
 
-            self._event: asyncio.Event = asyncio.Event()
+            self._event = asyncio.Event()
             self._event.set()
 
             # Check that the player was not disconnected while
@@ -754,9 +739,8 @@ class MusicClient(discord.VoiceClient):
                 audio = await asyncio.to_thread(track.fetch)
                 await audios.put(audio)
 
-            task: Optional[asyncio.Task]
-            t: float = time.perf_counter()
-            seq: int = 1
+            t = time.perf_counter()
+            seq = 1
 
             while not audios.empty():
                 audio = await audios.get()
@@ -769,18 +753,18 @@ class MusicClient(discord.VoiceClient):
                 else:
                     task = None
 
-                delta: float = time.perf_counter() - t
+                delta = time.perf_counter() - t
                 if delta > 0.5:
                     bot.log(f"Warning: audio playing in {self.channel_id}/{self.guild_id} delayed for {1000 * delta} ms")
 
                 self._event.clear()
-                self._operable.set()  # Enable pause/resume/toggle repeat
+                self.operable.set()  # Enable pause/resume/toggle repeat
 
                 super().play(audio, after=self._set_event)
                 self._player.setName(f"Channel {self.channel_id}/{self.guild_id}/seq {seq}")
 
                 await self._event.wait()
-                self._operable.clear()  # Disable pause/resume/toggle repeat
+                self.operable.clear()  # Disable pause/resume/toggle repeat
                 seq += 1
                 t = time.perf_counter()
 
@@ -803,7 +787,7 @@ class MusicClient(discord.VoiceClient):
     def _set_event(self, exc: Optional[BaseException] = None) -> None:
         self._event.set()
         if exc is not None:
-            player_name: str = getattr(self._player, "name", "None")
+            player_name = getattr(self._player, "name", "None")
             bot.log(f"Warning: Voice client in {self.channel_id}/{self.guild_id} raised an exception (ignored in _set_event method)")
             bot.log(f"AudioPlayer instance: {self._player} (thread name {player_name})")
             bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))

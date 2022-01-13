@@ -6,7 +6,7 @@ import cards
 from core import bot
 
 
-CARD_LIMIT: int = 9
+CARD_LIMIT = 9
 
 
 @bot.command(
@@ -19,12 +19,12 @@ async def _card_cmd(ctx: commands.Context, n: int = 1):
     if n < 1 or n > CARD_LIMIT:
         return await ctx.send(f"Invalid card number (must be from 1 to {CARD_LIMIT}).")
 
-    hand: cards.BaseHand = cards.BaseHand()
+    hand = cards.BaseHand()
     for _ in range(n):
         hand.draw()
 
-    file: discord.File = discord.File(hand.make_image(), filename="image.png")
-    embed: discord.Embed = discord.Embed(title=f"{escape(ctx.author.name)} drew {n} card(s)!")
+    file = discord.File(hand.make_image(), filename="image.png")
+    embed = discord.Embed(title=f"{escape(ctx.author.name)} drew {n} card(s)!")
     embed.set_image(url="attachment://image.png")
     embed.set_footer(text=f"Total points: {hand.value}")
 

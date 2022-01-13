@@ -1,5 +1,4 @@
 import traceback
-from typing import Any, Dict, List
 
 import discord
 
@@ -8,7 +7,7 @@ from audio import MusicClient
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "play",
     "type": 1,
     "description": "Start playing the queue of the voice channel you are connected to.",
@@ -26,9 +25,9 @@ async def _play_slash(interaction: discord.Interaction):
         await interaction.followup.send("Please join a voice channel first.")
 
     else:
-        vchannel: discord.abc.Connectable = interaction.user.voice.channel
+        vchannel = interaction.user.voice.channel
 
-        queue: List[str] = await MusicClient.queue(vchannel.id)
+        queue = await MusicClient.queue(vchannel.id)
         if len(queue) == 0:
             return await interaction.followup.send("Please add a song to the queue with `add` or `playlist`")
 
@@ -36,7 +35,7 @@ async def _play_slash(interaction: discord.Interaction):
             return await interaction.followup.send("Currently connected to another voice channel in the server. Please use `stop` first.")
 
         try:
-            voice_client: MusicClient = await vchannel.connect(
+            voice_client = await vchannel.connect(
                 timeout=30.0,
                 cls=MusicClient,
             )

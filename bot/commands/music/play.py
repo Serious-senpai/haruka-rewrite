@@ -1,7 +1,5 @@
 import traceback
-from typing import List
 
-import discord
 from discord.ext import commands
 
 import audio
@@ -15,9 +13,9 @@ from core import bot
 @audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _play_cmd(ctx: commands.Context):
-    channel: discord.abc.Connectable = ctx.author.voice.channel
+    channel = ctx.author.voice.channel
 
-    queue: List[str] = await audio.MusicClient.queue(channel.id)
+    queue = await audio.MusicClient.queue(channel.id)
     if len(queue) == 0:
         return await ctx.send("Please add a song to the queue with `add` or `playlist`")
 
@@ -26,7 +24,7 @@ async def _play_cmd(ctx: commands.Context):
 
     try:
         async with ctx.typing():
-            voice_client: audio.MusicClient = await channel.connect(
+            voice_client = await channel.connect(
                 timeout=30.0,
                 cls=audio.MusicClient,
             )

@@ -17,15 +17,15 @@ from core import bot
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _zerochan_cmd(ctx: commands.Context, *, query: str):
     async with ctx.typing():
-        urls: List[str] = await _zerochan.search(query)
+        urls = await _zerochan.search(query)
 
         if not urls:
             return await ctx.send("No matching result was found.")
 
-        no_results: int = len(urls)
-        embeds: List[discord.Embed] = []
+        no_results = len(urls)
+        embeds = []
         for index, url in enumerate(urls):
-            embed: discord.Embed = discord.Embed()
+            embed = discord.Embed()
             embed.set_author(
                 name=f"Zerochan search for {query}",
                 icon_url=bot.user.avatar.url,
@@ -34,5 +34,5 @@ async def _zerochan_cmd(ctx: commands.Context, *, query: str):
             embed.set_footer(text=f"Result {index + 1}/{no_results}")
             embeds.append(embed)
 
-    display: emoji_ui.NavigatorPagination = emoji_ui.NavigatorPagination(embeds)
+    display = emoji_ui.NavigatorPagination(embeds)
     await display.send(ctx.channel)

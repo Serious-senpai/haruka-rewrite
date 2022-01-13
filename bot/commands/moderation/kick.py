@@ -19,8 +19,8 @@ async def _kick_cmd(ctx: commands.Context, users: commands.Greedy[discord.Object
     if not users:
         raise commands.UserInputError
 
-    success: List[discord.Object] = []
-    fail: List[discord.Object] = []
+    success = []
+    fail = []
     for user in users:
         try:
             await ctx.guild.kick(user, reason=reason)
@@ -29,7 +29,7 @@ async def _kick_cmd(ctx: commands.Context, users: commands.Greedy[discord.Object
         else:
             success.append(user)
 
-    em: discord.Embed = discord.Embed()
+    em = discord.Embed()
 
     if success:
         em.add_field(

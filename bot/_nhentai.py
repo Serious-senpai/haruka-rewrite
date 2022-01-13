@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import re
-from typing import List, Optional, Type, Union
+from typing import List, Optional, Type, Union, TYPE_CHECKING
 
 import bs4
 import discord
@@ -11,43 +11,30 @@ from discord.utils import escape_markdown as escape
 from core import bot
 
 
-ID_PATTERN: re.Pattern = re.compile(r"^(?<!\d)\d{6,6}(?!\d)$")
+ID_PATTERN = re.compile(r"^(?<!\d)\d{6,6}(?!\d)$")
 
 
 class NHentaiSearch:
     """Represents a search result from nhentai.net"""
 
-    __slots__ = (
-        "_soup",
-    )
+    __slots__ = ("title", "thumbnail", "path", "id")
+    if TYPE_CHECKING:
+        title: str
+        thumbnail: Optional[str]
+        path: str
+        id: int
 
-    def __init__(self, soup: bs4.BeautifulSoup):
-        self._soup: bs4.BeautifulSoup = soup
-
-    @property
-    def soup(self) -> bs4.BeautifulSoup:
-        return self._soup
-
-    @property
-    def title(self) -> str:
-        return self.soup.find("div", attrs={"class": "caption"}).get_text()
-
-    @property
-    def thumbnail(self) -> Optional[str]:
+    def __init__(self, soup: bs4.BeautifulSoup) -> None:
+        self.title = soup.find("div", attrs={"class": "caption"}).get_text()
         with contextlib.suppress(AttributeError):
-            return self.soup.find("img").get("data-src")
+            self.thumbnail = soup.find("img").get("data-src")
+
+        self.path = soup.find("a").get("href")
+        self.id = int(self.path.split("/")[2])
 
     @property
     def thumb(self) -> Optional[str]:
         return self.thumbnail
-
-    @property
-    def path(self) -> str:
-        return self.soup.find("a").get("href")
-
-    @property
-    def id(self) -> int:
-        return int(self.path.split("/")[2])
 
     def __repr__(self) -> str:
         return f"<NHentaiSearch title={self.title} id={self.id}>"
@@ -75,15 +62,15 @@ class NHentaiSearch:
         params = {"q": query}
         async with bot.session.get("https://nhentai.net/search/", params=params) as response:
             if response.ok:
-                html: str = await response.text(encoding="utf-8")
-                soup: bs4.BeautifulSoup = bs4.BeautifulSoup(html, "html.parser")
-                container: bs4.BeautifulSoup = soup.find("div", attrs={"class": "container index-container"})
+                html = await response.text(encoding="utf-8")
+                soup = bs4.BeautifulSoup(html, "html.parser")
+                container = soup.find("div", attrs={"class": "container index-container"})
                 # Even when no result is found and the page
                 # displays 404, the response status is still
                 # 200 so another check is necessary.
                 if not container:
                     return
-                doujins: bs4.element.ResultSet[bs4.BeautifulSoup] = container.find_all("div", attrs={"class": "gallery"})
+                doujins = container.find_all("div", attrs={"class": "gallery"})
                 return list(cls(doujin) for doujin in doujins)
 
         return []
@@ -92,61 +79,46 @@ class NHentaiSearch:
 class NHentai:
     """Represents a doujinshi from nhentai.net"""
 
-    __slots__ = (
-        "_soup",
-    )
+    __slots__ = ("id", "title", "url", "sections", "thumbnail", "subtitle")
+    if TYPE_CHECKING:
+        id: int
+        title: str
+        url: str
+        sections: bs4.element.ResultSet[bs4.Tag]
+        thumbnail: Optional[str]
+        subtitle: Optional[str]
 
     def __init__(self, soup: bs4.BeautifulSoup):
-        self._soup: bs4.BeautifulSoup = soup.find("div", attrs={"class": "container"})
+        _container = soup.find("div", attrs={"class": "container"})
+        self.id = int(_container.find("a").get("href").split("/")[2])
+        self.title = _container.find("h1", attrs={"class": "title"}).find("span", attrs={"class": "pretty"}).get_text()
+        self.url = f"https://nhentai.net/g/{self.id}"
+        self.sections = _container.find("section", attrs={"id": "tags"}).find_all("div")
 
-    @property
-    def soup(self) -> bs4.BeautifulSoup:
-        return self._soup
-
-    @property
-    def id(self) -> int:
-        return int(self.soup.find("a").get("href").split("/")[2])
-
-    @property
-    def url(self) -> str:
-        return f"https://nhentai.net/g/{self.id}"
-
-    @property
-    def thumbnail(self) -> Optional[str]:
         with contextlib.suppress(AttributeError):
-            return self.soup.find("img").get("data-src")
+            self.thumbnail = _container.find("img").get("data-src")
+
+        with contextlib.suppress(AttributeError):
+            self.subtitle = _container.find("h2", attrs={"class": "title"}).find("span", attrs={"class": "pretty"}).get_text()
 
     @property
     def thumb(self) -> Optional[str]:
         return self.thumbnail
 
-    @property
-    def title(self) -> str:
-        return self.soup.find("h1", attrs={"class": "title"}).find("span", attrs={"class": "pretty"}).get_text()
-
-    @property
-    def subtitle(self) -> Optional[str]:
-        with contextlib.suppress(AttributeError):
-            return self.soup.find("h2", attrs={"class": "title"}).find("span", attrs={"class": "pretty"}).get_text()
-
-    @property
-    def sections(self) -> List[bs4.BeautifulSoup]:
-        return self.soup.find("section", attrs={"id": "tags"}).find_all("div")
-
     def create_embed(self) -> discord.Embed:
-        em: discord.Embed = discord.Embed(
+        em = discord.Embed(
             title=escape(self.title),
             description=escape(self.subtitle) if self.subtitle else discord.Embed.Empty,
             url=self.url,
         )
         for section in self.sections:
-            span: bs4.BeautifulSoup = section.span.extract()
-            content: List[bs4.BeautifulSoup] = span.find_all("a")
+            span = section.span.extract()
+            content = span.find_all("a")
 
             if not content:
                 continue
 
-            name: str = section.get_text().strip().replace(":", "")
+            name = section.get_text().strip().replace(":", "")
             em.add_field(
                 name=name,
                 value=", ".join(
@@ -186,6 +158,6 @@ class NHentai:
         """
         async with bot.session.get(f"https://nhentai.net/g/{id}") as response:
             if response.ok:
-                html: str = await response.text(encoding="utf-8")
-                soup: bs4.BeautifulSoup = bs4.BeautifulSoup(html, "html.parser")
+                html = await response.text(encoding="utf-8")
+                soup = bs4.BeautifulSoup(html, "html.parser")
                 return cls(soup)

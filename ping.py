@@ -5,8 +5,8 @@ import time
 import aiohttp
 
 
-async def ping(url: str):
-    t: float = time.perf_counter()
+async def ping(url: str) -> None:
+    t = time.perf_counter()
     async with aiohttp.ClientSession() as session:
         print(f"Created session in {time.perf_counter() - t} seconds")
         t = time.perf_counter()

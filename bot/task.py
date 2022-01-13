@@ -2,16 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import random
 import traceback
-from typing import Any, List, Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
 import asyncpg
 import discord
 from discord.ext import tasks
 
-import game
-from game.core import PT
 if TYPE_CHECKING:
     import haruka
 
@@ -98,52 +95,6 @@ class ReminderTask(Task):
         )
 
 
-class TravelTask(Task):
-    ignores: List[str] = []
-
-    @tasks.loop()
-    async def run(self) -> None:
-        asyncio.current_task().set_name("TravelTask")
-        row: Optional[asyncpg.Record] = await self.conn.fetchrow(
-            "SELECT * FROM rpg \
-            WHERE NOT id = ANY($1::text[]) \
-            ORDER BY travel NULLS LAST \
-            LIMIT 1;",
-            self.ignores,
-        )
-        if row is None or row["travel"] is None:
-            await asyncio.sleep(3600)
-            return
-
-        await discord.utils.sleep_until(row["travel"])
-        try:
-            player: Optional[PT] = None
-            id: str = row["id"]
-            user: discord.User = await self.bot.fetch_user(id)  # Union[str, int]
-        except discord.HTTPException:
-            self.bot.log("Warning in TravelTask (most likely the user was deleted):")
-            self.bot.log(traceback.format_exc())
-            self.ignores.append(id)
-        else:
-            player = await game.BasePlayer.from_user(user)
-            player.state[game.player.TRAVEL_KEY] = False
-            player.travel = None
-            player.location = player.world.get_location(player.state[game.player.TRAVEL_DESTINATION_KEY])
-            channel: discord.PartialMessageable = self.bot.get_partial_messageable(player.state[game.player.TRAVEL_CHANNEL_KEY], type=discord.TextChannel)
-
-            await channel.send(f"<@!{player.id}> arrived at **{player.location.name}**", embed=player.map_location(player.location))
-            await player.update()
-            player = await player.location.on_arrival(player)
-            for event in player.world.events:
-                if event.location.id == player.location.id:
-                    if random.random() < event.rate:
-                        player = await event.run(channel, player)
-
-        finally:
-            if player:
-                await player.update()
-
-
 class TaskManager:
     """Represents the object that is
     responsible for managing all Tasks.
@@ -154,19 +105,15 @@ class TaskManager:
         The bot associated with this TaskManager.
     remind: ``ReminderTask``
         The running ``ReminderTask``
-    travel: ``TravelTask``
-        The running ``TravelTask``
     """
-    __slots__ = (
-        "bot",
-        "remind",
-        "travel",
-    )
+    __slots__ = ("bot", "remind", "travel")
+    if TYPE_CHECKING:
+        bot: haruka.Haruka
+        remind: ReminderTask
 
     def __init__(self, bot: haruka.Haruka) -> None:
-        self.bot: haruka.Haruka = bot
-        self.remind: ReminderTask = ReminderTask(self)
-        self.travel: TravelTask = TravelTask(self)
+        self.bot = bot
+        self.remind = ReminderTask(self)
 
     @property
     def conn(self) -> asyncpg.Pool:

@@ -21,12 +21,12 @@ async def search(query: str) -> List[str]:
     List[``str``]
         A list of result image URLs
     """
-    url: str = "https://tenor.com/search/" + parse.quote(query, encoding="utf-8")
-    ret: List[str] = []
+    url = "https://tenor.com/search/" + parse.quote(query, encoding="utf-8")
+    ret = []
     async with bot.session.get(url) as response:
         if response.ok:
-            html: str = await response.text(encoding="utf-8")
-            soup: BeautifulSoup = BeautifulSoup(html, "html.parser")
+            html = await response.text(encoding="utf-8")
+            soup = BeautifulSoup(html, "html.parser")
             for tag in soup.find_all("figure", attrs={"class": "GifListItem"}):
                 if img := tag.find("img"):
                     if image_url := img.get("src"):

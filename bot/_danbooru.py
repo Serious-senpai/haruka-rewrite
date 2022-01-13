@@ -1,5 +1,5 @@
 import contextlib
-from typing import Dict, List, Optional
+from typing import List
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -23,24 +23,24 @@ async def search(query: str, *, max_results: int = 200) -> List[str]:
     List[``str``]
         A list of image URLs
     """
-    ret: List[str] = []
-    url: str = "https://danbooru.donmai.us/posts"
-    page: int = 0
+    ret = []
+    url = "https://danbooru.donmai.us/posts"
+    page = 0
 
     with contextlib.suppress(aiohttp.ClientError):
         while page := page + 1:
-            ext: List[str] = []
-            params: Dict[str, str] = {
+            ext = []
+            params = {
                 "page": page,
                 "tags": query,
             }
 
             async with bot.session.get(url, params=params) as response:
                 if response.ok:
-                    html: str = await response.text(encoding="utf-8")
-                    soup: BeautifulSoup = BeautifulSoup(html, "html.parser")
+                    html = await response.text(encoding="utf-8")
+                    soup = BeautifulSoup(html, "html.parser")
                     for img in soup.find_all("img"):
-                        path: Optional[str] = img.get("src")
+                        path = img.get("src")
                         if path.startswith("https://"):
                             ext.append(path)
 

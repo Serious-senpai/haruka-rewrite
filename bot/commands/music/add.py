@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 import discord
 from discord.ext import commands
 
@@ -7,7 +5,7 @@ import audio
 from core import bot
 
 
-QUEUE_MAX_SIZE: int = 100
+QUEUE_MAX_SIZE = 100
 
 
 @bot.command(
@@ -21,19 +19,19 @@ async def _add_cmd(ctx: commands.Context, *, query: str):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")
 
-    channel: discord.abc.Connectable = ctx.author.voice.channel
+    channel = ctx.author.voice.channel
 
-    track_ids: List[str] = await audio.MusicClient.queue(channel.id)
+    track_ids = await audio.MusicClient.queue(channel.id)
     if len(track_ids) >= QUEUE_MAX_SIZE:
         return await ctx.send(f"The music queue for this channel has reached its maximum size ({QUEUE_MAX_SIZE} limit).")
 
-    track: Optional[audio.InvidiousSource] = await audio.embed_search(query, ctx.channel, ctx.author.id)
+    track = await audio.embed_search(query, ctx.channel, ctx.author.id)
     if not track:
         return
 
     await audio.MusicClient.add(channel.id, track.id)
 
-    em: discord.Embed = track.create_embed()
+    em = track.create_embed()
     em.set_author(
         name=f"{ctx.author.name} added 1 song to {channel.name}",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

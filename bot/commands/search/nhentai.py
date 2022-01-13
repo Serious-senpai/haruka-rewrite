@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
@@ -19,33 +17,33 @@ from emoji_ui import CHOICES
 @commands.is_nsfw()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _nhentai_cmd(ctx: commands.Context, *, query: str):
-    hentai: Optional[_nhentai.NHentai] = None
+    hentai = None
     if _nhentai.ID_PATTERN.match(query):
-        hentai: Optional[_nhentai.NHentai] = await _nhentai.NHentai.get(query)
+        hentai = await _nhentai.NHentai.get(query)
 
     if not hentai:
         if len(query) < 3:
             return await ctx.send("Searching query must have at least 3 characters")
 
-        rslt: List[_nhentai.NHentaiSearch] = await _nhentai.NHentaiSearch.search(query)
+        rslt = await _nhentai.NHentaiSearch.search(query)
         if not rslt:
             return await ctx.send("No matching result was found.")
         rslt = rslt[:6]
 
-        desc: str = "\n".join(f"{CHOICES[index]} **{obj.id}** {escape(obj.title)}" for index, obj in enumerate(rslt))
-        em: discord.Embed = discord.Embed(
+        desc = "\n".join(f"{CHOICES[index]} **{obj.id}** {escape(obj.title)}" for index, obj in enumerate(rslt))
+        em = discord.Embed(
             title=f"Search results for {query}",
             description=desc,
         )
-        msg: discord.Message = await ctx.send(embed=em)
-        display: emoji_ui.SelectMenu = emoji_ui.SelectMenu(msg, len(rslt))
-        choice: Optional[int] = await display.listen(ctx.author.id)
+        msg = await ctx.send(embed=em)
+        display = emoji_ui.SelectMenu(msg, len(rslt))
+        choice = await display.listen(ctx.author.id)
 
         if choice is None:
             return
-        hentai: _nhentai.NHentai = await _nhentai.NHentai.get(rslt[choice].id)
+        hentai = await _nhentai.NHentai.get(rslt[choice].id)
 
-    em: discord.Embed = hentai.create_embed()
+    em = hentai.create_embed()
     em.set_author(
         name=f"{ctx.author.name}'s request",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

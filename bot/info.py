@@ -3,9 +3,9 @@ from discord.utils import escape_markdown as escape
 
 
 def user_info(user: discord.User) -> discord.Embed:
-    name: str = escape(user.name)
-    display: str = escape(str(user))
-    info_em: discord.Embed = discord.Embed(
+    name = escape(user.name)
+    display = escape(str(user))
+    info_em = discord.Embed(
         title=f"{display} Information",
         description=f"**Name** {name}\n**Created** {(discord.utils.utcnow() - user.created_at).days} days ago\n**ID** {user.id}",
     )
@@ -16,8 +16,8 @@ def user_info(user: discord.User) -> discord.Embed:
 
 
 def server_info(guild: discord.Guild) -> discord.Embed:
-    name: str = escape(guild.name)
-    sv_em: discord.Embed = discord.Embed(
+    name = escape(guild.name)
+    sv_em = discord.Embed(
         title="Server info",
         description=f"**Server name** {name}\n**Server ID** {guild.id}\n**Member count** {guild.member_count}",
     )

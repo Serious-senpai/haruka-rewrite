@@ -1,5 +1,5 @@
 import contextlib
-from typing import Optional, List
+from typing import List
 from urllib import parse
 
 import aiohttp
@@ -24,19 +24,19 @@ async def search(query: str, *, max_results: int = 200) -> List[str]:
     List[``str``]
         A list of image URLs
     """
-    url: str = "https://www.zerochan.net/" + parse.quote(query, encoding="utf-8")
-    ret: List[str] = []
-    page: int = 0
+    url = "https://www.zerochan.net/" + parse.quote(query, encoding="utf-8")
+    ret = []
+    page = 0
 
     with contextlib.suppress(aiohttp.ClientError):
         while page := page + 1:
-            ext: List[str] = []
+            ext = []
             async with bot.session.get(url, params={"p": page}) as response:
                 if response.ok:
-                    html: str = await response.text(encoding="utf-8")
-                    soup: BeautifulSoup = BeautifulSoup(html, "html.parser")
+                    html = await response.text(encoding="utf-8")
+                    soup = BeautifulSoup(html, "html.parser")
                     for img in soup.find_all("img"):
-                        image_url: Optional[str] = img.get("src")  # This should be "type: str" (who would create an <img> tag without "src" anyway?)
+                        image_url = img.get("src")  # This should be "type: str" (who would create an <img> tag without "src" anyway?)
                         if image_url.endswith(".jpg"):
                             ext.append(image_url)
 

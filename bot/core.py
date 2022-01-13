@@ -2,9 +2,8 @@ import asyncio
 import datetime
 import gc
 import logging
-from typing import List, Optional
+from typing import List
 
-import asyncpg
 import discord
 from discord.ext import commands
 
@@ -35,11 +34,11 @@ class LoggingFilter(logging.Filter):
         return True
 
 
-handler: logging.FileHandler = logging.FileHandler(filename="./log.txt", encoding="utf-8", mode="a")
+handler = logging.FileHandler(filename="./log.txt", encoding="utf-8", mode="a")
 handler.setFormatter(logging.Formatter("HARUKA | %(levelname)s (%(name)s):: %(message)s"))
 handler.addFilter(LoggingFilter())
 
-logger: logging.Logger = logging.getLogger("discord")
+logger = logging.getLogger("discord")
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
@@ -51,7 +50,7 @@ gc.enable()
 # Set default attributes for all embeds
 class Embed(discord.Embed):
     def __init__(self, *args, **kwargs) -> None:
-        self.timestamp: datetime.datetime = discord.utils.utcnow()
+        self.timestamp = discord.utils.utcnow()
         super().__init__(*args, **kwargs)
         if not self.colour:
             self.colour = 0x2ECC71
@@ -62,8 +61,8 @@ discord.Embed = Embed
 
 async def prefix(bot, message) -> str:
     if isinstance(message.channel, discord.TextChannel):
-        id: int = message.guild.id
-        row: Optional[asyncpg.Record] = await bot.conn.fetchrow(f"SELECT * FROM prefix WHERE id = '{id}';")
+        id = message.guild.id
+        row = await bot.conn.fetchrow(f"SELECT * FROM prefix WHERE id = '{id}';")
 
         if not row:
             return "$"
@@ -80,7 +79,7 @@ async def get_prefix(bot, message) -> List[str]:
 
 
 # Initialize bot
-intents: discord.Intents = discord.Intents.default()
+intents = discord.Intents.default()
 intents.bans = False
 intents.typing = False
 intents.integrations = False
@@ -88,13 +87,13 @@ intents.invites = False
 intents.webhooks = False
 
 
-activity: discord.Activity = discord.Activity(
+activity = discord.Activity(
     type=discord.ActivityType.playing,
     name="Restarting...",
 )
 
 
-bot: haruka.Haruka = haruka.Haruka(
+bot = haruka.Haruka(
     activity=activity,
     command_prefix=get_prefix,
     intents=intents,
@@ -105,7 +104,7 @@ bot: haruka.Haruka = haruka.Haruka(
 
 @bot.check
 async def _blacklist_check(ctx: commands.Context):
-    row: Optional[asyncpg.Record] = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{ctx.author.id}';")
+    row = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{ctx.author.id}';")
     return row is None
 
 
@@ -124,7 +123,7 @@ async def _before_invoke(ctx: commands.Context):
     if await bot.is_owner(ctx.author):
         return
 
-    name: str = ctx.command.name
+    name = ctx.command.name
     if name not in bot._command_count:
         bot._command_count[name] = []
 

@@ -1,5 +1,3 @@
-from typing import Union
-
 import discord
 from discord.ext import commands
 
@@ -17,11 +15,11 @@ from core import bot
 async def _sfw_cmd(ctx: commands.Context, *, category: str):
     category = category.lower()
     try:
-        image_url: Union[str, discord.embeds._EmptyEmbed] = await bot.image.get(category.lower(), mode="sfw") or discord.Embed.Empty
+        image_url = await bot.image.get(category.lower(), mode="sfw") or discord.Embed.Empty
     except image.CategoryNotFound:
         return await ctx.send(f"No category named `{category}` was found.")
 
-    em: discord.Embed = discord.Embed()
+    em = discord.Embed()
     em.set_author(
         name=f"{ctx.author.name}, this is your image!",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

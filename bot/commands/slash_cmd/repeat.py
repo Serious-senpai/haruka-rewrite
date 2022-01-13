@@ -1,13 +1,10 @@
-from typing import Any, Dict, Optional
-
 import discord
 
 import slash
-from audio import MusicClient
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "repeat",
     "type": 1,
     "description": "Switch between REPEAT_ONE and REPEAT_ALL",
@@ -18,10 +15,10 @@ json: Dict[str, Any] = {
 @slash.guild_only()
 async def _repeat_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    player: Optional[MusicClient] = interaction.guild.voice_client
+    player = interaction.guild.voice_client
 
     if player:
-        await player._operable.wait()
+        await player.operable.wait()
         player._repeat = not player._repeat
 
         if player._repeat:

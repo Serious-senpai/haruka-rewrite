@@ -6,7 +6,7 @@ import os
 import signal
 import sys
 import traceback
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -17,7 +17,9 @@ from aiohttp import web
 from discord.ext import commands, tasks
 from discord.utils import escape_markdown as escape
 
+import image
 import server
+import task
 from slash import SlashMixin
 
 
@@ -33,26 +35,33 @@ class Haruka(commands.Bot, SlashMixin):
         else:
             loop: uvloop.Loop
 
+    if TYPE_CHECKING:
+        TOKEN: str
+        DATABASE_URL: str
+        HOST: str
+        TOPGG_TOKEN: Optional[str]
+        logfile: io.TextIOWrapper
+        owner: Optional[discord.User]
+        _command_count: Dict[str, List[commands.Context]]
+        _slash_command_count: Dict[str, List[discord.Interaction]]
+
     def __init__(self, *args, **kwargs) -> None:
-        self.logfile: io.TextIOWrapper = open("./log.txt", "a", encoding="utf-8")
-        self.owner: Optional[discord.User] = None
+        self.TOKEN = os.environ["TOKEN"]
+        self.DATABASE_URL = os.environ["DATABASE_URL"]
+        self.HOST = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
+        self.TOPGG_TOKEN = os.environ.get("TOPGG_TOKEN")
+
+        self.logfile = open("./log.txt", "a", encoding="utf-8")
+        self.owner = None
         self._clear_counter()
-        self._load_env()
         signal.signal(signal.SIGTERM, self.kill)
 
         super().__init__(*args, **kwargs)
 
-    def _load_env(self) -> None:
-        """Load the environment variables"""
-        self.TOKEN: str = os.environ["TOKEN"]
-        self.DATABASE_URL: str = os.environ["DATABASE_URL"]
-        self.HOST: str = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
-        self.TOPGG_TOKEN: Optional[str] = os.environ.get("TOPGG_TOKEN")
-
     def _clear_counter(self) -> None:
         """Clear the text command and slash command counter"""
-        self._command_count: Dict[str, List[commands.Context]] = {}
-        self._slash_command_count: Dict[str, List[discord.Interaction]] = {}
+        self._command_count = {}
+        self._slash_command_count = {}
 
     async def start(self) -> None:
         asyncio.current_task().set_name("MainTask")
@@ -61,26 +70,26 @@ class Haruka(commands.Bot, SlashMixin):
         await self.prepare_database()
 
         # Create side session
-        user_agent: str = youtube_dl.utils.random_user_agent()
-        self.session: aiohttp.ClientSession = aiohttp.ClientSession(headers={"User-Agent": user_agent})
+        user_agent = youtube_dl.utils.random_user_agent()
+        self.session = aiohttp.ClientSession(headers={"User-Agent": user_agent})
         self.log(f"Created side session, using User-Agent: {user_agent}")
 
         # Start server asynchronously
-        app: server.WebApp = server.WebApp(bot=self)
-        self.runner: web.AppRunner = web.AppRunner(app)
+        app = server.WebApp(bot=self)
+        self.runner = web.AppRunner(app)
         await self.runner.setup()
-        port: int = int(os.environ.get("PORT", 8080))
-        site: web.TCPSite = web.TCPSite(self.runner, None, port)
+        port = int(os.environ.get("PORT", 8080))
+        site = web.TCPSite(self.runner, None, port)
         await site.start()
         print(f"Started serving on port {port}")
 
         # Start the bot
         self.loop.create_task(self.startup())
-        self.uptime: datetime.datetime = datetime.datetime.now()
+        self.uptime = datetime.datetime.now()
         await super().start(self.TOKEN)
 
     async def prepare_database(self) -> None:
-        self.conn: asyncpg.Pool = await asyncpg.create_pool(
+        self.conn = await asyncpg.create_pool(
             self.DATABASE_URL,
             min_size=2,
             max_size=10,
@@ -94,7 +103,6 @@ class Haruka(commands.Bot, SlashMixin):
             CREATE TABLE IF NOT EXISTS youtube (id text, queue text[]);
             CREATE TABLE IF NOT EXISTS blacklist (id text);
             CREATE TABLE IF NOT EXISTS remind (id text, time timestamptz, content text, url text, original timestamptz);
-            CREATE TABLE IF NOT EXISTS rpg (id text, description text, world int, location int, type int, level int, xp int, money int, items text, hp int, travel timestamptz, state text);
         """)
 
         for extension in ("pg_trgm",):
@@ -104,7 +112,7 @@ class Haruka(commands.Bot, SlashMixin):
         self.log("Successfully initialized database.")
 
     def log(self, content: Any) -> None:
-        content: str = str(content).replace("\n", "\nHARUKA | ")
+        content = str(content).replace("\n", "\nHARUKA | ")
         self.logfile.write(f"HARUKA | {content}\n")
         self.logfile.flush()
 
@@ -118,48 +126,29 @@ class Haruka(commands.Bot, SlashMixin):
         await self.__do_startup()
 
     async def __do_startup(self) -> None:
-        import image
-        import game
-        import task
         import tests
-        from game.core import PT
 
         # Get bot owner
-        app_info: discord.AppInfo = await self.application_info()
+        app_info = await self.application_info()
         if app_info.team:
-            self.owner_id: int = app_info.team.owner_id
+            self.owner_id = app_info.team.owner_id
         else:
-            self.owner_id: int = app_info.owner.id
+            self.owner_id = app_info.owner.id
 
         self.owner = await self.fetch_user(self.owner_id)
 
         # Overwrite slash commands
         await self.overwrite_slash_commands()
 
-        # Prepare player cache
-        self.players: game.PlayerCache = game.PlayerCache()
-        self._connection.players = self.players
-
-        # Schedule all on_arrival tasks for RPG players
-        rows: List[asyncpg.Record] = await self.conn.fetch("SELECT * FROM rpg;")
-        user: discord.User
-        player: PT
-        for row in rows:
-            user = await self.fetch_user(row["id"])  # Union[str, int]
-            player = await game.BasePlayer.from_user(user)
-            self.loop.create_task(player.location.on_arrival(player))
-            player.release()
-            await asyncio.sleep(0.1)
-
         # Load bot helpers
-        self.image: image.ImageClient = image.ImageClient(
+        self.image = image.ImageClient(
             self,
             image.WaifuPics,
             image.WaifuIm,
             image.NekosLife,
             image.Asuna,
         )
-        self.task: task.TaskManager = task.TaskManager(self)
+        self.task = task.TaskManager(self)
         self._connection.task = self.task
         self.log("Loaded all bot helpers.")
 
@@ -174,7 +163,7 @@ class Haruka(commands.Bot, SlashMixin):
 
         # Post server count every 15 minutes
         if self.TOPGG_TOKEN:
-            self.topgg: topgg.DBLClient = topgg.DBLClient(
+            self.topgg = topgg.DBLClient(
                 self,
                 self.TOPGG_TOKEN,
                 autopost=True,
@@ -185,21 +174,21 @@ class Haruka(commands.Bot, SlashMixin):
         # Fetch repository's latest commits
         async with self.session.get("https://api.github.com/repos/Saratoga-CV6/haruka-rewrite/commits") as response:
             if response.ok:
-                json: Dict[str, Any] = await response.json()
-                desc: List[str] = []
+                js = await response.json()
+                desc = []
 
-                for commit in json[:4]:
-                    sha: str = commit["sha"][:6]
-                    message: str = commit["commit"]["message"].split("\n")[0]
-                    url: str = commit["html_url"]
+                for commit in js[:4]:
+                    sha = commit["sha"][:6]
+                    message = commit["commit"]["message"].split("\n")[0]
+                    url= commit["html_url"]
                     desc.append(f"__[`{sha}`]({url})__ {escape(message)}")
 
-                self.latest_commits: str = "\n".join(desc)
+                self.latest_commits = "\n".join(desc)
                 self.log("Fetched latest repository commits")
 
             else:
                 self.log(f"Warning: Unable to fetch repository's commits (status {response.status})")
-                self.latest_commits: str = "*No data*"
+                self.latest_commits = "*No data*"
 
         # Run tests
         await tests.run_all_tests(log=self.log)
@@ -241,25 +230,26 @@ class Haruka(commands.Bot, SlashMixin):
         send_state: bool = True,
         send_log: bool = True,
     ) -> None:
-        await self.owner.send(
-            message,
-            embed=self.display_status if send_state else None,
-            file=discord.File("./log.txt") if send_log else None,
-        )
+        if self.owner is not None:
+            await self.owner.send(
+                message,
+                embed=self.display_status if send_state else None,
+                file=discord.File("./log.txt") if send_log else None,
+            )
 
     @property
     def display_status(self) -> discord.Embed:
-        guilds: List[discord.Guild] = self.guilds
-        users: List[discord.User] = self.users
-        emojis: List[discord.Emoji] = self.emojis
-        stickers: List[discord.Sticker] = self.stickers
-        voice_clients: List[discord.VoiceProtocol] = self.voice_clients
-        private_channels: List[discord.abc.PrivateChannel] = self.private_channels
-        messages: Deque[discord.Message] = self._connection._messages
+        guilds = self.guilds
+        users = self.users
+        emojis = self.emojis
+        stickers = self.stickers
+        voice_clients = self.voice_clients
+        private_channels = self.private_channels
+        messages = self._connection._messages
 
-        desc: str = "**Commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._command_count.items())) + "\n**Slash commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._slash_command_count.items()))
+        desc = "**Commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._command_count.items())) + "\n**Slash commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._slash_command_count.items()))
 
-        em: discord.Embed = discord.Embed(
+        em = discord.Embed(
             title="Internal status",
             description=desc,
         )

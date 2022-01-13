@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -15,27 +15,27 @@ import haruka
 
 class YouTubePlaylist:
     """Represents a playlist from YouTube."""
-    __slots__ = (
-        "title",
-        "id",
-        "author",
-        "thumbnail",
-        "description",
-        "videos",
-        "view",
-    )
+    __slots__ = ("title", "id", "author", "thumbnail", "description", "videos", "view")
+    if TYPE_CHECKING:
+        title: str
+        id: str
+        author: str
+        description: str
+        view: int
+        videos: List[Dict[str, Any]]
+        thumbnail: str
 
     def __init__(self, data: Dict[str, Any]) -> None:
-        self.title: str = data["title"]
-        self.id: str = data["playlistId"]
-        self.author: str = data["author"]
-        self.description: str = data.get("description", "No description")
-        self.view: int = data["viewCount"]
-        self.videos: List[Dict[str, Any]] = data["videos"]
-        self.thumbnail: str = data["authorThumbnails"].pop()["url"]
+        self.title = data["title"]
+        self.id = data["playlistId"]
+        self.author = data["author"]
+        self.description = data.get("description", "No description")
+        self.view = data["viewCount"]
+        self.videos = data["videos"]
+        self.thumbnail = data["authorThumbnails"].pop()["url"]
 
     def create_embed(self) -> discord.Embed:
-        embed: discord.Embed = discord.Embed(
+        embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.description),
         )
@@ -72,7 +72,7 @@ class YouTubePlaylist:
         channel_id: ``int``
             The voice channel ID.
         """
-        track_ids: List[str] = [video["videoId"] for video in self.videos]
+        track_ids = [video["videoId"] for video in self.videos]
         await conn.execute(f"DELETE FROM youtube WHERE id = '{channel_id}';")
         await conn.execute(f"INSERT INTO youtube VALUES ('{channel_id}', $1);", track_ids)
 

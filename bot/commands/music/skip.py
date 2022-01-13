@@ -1,6 +1,3 @@
-from typing import Optional
-
-import discord
 from discord.ext import commands
 
 from audio import MusicClient
@@ -15,19 +12,19 @@ from emoji_ui import CHECKER
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _skip_cmd(ctx: commands.Context):
-    player: Optional[MusicClient] = ctx.voice_client
+    player = ctx.voice_client
 
     if player:
         # Get current state
-        shuffle: bool = player._shuffle
-        target: discord.abc.Messageable = player.target
-        channel: discord.abc.Connectable = player.channel
+        shuffle = player._shuffle
+        target = player.target
+        channel = player.channel
 
         # Acknowledge the request
         await ctx.message.add_reaction(CHECKER[1])
 
         await player.disconnect(force=True)
-        voice_client: MusicClient = await channel.connect(
+        voice_client = await channel.connect(
             timeout=30.0,
             cls=MusicClient,
         )

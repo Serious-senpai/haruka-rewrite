@@ -24,7 +24,7 @@ def testing() -> Callable[[T], T]:
     return commands.check(predicate)
 
 
-def get_all_subclasses(cls: Type) -> Iterator[Type]:
+def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
     """A generator that yields all subclasses of a class"""
     for subclass in cls.__subclasses__():
         yield subclass

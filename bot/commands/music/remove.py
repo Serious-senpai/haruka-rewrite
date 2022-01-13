@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Union
 
 import discord
 from discord.ext import commands
@@ -18,7 +18,7 @@ async def _remove_cmd(ctx: commands.Context, pos: Union[int, str] = 1):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")
 
-    channel: discord.abc.Connectable = ctx.author.voice.channel
+    channel = ctx.author.voice.channel
 
     if pos == "all":
         await bot.conn.execute(f"DELETE FROM youtube WHERE id = '{channel.id}';")
@@ -27,11 +27,11 @@ async def _remove_cmd(ctx: commands.Context, pos: Union[int, str] = 1):
     if not isinstance(pos, int):
         raise commands.UserInputError
 
-    id: Optional[str] = await audio.MusicClient.remove(channel.id, pos=pos)
+    id = await audio.MusicClient.remove(channel.id, pos=pos)
 
     if id is not None:
-        track: audio.InvidiousSource = await audio.InvidiousSource.build(id)
-        em: discord.Embed = track.create_embed()
+        track = await audio.InvidiousSource.build(id)
+        em = track.create_embed()
         em.set_author(
             name=f"{ctx.author.name} removed 1 song from {channel.name}",
             icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,

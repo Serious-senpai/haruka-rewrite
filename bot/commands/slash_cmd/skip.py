@@ -1,5 +1,3 @@
-from typing import Any, Dict, Optional
-
 import discord
 
 import slash
@@ -7,7 +5,7 @@ from audio import MusicClient
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "skip",
     "type": 1,
     "description": "Skip the playing song",
@@ -18,19 +16,19 @@ json: Dict[str, Any] = {
 @slash.guild_only()
 async def _skip_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    player: Optional[MusicClient] = interaction.guild.voice_client
+    player = interaction.guild.voice_client
 
     if player:
         # Get current state
-        shuffle: bool = player._shuffle
-        target: discord.abc.Messageable = player.target
-        channel: discord.abc.Connectable = player.channel
+        shuffle = player._shuffle
+        target = player.target
+        channel = player.channel
 
         # Acknowledge the request
         await interaction.followup.send("Skipped.")
 
         await player.disconnect(force=True)
-        voice_client: MusicClient = await channel.connect(
+        voice_client = await channel.connect(
             timeout=30.0,
             cls=MusicClient,
         )

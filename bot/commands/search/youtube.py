@@ -1,5 +1,3 @@
-from typing import Optional
-
 import discord
 from discord.ext import commands
 
@@ -19,11 +17,11 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
     if len(query) < 3:
         return await ctx.send("Search query must have at least 3 characters")
 
-    source: Optional[audio.InvidiousSource] = await audio.embed_search(query, ctx.channel, ctx.author.id)
+    source = await audio.embed_search(query, ctx.channel, ctx.author.id)
     if not source:
         return
 
-    em: discord.Embed = source.create_embed()
+    em = source.create_embed()
     em.set_author(
         name=f"{ctx.author.name}'s request",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
@@ -31,7 +29,7 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
 
     async with ctx.typing():
         with utils.TimingContextManager() as measure:
-            url: Optional[str] = await audio.fetch(source)
+            url = await audio.fetch(source)
 
         if not url:
             em.set_footer(text="Cannot fetch audio file")

@@ -2,7 +2,7 @@ import asyncio
 import io
 import textwrap
 import traceback
-from typing import Any, Dict
+from typing import Any
 
 import discord
 from discord.ext import commands
@@ -11,8 +11,8 @@ import utils
 from core import bot
 
 
-INDENT: str = " " * 4
-IN_PROGRESS: asyncio.Event = asyncio.Event()
+INDENT = " " * 4
+IN_PROGRESS = asyncio.Event()
 IN_PROGRESS.set()
 bot._eval_task = None
 
@@ -33,8 +33,8 @@ async def _eval_cmd(ctx: commands.Context, *, code: str):
     if not IN_PROGRESS.is_set():
         return await ctx.send("Another `eval` operation is in progress, please wait for it to terminate.")
 
-    output: io.StringIO = io.StringIO()
-    env: Dict[str, Any] = {}
+    output = io.StringIO()
+    env = {}
     env.update(__stdout=output, bot=bot, ctx=ctx)
 
     code = code.strip("`")
@@ -63,7 +63,7 @@ async def _eval_cmd(ctx: commands.Context, *, code: str):
             output.write(traceback.format_exc())
 
     IN_PROGRESS.set()
-    content: str = output.getvalue()
+    content = output.getvalue()
 
     if content:
         await asyncio.to_thread(write, content)

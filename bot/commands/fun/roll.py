@@ -13,8 +13,8 @@ from core import bot
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _roll_cmd(ctx: commands.Context, i: int, j: int):
     if i < j:
-        ans: int = randint(i, j)
+        ans = randint(i, j)
     else:
-        ans: int = randint(j, i)
+        ans = randint(j, i)
 
     await ctx.send(f"<@!{ctx.author.id}> got **{ans}**")

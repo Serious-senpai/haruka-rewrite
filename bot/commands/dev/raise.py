@@ -1,18 +1,12 @@
 import random
-from typing import Tuple
 
 from discord.ext import commands
 
+import utils
 from core import bot
 
 
-exceptions: Tuple[BaseException, ...] = (
-    Exception,
-    TypeError,
-    ValueError,
-    RuntimeError,
-    NotImplementedError,
-)
+exceptions = tuple(utils.get_all_subclasses(Exception))
 
 
 @bot.command(
@@ -21,4 +15,5 @@ exceptions: Tuple[BaseException, ...] = (
 )
 @commands.is_owner()
 async def _raise_cmd(ctx: commands.Context):
-    raise random.choice(exceptions)
+    exc = random.choice(exceptions)
+    raise exc

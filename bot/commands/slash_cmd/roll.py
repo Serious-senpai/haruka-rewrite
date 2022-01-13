@@ -1,5 +1,4 @@
 import random
-from typing import Any, Dict
 
 import discord
 
@@ -7,7 +6,7 @@ import slash
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "roll",
     "type": 1,
     "description": "Generate a random number between 2 integers.",
@@ -31,13 +30,13 @@ json: Dict[str, Any] = {
 @bot.slash(json)
 async def _roll_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    args: Dict[str, int] = slash.parse(interaction)
-    i: int = args["first-integer"]
-    j: int = args["second-integer"]
+    args = slash.parse(interaction)
+    i = args["first-integer"]
+    j = args["second-integer"]
 
     if i < j:
-        ans: int = random.randint(i, j)
+        ans = random.randint(i, j)
     else:
-        ans: int = random.randint(j, i)
+        ans = random.randint(j, i)
 
     await interaction.followup.send(f"<@!{interaction.user.id}> got **{ans}**")
