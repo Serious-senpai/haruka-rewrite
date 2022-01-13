@@ -113,6 +113,7 @@ class Pagination(EmojiUI):
                 payload = done.pop().result()
                 page = self.allowed_emojis.index(str(payload.emoji))
                 await self.message.edit(embed=self.pages[page])
+                await asyncio.sleep(1.0)
             else:
                 return await self.timeout(pending)
 
@@ -161,6 +162,7 @@ class RandomPagination(EmojiUI):
             if self.message:
                 try:
                     await self.message.edit(embed=random.choice(self.pages))
+                    await asyncio.sleep(1.0)
                 except discord.HTTPException:
                     self.message = None
 
@@ -253,6 +255,7 @@ class NavigatorPagination(EmojiUI):
                         page += 1
 
                 await self.message.edit(embed=self.pages[page])
+                await asyncio.sleep(1.0)
             else:
                 return await self.timeout(pending)
 
