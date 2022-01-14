@@ -1,7 +1,7 @@
 import io
 import os
 import random
-from typing import Generic, Optional, List, Type, TypeVar, TYPE_CHECKING
+from typing import ClassVar, Generic, Optional, List, Type, TypeVar, TYPE_CHECKING
 
 from PIL import Image
 
@@ -32,7 +32,7 @@ class BaseCard:
 class BaseHand(Generic[CT]):
 
     __slots__ = ("cards",)
-    cardtype: Type[CT] = BaseCard
+    cardtype: ClassVar[Type[CT]] = BaseCard
     if TYPE_CHECKING:
         cards: List[CT]
 

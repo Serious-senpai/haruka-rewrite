@@ -34,7 +34,7 @@ async def _pixiv_slash(interaction: discord.Interaction):
         id = int(id_match.group())
         artwork = await _pixiv.PixivArtwork.from_id(id)
 
-    elif re.match(r"https://", query):
+    elif query.startswith("https://"):
         match = _pixiv.ID_PATTERN.search(query)
         if not match:
             return await interaction.followup.send("Invalid URL.")

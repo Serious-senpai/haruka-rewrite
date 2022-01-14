@@ -11,7 +11,7 @@ from discord.utils import escape_markdown as escape
 from core import bot
 
 
-ID_PATTERN = re.compile(r"^(?<!\d)\d{6,6}(?!\d)$")
+ID_PATTERN = re.compile(r"(?<!\d)\d{6}(?!\d)")
 
 
 class NHentaiSearch:

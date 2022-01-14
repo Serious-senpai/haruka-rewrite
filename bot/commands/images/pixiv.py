@@ -21,8 +21,7 @@ async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
     if id_match:
         id = int(id_match.group())
 
-    url_match = re.match(r"https://", query)
-    if url_match:
+    if query.startswith("https://"):
         match = _pixiv.ID_PATTERN.search(query)
         if match:
             id = int(match.group())

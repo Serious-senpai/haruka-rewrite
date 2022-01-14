@@ -18,7 +18,7 @@ from emoji_ui import CHOICES
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _nhentai_cmd(ctx: commands.Context, *, query: str):
     hentai = None
-    if _nhentai.ID_PATTERN.match(query):
+    if _nhentai.ID_PATTERN.fullmatch(query):
         hentai = await _nhentai.NHentai.get(query)
 
     if not hentai:

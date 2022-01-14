@@ -106,6 +106,7 @@ class TaskManager:
     remind: ``ReminderTask``
         The running ``ReminderTask``
     """
+
     __slots__ = ("bot", "remind", "travel")
     if TYPE_CHECKING:
         bot: haruka.Haruka

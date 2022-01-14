@@ -4,7 +4,18 @@ import asyncio
 import functools
 import random
 import re
-from typing import Dict, Generic, List, Literal, Optional, Tuple, Type, TypeVar, TYPE_CHECKING
+from typing import (
+    ClassVar,
+    Dict,
+    Generic,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    TYPE_CHECKING,
+)
 
 import aiohttp
 import discord
@@ -95,7 +106,7 @@ class WaifuPics(ImageSource):
         "session",
         "client",
     )
-    endpoints_url = "https://api.waifu.pics/endpoints"
+    endpoints_url: ClassVar[str] = "https://api.waifu.pics/endpoints"
 
     async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
         data = {
@@ -124,7 +135,7 @@ class WaifuIm(ImageSource):
         "session",
         "client",
     )
-    endpoints_url = "https://api.waifu.im/endpoints"
+    endpoints_url: ClassVar[str] = "https://api.waifu.im/endpoints"
 
     async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
         data = {"sfw": [], "nsfw": []}
@@ -151,12 +162,12 @@ class NekosLife(ImageSource):
         "session",
         "client",
     )
-    endpoints_url = "https://nekos.life/api/v2/endpoints"
-    sfw_converter = {
+    endpoints_url: ClassVar[str] = "https://nekos.life/api/v2/endpoints"
+    sfw_converter: ClassVar[Dict[str, str]] = {
         "neko gif": "ngif",
         "kitsune": "fox_girl",
     }
-    nsfw_converter = {
+    nsfw_converter: ClassVar[Dict[str, str]] = {
         "ero neko": "eron",
         "neko gif": "nsfw_neko_gif",
         "lewd kitsune": "lewdk",
@@ -187,7 +198,7 @@ class NekosLife(ImageSource):
                 json = await response.json()
                 for endpoint in json:
                     if "/api/v2/img/" in endpoint:
-                        categories = [category.strip(r"'") for category in re.findall(r"'\w+'", endpoint)]
+                        categories = [category.group() for category in re.finditer(r"'(\w+)'", endpoint)]
 
                         value: str
                         for name in data["sfw"]:
@@ -225,8 +236,8 @@ class Asuna(ImageSource):
         "session",
         "client",
     )
-    endpoints_url = "https://asuna.ga/api"
-    converter = {
+    endpoints_url: ClassVar[str] = "https://asuna.ga/api"
+    converter: ClassVar[Dict[str, str]] = {
         "fox": "wholesome_foxes",
     }
 
