@@ -118,6 +118,7 @@ class Haruka(commands.Bot, SlashMixin):
 
     async def reset_inactivity_counter(self, guild_id: Union[int, str]) -> None:
         await self.conn.execute(f"UPDATE inactivity SET time = $1 WHERE id = '{guild_id}';", discord.utils.utcnow())
+        self.task.leave.restart()
 
     async def _change_activity_after_booting(self) -> None:
         await asyncio.sleep(20.0)
