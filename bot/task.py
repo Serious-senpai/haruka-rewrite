@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import datetime
 import traceback
 from typing import Any, TYPE_CHECKING
 
@@ -107,7 +108,7 @@ class GuildLeavingTask(Task):
             await asyncio.sleep(3600)
             return
 
-        await discord.utils.sleep_until(row["time"])
+        await discord.utils.sleep_until(row["time"] + datetime.timedelta(days=30))
         guild_id = row["id"]
         await self.conn.execute("DELETE FROM inactivity WHERE id = $1", guild_id)
 

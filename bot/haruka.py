@@ -1,6 +1,5 @@
 import asyncio
 import contextlib
-import datetime
 import io
 import os
 import signal
@@ -40,7 +39,6 @@ class Haruka(commands.Bot, SlashMixin):
         DATABASE_URL: str
         HOST: str
         TOPGG_TOKEN: Optional[str]
-        INACTIVITY_PERIOD: datetime.timedelta
         logfile: io.TextIOWrapper
         owner: Optional[discord.User]
         _command_count: Dict[str, List[commands.Context]]
@@ -52,7 +50,6 @@ class Haruka(commands.Bot, SlashMixin):
         self.HOST = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
         self.TOPGG_TOKEN = os.environ.get("TOPGG_TOKEN")
 
-        self.INACTIVITY_PERIOD = datetime.timedelta(days=50)
         self.logfile = open("./log.txt", "a", encoding="utf-8")
         self.owner = None
         self._clear_counter()
@@ -87,7 +84,7 @@ class Haruka(commands.Bot, SlashMixin):
 
         # Start the bot
         self.loop.create_task(self.startup())
-        self.uptime = datetime.datetime.now()
+        self.uptime = discord.utils.utcnow()
         await super().start(self.TOKEN)
 
     async def prepare_database(self) -> None:
@@ -120,10 +117,7 @@ class Haruka(commands.Bot, SlashMixin):
         self.logfile.flush()
 
     async def reset_inactivity_counter(self, guild_id: Union[int, str]) -> None:
-        await self.conn.execute(
-            f"UPDATE inactivity SET time = $1 WHERE id = '{guild_id}';",
-            discord.utils.utcnow() + self.INACTIVITY_PERIOD,
-        )
+        await self.conn.execute(f"UPDATE inactivity SET time = $1 WHERE id = '{guild_id}';", discord.utils.utcnow())
 
     async def _change_activity_after_booting(self) -> None:
         await asyncio.sleep(20.0)
@@ -153,8 +147,8 @@ class Haruka(commands.Bot, SlashMixin):
         for guild in self.guilds:
             row = await self.conn.fetchrow(f"SELECT * FROM inactivity WHERE id = '{guild.id}';")
             if not row:
-                await self.conn.execute(f"INSERT INTO inactivity VALUES ('{guild.id}', $1);", now + self.INACTIVITY_PERIOD)
-        self.log("Initialize all guild inactivity checks")
+                await self.conn.execute(f"INSERT INTO inactivity VALUES ('{guild.id}', $1);", now)
+        self.log("Initialized all guild inactivity checks")
 
         # Load bot helpers
         self.image = image.ImageClient(
@@ -303,7 +297,7 @@ class Haruka(commands.Bot, SlashMixin):
         )
         embed.add_field(
             name="Uptime",
-            value=datetime.datetime.now() - self.uptime,
+            value=discord.utils.utcnow() - self.uptime,
             inline=False,
         )
 
