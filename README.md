@@ -33,7 +33,7 @@ ban, kick, mute, unmute
 - Load images from [waifu.pics](https://waifu.pics), [waifu.im](https://waifu.im), [nekos.life](https://nekos.life), and [asuna.ga](https://asuna.ga)
 - Fetch image source with [saucenao.com](https://saucenao.com)
 - Provide search for [Urban Dictionary](https://urbandictionary.com), [MyAnimeList](https://myanimelist.net), [Pixiv](https://www.pixiv.net), [Tenor](https://tenor.com), [Zerochan](https://zerochan.net) and [nHentai](https://nhentai.net)
-- Automatically leave the guild if no text command or slash command has been used within the last 50 days
+- Automatically leave the guild if no text command or slash command has been used within the last 30 days
 ### Configurations
 #### Environment variables
 - `DATABASE_URL` the Postgres URL, starting with `postgres://`
