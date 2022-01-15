@@ -6,7 +6,7 @@ import os
 import signal
 import sys
 import traceback
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -40,6 +40,7 @@ class Haruka(commands.Bot, SlashMixin):
         DATABASE_URL: str
         HOST: str
         TOPGG_TOKEN: Optional[str]
+        INACTIVITY_PERIOD: datetime.timedelta
         logfile: io.TextIOWrapper
         owner: Optional[discord.User]
         _command_count: Dict[str, List[commands.Context]]
@@ -51,6 +52,7 @@ class Haruka(commands.Bot, SlashMixin):
         self.HOST = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
         self.TOPGG_TOKEN = os.environ.get("TOPGG_TOKEN")
 
+        self.INACTIVITY_PERIOD = datetime.timedelta(days=50)
         self.logfile = open("./log.txt", "a", encoding="utf-8")
         self.owner = None
         self._clear_counter()
@@ -103,6 +105,7 @@ class Haruka(commands.Bot, SlashMixin):
             CREATE TABLE IF NOT EXISTS youtube (id text, queue text[]);
             CREATE TABLE IF NOT EXISTS blacklist (id text);
             CREATE TABLE IF NOT EXISTS remind (id text, time timestamptz, content text, url text, original timestamptz);
+            CREATE TABLE IF NOT EXISTS inactivity (id text, time timestamptz);
         """)
 
         for extension in ("pg_trgm",):
@@ -115,6 +118,12 @@ class Haruka(commands.Bot, SlashMixin):
         content = str(content).replace("\n", "\nHARUKA | ")
         self.logfile.write(f"HARUKA | {content}\n")
         self.logfile.flush()
+
+    async def reset_inactivity_counter(self, guild_id: Union[int, str]) -> None:
+        await self.conn.execute(
+            f"UPDATE inactivity SET time = $1 WHERE id = '{guild_id}';",
+            discord.utils.utcnow() + self.INACTIVITY_PERIOD,
+        )
 
     async def _change_activity_after_booting(self) -> None:
         await asyncio.sleep(20.0)
@@ -134,11 +143,18 @@ class Haruka(commands.Bot, SlashMixin):
             self.owner_id = app_info.team.owner_id
         else:
             self.owner_id = app_info.owner.id
-
         self.owner = await self.fetch_user(self.owner_id)
 
         # Overwrite slash commands
         await self.overwrite_slash_commands()
+
+        # Initialize guild activity check
+        now = discord.utils.utcnow()
+        for guild in self.guilds:
+            row = await self.conn.fetchrow(f"SELECT * FROM inactivity WHERE id = '{guild.id}';")
+            if not row:
+                await self.conn.execute(f"INSERT INTO inactivity VALUES ('{guild.id}', $1);", now + self.INACTIVITY_PERIOD)
+        self.log("Initialize all guild inactivity checks")
 
         # Load bot helpers
         self.image = image.ImageClient(

@@ -128,3 +128,6 @@ async def _before_invoke(ctx: commands.Context):
         bot._command_count[name] = []
 
     bot._command_count[name].append(ctx)
+
+    if ctx.guild:
+        await bot.reset_inactivity_counter(ctx.guild.id)

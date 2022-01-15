@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import traceback
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import asyncpg
 import discord
@@ -26,10 +26,16 @@ class Task:
         The underlying task for this object
     """
 
+    if TYPE_CHECKING:
+        bot: haruka.Haruka
+        conn: asyncpg.Pool
+        task: asyncio.Task
+
     def __init__(self, manager: TaskManager) -> None:
-        self.bot: haruka.Haruka = manager.bot
-        self.conn: asyncpg.Pool = manager.conn
-        self.task: asyncio.Task = self.run.start()
+        self.bot = manager.bot
+        self.conn = manager.conn
+        self.task = self.run.start()
+        self.task.set_name(self.__class__.__name__)
 
     @tasks.loop()
     async def run(self) -> Any:
@@ -41,7 +47,7 @@ class Task:
 
     @run.error
     async def _error_handler(self, *args) -> None:
-        exc: Exception = args[-1]
+        exc = args[-1]
         self.bot.log(f"Exception occured in module 'task': {self.__class__.__name__}")
         self.bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))
         await self.bot.report("An exception has just occurred in the `task` module", send_state=False)
@@ -54,11 +60,9 @@ class Task:
 
 
 class ReminderTask(Task):
-
     @tasks.loop()
     async def run(self) -> None:
-        asyncio.current_task().set_name("ReminderTask")
-        row: Optional[asyncpg.Record] = await self.conn.fetchrow("SELECT * FROM remind ORDER BY time LIMIT 1;")
+        row = await self.conn.fetchrow("SELECT * FROM remind ORDER BY time;")
         if not row:
             await asyncio.sleep(3600)
             return
@@ -67,11 +71,11 @@ class ReminderTask(Task):
         await self.delete(row)
 
         try:
-            user: discord.User = await self.bot.fetch_user(row["id"])  # Union[str, int]
+            user = await self.bot.fetch_user(row["id"])  # Union[str, int]
         except BaseException:
             return
 
-        embed: discord.Embed = discord.Embed(
+        embed = discord.Embed(
             description=row["content"],
             timestamp=row["original"],
         )
@@ -95,6 +99,23 @@ class ReminderTask(Task):
         )
 
 
+class GuildLeavingTask(Task):
+    @tasks.loop()
+    async def run(self) -> None:
+        row = await self.conn.fetchrow("SELECT * FROM inactivity ORDER BY time;")
+        if not row:
+            await asyncio.sleep(3600)
+            return
+
+        await discord.utils.sleep_until(row["time"])
+        guild_id = row["id"]
+        await self.conn.execute("DELETE FROM inactivity WHERE id = $1", guild_id)
+
+        guild = self.bot.get_guild(guild_id)
+        if guild:
+            await guild.leave()
+
+
 class TaskManager:
     """Represents the object that is
     responsible for managing all Tasks.
@@ -105,16 +126,20 @@ class TaskManager:
         The bot associated with this TaskManager.
     remind: ``ReminderTask``
         The running ``ReminderTask``
+    leave: ``GuildLeavingTask``
+        The running ``GuildLeavingTask``
     """
 
-    __slots__ = ("bot", "remind", "travel")
+    __slots__ = ("bot", "remind", "leave")
     if TYPE_CHECKING:
         bot: haruka.Haruka
         remind: ReminderTask
+        leave: GuildLeavingTask
 
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot = bot
         self.remind = ReminderTask(self)
+        self.leave = GuildLeavingTask(self)
 
     @property
     def conn(self) -> asyncpg.Pool:

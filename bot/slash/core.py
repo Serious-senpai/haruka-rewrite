@@ -7,14 +7,14 @@ from typing import (
     Coroutine,
     Dict,
     List,
-    Optional,
     Type,
     Union,
     TYPE_CHECKING,
 )
 
+import asyncpg
 import discord
-from discord.types import interactions
+from discord.http import HTTPClient
 
 from .converter import *
 from .errors import *
@@ -29,7 +29,7 @@ __all__ = (
 )
 
 
-PARAMS_MAPPING: Dict[int, Callable[[discord.Interaction, str], Any]] = {
+PARAMS_MAPPING = {
     6: user_converter,
     7: role_converter,
     8: channel_converter,
@@ -48,10 +48,15 @@ class Command:
         "checks",
     )
 
+    if TYPE_CHECKING:
+        callback: SlashCallback
+        payload: Dict[str, Any]
+        checks: List[MaybeCoroutine]
+
     def __init__(self, callback: SlashCallback, payload: Dict[str, Any]) -> None:
-        self.callback: SlashCallback = callback
-        self.payload: Dict[str, Any] = payload
-        self.checks: List[MaybeCoroutine] = getattr(callback, "__slash_checks__", [])
+        self.callback = callback
+        self.payload = payload
+        self.checks = getattr(callback, "__slash_checks__", [])
 
     def add_check(self, check: MaybeCoroutine) -> None:
         self.checks.append(check)
@@ -64,9 +69,15 @@ class SlashMixin:
     ``commands.Bot``
     """
 
+    if TYPE_CHECKING:
+        _slash_commands: Dict[str, Command]
+        _json: List[str, Any]
+        http: HTTPClient
+        conn: asyncpg.Pool
+
     def __init_subclass__(cls: Type[haruka.Haruka], **kwargs) -> None:
-        cls._slash_commands: Dict[str, Command] = {}
-        cls._json: List[Dict[str, Any]] = []
+        cls._slash_commands = {}
+        cls._json = []
         super().__init_subclass__(**kwargs)
 
     def add_slash_command(self, command: Command) -> None:
@@ -102,7 +113,7 @@ class SlashMixin:
             if not asyncio.iscoroutinefunction(coro):
                 raise TypeError(f"Slash command callback must be coroutine, not {coro.__class__.__name__}")
 
-            command: Command = Command(coro, payload)
+            command = Command(coro, payload)
             self.add_slash_command(command)
             return command
         return decorator
@@ -117,7 +128,7 @@ class SlashMixin:
 
         # Now register all slash commands
         self.log(f"Overwriting {len(self._json)} slash commands: " + ", ".join(json["name"] for json in self._json))
-        data: List[Dict[str, Any]] = await self.http.bulk_upsert_global_commands(self.user.id, self._json)
+        data = await self.http.bulk_upsert_global_commands(self.user.id, self._json)
         self.log(f"Returned JSON:\n{data}")
 
     async def process_slash_commands(self, interaction: discord.Interaction) -> None:
@@ -130,14 +141,17 @@ class SlashMixin:
         interaction: ``discord.Interaction``
             The interaction to process
         """
-        name: str = interaction.data["name"]
-        command: Command = self._slash_commands[name]
+        name = interaction.data["name"]
+        command = self._slash_commands[name]
 
         if not interaction.user == self.owner:
             if name not in self._slash_command_count:
                 self._slash_command_count[name] = []
 
             self._slash_command_count[name].append(interaction)
+
+        if interaction.guild_id:
+            await self.reset_inactivity_counter(interaction.guild_id)
 
         try:
             for check in command.checks:
@@ -148,7 +162,7 @@ class SlashMixin:
             try:
                 await command.callback(interaction)
             except Exception as exc:
-                wrapped: CommandInvokeError = CommandInvokeError(name, exc)
+                wrapped = CommandInvokeError(name, exc)
                 self.dispatch("slash_command_error", interaction, wrapped)
 
 
@@ -165,16 +179,16 @@ def parse(interaction: discord.Interaction) -> Dict[str, Any]:
     Dict[``str``, Any]
         A mapping of argument objects by their names
     """
-    ret: Dict[str, Any] = {}
+    ret = {}
 
     try:
-        options: List[interactions.ApplicationCommandInteractionDataOption] = interaction.data["options"]
+        options = interaction.data["options"]
     except KeyError:
         return ret
 
     for option in options:
-        key: str = option["name"]
-        converter: Optional[Callable[[discord.Interaction, str], Any]] = PARAMS_MAPPING.get(option["type"])
+        key = option["name"]
+        converter = PARAMS_MAPPING.get(option["type"])
 
         value: Any
         if converter:
