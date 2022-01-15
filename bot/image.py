@@ -195,10 +195,10 @@ class NekosLife(ImageSource):
 
         async with self.session.get(self.endpoints_url) as response:
             if response.ok:
-                json = await response.json()
-                for endpoint in json:
+                js = await response.json()
+                for endpoint in js:
                     if "/api/v2/img/" in endpoint:
-                        categories = [category.group() for category in re.finditer(r"'(\w+)'", endpoint)]
+                        categories = [category.group(1) for category in re.finditer(r"'(\w+)'", endpoint)]
 
                         value: str
                         for name in data["sfw"]:
