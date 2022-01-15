@@ -114,7 +114,8 @@ class GuildLeavingTask(Task):
 
         guild = self.bot.get_guild(guild_id)
         if guild:
-            await guild.leave()
+            with contextlib.suppress(discord.HTTPException):
+                await guild.leave()
 
 
 class TaskManager:
