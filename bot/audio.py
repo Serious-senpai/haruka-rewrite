@@ -766,7 +766,7 @@ class MusicClient(discord.VoiceClient):
                 self.operable.set()  # Enable pause/resume/toggle repeat
 
                 super().play(audio, after=self._set_event)
-                self._player.setName(f"Channel {self.channel_id}/{self.guild_id}/seq {seq}")
+                self._player.name = f"Channel {self.channel_id}/{self.guild_id}/seq {seq}"
 
                 await self._event.wait()
                 self.operable.clear()  # Disable pause/resume/toggle repeat
