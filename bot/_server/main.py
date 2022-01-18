@@ -50,6 +50,11 @@ async def _reload_page(request: WebRequest) -> web.Response:
     raise web.HTTPFound("/")
 
 
+@routes.get("/favicon.ico")
+async def _favicon(request: WebRequest) -> web.Response:
+    raise web.HTTPFound(request.app.bot.user.avatar.url)
+
+
 @web.middleware
 async def _pixiv_middleware(request: WebRequest, handler: Callable[[WebRequest], Coroutine[None, None, web.Response]]) -> web.Response:
     try:
@@ -68,11 +73,7 @@ async def _pixiv_middleware(request: WebRequest, handler: Callable[[WebRequest],
                 raise exc
 
             with open(f"./server/image/{artwork_id}.png", "rb") as f:
-                return web.Response(
-                    body=f.read(),
-                    status=304,
-                    content_type="application/octet-stream",
-                )
+                return web.Response(body=f.read(), status=304, content_type="application/octet-stream")
 
         raise
 
