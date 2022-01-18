@@ -36,7 +36,7 @@ ban, kick, mute, unmute
 - Automatically leave the guild if no text command or slash command has been used within the last 30 days
 ### Configurations
 #### Environment variables
-- `DATABASE_URL` the Postgres URL, starting with `postgres://`
+- `DATABASE_URL` The Postgres URL, starting with `postgres://`
 
 - `HOST` The URL of this web application Heroku is running on, like https://my-bot-app.herokuapp.com
 
@@ -46,6 +46,16 @@ ban, kick, mute, unmute
 #### Buildpacks
 - heroku/python
 - https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest
+#### Running
+- Python 3.9 is required. Install the dependencies with
+```bash
+pip install -r requirements.txt
+```
+- Note that since [uvloop](https://github.com/MagicStack/uvloop) does not support Windows, you will have to delete or comment out the line `uvloop==0.16.0` in the `requirements.txt` before running the above command on this platform.
+- Navigate to the git directory and run
+```bash
+python ./bot/main.py
+```
 ### Contributions
 - Please don't suggest any discord.py forks here. Slash commands handling should be implemented using the built-in [slash module](https://github.com/Saratoga-CV6/haruka-rewrite/tree/main/bot/slash)
 # Report errors
