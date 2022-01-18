@@ -31,7 +31,7 @@ async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
     if id:
         # A URL or an ID was entered
         async with ctx.typing():
-            artwork = await _pixiv.PixivArtwork.from_id(id)
+            artwork = await _pixiv.PixivArtwork.from_id(id, session=bot.session)
 
             if not artwork:
                 return await ctx.send("Cannot find any artworks with this ID!")
@@ -40,20 +40,20 @@ async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
                 if artwork.nsfw and not ctx.channel.is_nsfw():
                     return await ctx.send("🔞 This artwork is NSFW and can only be shown in a NSFW channel!")
 
-            return await ctx.send(embed=await artwork.create_embed())
+            return await ctx.send(embed=await artwork.create_embed(session=bot.session))
 
     # Search Pixiv by query
     if len(query) < 2:
         return await ctx.send("Search query must have at least 2 characters")
 
-    rslt = await _pixiv.PixivArtwork.search(query)
+    rslt = await _pixiv.PixivArtwork.search(query, session=bot.session)
     if not rslt:
         return await ctx.send("No matching results found.")
 
     index = []
     async with ctx.typing():
         for i, artwork in enumerate(rslt[:6]):
-            embed = await artwork.create_embed()
+            embed = await artwork.create_embed(session=bot.session)
             embed.set_footer(text=f"Displaying result #{i + 1}")
             embed.set_author(
                 name=f"{ctx.author.name} searched for {query}",

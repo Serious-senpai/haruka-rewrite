@@ -1,13 +1,13 @@
 import datetime
 import inspect
-from typing import List, Optional, Tuple
 
 import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
-import info
 import emoji_ui
+import env
+import info
 import utils
 from core import bot, prefix
 
@@ -18,7 +18,7 @@ from core import bot, prefix
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _about_cmd(ctx: commands.Context):
-    embed: discord.Embed = info.user_info(bot.user)
+    embed = info.user_info(bot.user)
     embed.description += "\nIf you are too bored, [vote](https://top.gg/bot/848178172536946708/vote) for me on top.gg!"
     embed.add_field(
         name="Latest commits from the `main` branch",
@@ -27,7 +27,7 @@ async def _about_cmd(ctx: commands.Context):
     )
     embed.add_field(
         name="Uptime",
-        value=datetime.datetime.now() - bot.uptime,
+        value=discord.utils.utcnow() - bot.uptime,
     )
     embed.add_field(
         name="Latency",
@@ -35,7 +35,7 @@ async def _about_cmd(ctx: commands.Context):
     )
     embed.add_field(
         name="Links",
-        value=f"[Top.gg](https://top.gg/bot/848178172536946708)\n[GitHub](https://github.com/Saratoga-CV6/haruka-rewrite)\n[Website]({bot.HOST})",
+        value=f"[Top.gg](https://top.gg/bot/848178172536946708)\n[GitHub](https://github.com/Saratoga-CV6/haruka-rewrite)\n[Website]({env.get_host()})",
     )
     await ctx.send(embed=embed)
 
@@ -50,7 +50,7 @@ async def _about_cmd(ctx: commands.Context):
 async def _info_cmd(ctx: commands.Context, *, user: discord.User = None):
     if user is None:
         user = ctx.author
-    info_em: discord.Embed = info.user_info(user)
+    info_em = info.user_info(user)
     info_em.set_author(
         name="Information collected",
         icon_url=bot.user.avatar.url,
@@ -65,7 +65,7 @@ async def _info_cmd(ctx: commands.Context, *, user: discord.User = None):
 @commands.cooldown(1, 10, commands.BucketType.user)
 async def _ping_cmd(ctx: commands.Context):
     with utils.TimingContextManager() as measure:
-        message: discord.Message = await ctx.send("🏓 **Ping!**")
+        message = await ctx.send("🏓 **Ping!**")
     await message.edit(f"🏓 **Pong!** in {utils.format(measure.result)} (average {utils.format(bot.latency)})")
 
 
@@ -78,7 +78,7 @@ async def _ping_cmd(ctx: commands.Context):
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
     if not pref:
-        p: str = await prefix(bot, ctx.message)
+        p = await prefix(bot, ctx.message)
         return await ctx.send(f"The current prefix is `{p}`")
 
     if not ctx.channel.permissions_for(ctx.author).manage_guild:
@@ -87,7 +87,7 @@ async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
     if " " in pref:
         return await ctx.send("Prefix must not contain any spaces!")
 
-    id: int = ctx.guild.id
+    id = ctx.guild.id
     await bot.conn.execute(f"DELETE FROM prefix WHERE id = '{id}' OR pref = '$';")
     if not pref == "$":
         await bot.conn.execute(f"INSERT INTO prefix VALUES ('{id}', $1);", pref)
@@ -102,7 +102,7 @@ async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
 )
 @commands.cooldown(1, 1, commands.BucketType.user)
 async def _say_cmd(ctx: commands.Context, *, content: str):
-    files: List[discord.File] = []
+    files = []
     for attachment in ctx.message.attachments:
         files.append(await attachment.to_file())
     await ctx.send(content, files=files, reference=ctx.message.reference)
@@ -120,7 +120,7 @@ async def _avatar_cmd(ctx: commands.Context, *, user: discord.User = None):
         user = ctx.author
     if not user.avatar:
         return await ctx.send("This user hasn't uploaded an avatar yet.")
-    ava_em: discord.Embed = discord.Embed()
+    ava_em = discord.Embed()
     ava_em.set_author(
         name=f"This is {user.name}'s avatar",
         icon_url=bot.user.avatar.url,
@@ -148,11 +148,11 @@ async def _svinfo_cmd(ctx: commands.Context):
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _emoji_cmd(ctx: commands.Context):
-    emojis: Tuple[discord.Emoji, ...] = ctx.guild.emojis
-    pages: int = 1 + int(len(emojis) / 50)
-    index: List[discord.Embed] = []
+    emojis = ctx.guild.emojis
+    pages = 1 + int(len(emojis) / 50)
+    embeds = []
     for page in range(pages):
-        embed: discord.Embed = discord.Embed(
+        embed = discord.Embed(
             title=escape(ctx.guild.name),
             description="".join(f"<a:{emoji.name}:{emoji.id}>" if emoji.animated else f"<:{emoji.name}:{emoji.id}>" for emoji in emojis[page * 50:page * 50 + 50]),
         )
@@ -162,8 +162,8 @@ async def _emoji_cmd(ctx: commands.Context):
         )
         embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
         embed.set_footer(text=f"Showing page {page + 1}/{pages}")
-        index.append(embed)
-    display: emoji_ui.Pagination = emoji_ui.Pagination(index)
+        embeds.append(embed)
+    display = emoji_ui.Pagination(embeds)
     await display.send(ctx.channel)
 
 
@@ -183,8 +183,8 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
     if len(content) > 1000:
         return await ctx.send("Maximum length for `content` is 1000 characters.")
 
-    now: datetime.datetime = discord.utils.utcnow()
-    time: datetime.datetime = now + datetime.timedelta(hours=hours, minutes=minutes)
+    now = discord.utils.utcnow()
+    time = now + datetime.timedelta(hours=hours, minutes=minutes)
 
     await bot.conn.execute(
         f"INSERT INTO remind VALUES ('{ctx.author.id}', $1, $2, $3, $4);",
@@ -192,7 +192,7 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
     )
     bot.task.remind.restart()
 
-    embed: discord.Embed = discord.Embed()
+    embed = discord.Embed()
     embed.add_field(
         name="Content",
         value=content,
@@ -220,18 +220,18 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _source_cmd(ctx: commands.Context, *, cmd: str):
     if cmd.lower() == "help":
-        file: discord.File = discord.File("./bot/commands/help.py", filename="source.py")
+        file = discord.File("./bot/commands/help.py", filename="source.py")
     elif cmd.startswith("*"):
-        file: discord.File = discord.File("./bot/image.py", filename="source.py")
+        file = discord.File("./bot/image.py", filename="source.py")
     else:
-        command: Optional[commands.Command] = bot.get_command(cmd)
+        command = bot.get_command(cmd)
         if not command:
             return await ctx.send(f"No command named `{cmd}` was found.")
 
-        source: str = inspect.getsource(command.callback)
+        source = inspect.getsource(command.callback)
         with open("./source.py", "w", encoding="utf-8") as f:
             f.write(source)
 
-        file: discord.File = discord.File("./source.py")
+        file = discord.File("./source.py")
 
     await ctx.send("This is the source code", file=file)

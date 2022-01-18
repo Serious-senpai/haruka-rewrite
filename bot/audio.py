@@ -17,12 +17,14 @@ from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
 import emoji_ui
+import env
 import utils
 from core import bot
 
 
 T = TypeVar("T")
 TIMEOUT = aiohttp.ClientTimeout(total=15)
+HOST = env.get_host()
 
 
 def in_voice() -> Callable[[T], T]:
@@ -501,7 +503,7 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
         on Heroku.
     """
     if os.path.isfile(f"./server/audio/{track.id}.mp3"):
-        return bot.HOST + f"/audio/{track.id}.mp3"
+        return HOST + f"/audio/{track.id}.mp3"
 
     url = await track.ensure_source()
     if not url:
@@ -522,7 +524,7 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
         stderr=asyncio.subprocess.DEVNULL,
     )
     await process.communicate()
-    return bot.HOST + f"/audio/{track.id}.mp3"
+    return HOST + f"/audio/{track.id}.mp3"
 
 
 class MusicClient(discord.VoiceClient):

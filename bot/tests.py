@@ -6,6 +6,7 @@ import _pixiv
 import _urban
 import audio
 import mal
+from core import bot
 
 
 NHENTAI_TESTS: Tuple[int, ...] = (177013,)
@@ -40,7 +41,7 @@ async def nhentai_test(*, log: Callable[..., Any]) -> None:
 
 async def pixiv_test(*, log: Callable[..., Any]) -> None:
     for id in PIXIV_TESTS:
-        artwork: Optional[_pixiv.PixivArtwork] = await _pixiv.PixivArtwork.from_id(id)
+        artwork: Optional[_pixiv.PixivArtwork] = await _pixiv.PixivArtwork.from_id(id, session=bot.session)
         log(f"Finished Pixiv test for ID {id}: {artwork}")
 
 
@@ -69,13 +70,12 @@ async def manga_test(*, log: Callable[..., Any]) -> None:
         log(f"Finished Manga test for ID {id}: {manga}")
 
 
-async def run_all_tests(*, log: Callable[..., Any]) -> None:
-    log("Running tests...")
+async def run_all_tests() -> None:
     await asyncio.gather(
-        nhentai_test(log=log),
-        pixiv_test(log=log),
-        urban_test(log=log),
-        ytdl_test(log=log),
-        anime_test(log=log),
-        manga_test(log=log),
+        nhentai_test(log=bot.log),
+        pixiv_test(log=bot.log),
+        urban_test(log=bot.log),
+        ytdl_test(log=bot.log),
+        anime_test(log=bot.log),
+        manga_test(log=bot.log),
     )

@@ -1,21 +1,29 @@
 from __future__ import annotations
+import contextlib
+import imp
 
 import json
 import os
 import re
-import traceback
 from typing import Any, Dict, List, Optional, Type, TYPE_CHECKING
 
+import aiohttp
 import bs4
 import discord
 from discord.utils import escape_markdown as escape
 
-from core import bot
+import env
 
 
 PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
+HOST = env.get_host()
 ID_PATTERN = re.compile(r"(?<!\d)\d{8}(?!\d)")
 CHUNK_SIZE = 4 << 10
+
+
+class StreamError(Exception):
+    """Exception raised when collecting image data from Pixiv fails"""
+    pass
 
 
 class PixivUser:
@@ -71,22 +79,20 @@ class PixivArtwork:
         author_avatar_url = json["profileImageUrl"]
         self.author = PixivUser(author_id, author_name, author_avatar_url)
 
-    async def stream(self) -> None:
+    async def stream(self, *, session: aiohttp.ClientSession) -> None:
         if os.path.isfile(f"./server/image/{self.id}.png"):
             return
 
-        async with bot.session.get(
-            self.image_url,
-            headers=PIXIV_HEADERS,
-        ) as response:
-            if response.ok:
-                with open(f"./server/image/{self.id}.png", "wb", buffering=0) as f:
-                    while data := await response.content.read(CHUNK_SIZE):
-                        f.write(data)
-            else:
-                raise discord.HTTPException(response, f"Pixiv returned {response.status}")
+        with contextlib.suppress(aiohttp.ClientError):
+            async with session.get(self.image_url, headers=PIXIV_HEADERS) as response:
+                if response.ok:
+                    with open(f"./server/image/{self.id}.png", "wb") as f:
+                        f.write(await response.read())
+                        return
 
-    async def create_embed(self) -> discord.Embed:
+        raise StreamError
+
+    async def create_embed(self, *, session: aiohttp.ClientSession) -> discord.Embed:
         embed = discord.Embed(
             title=escape(self.title),
             description=escape(self.description) if self.description else discord.Embed.Empty,
@@ -94,12 +100,11 @@ class PixivArtwork:
         )
 
         try:
-            await self.stream()
-        except discord.HTTPException:
+            await self.stream(session=session)
+        except StreamError:
             embed.set_image(url=self.thumbnail)
-            bot.log(traceback.format_exc())
         else:
-            embed.set_image(url=f"{bot.HOST}/image/{self.id}.png")
+            embed.set_image(url=f"{HOST}/image/{self.id}.png")
 
         embed.add_field(
             name="Tags",
@@ -129,29 +134,38 @@ class PixivArtwork:
         return f"<PixivArtwork title={self.title} id={self.id} author={self.author}>"
 
     @classmethod
-    async def search(
-        cls: Type[PixivArtwork],
-        query: str,
-    ) -> Optional[List[PixivArtwork]]:
-        """Get 6 Pixiv images sorted by date that match the searching query."""
-        async with bot.session.get(f"https://www.pixiv.net/ajax/search/artworks/{query}") as response:
+    async def search(cls: Type[PixivArtwork], query: str, *, session: aiohttp.ClientSession) -> List[PixivArtwork]:
+        """This function is a coroutine
+
+        Get 6 Pixiv images sorted by date that match the searching query.
+
+        Parameters
+        -----
+        query: ``str``
+            The searching query
+        session: ``aiohttp.ClientSession``
+            The session to perform the search
+
+        Returns
+        -----
+        List[``PixivArtwork``]
+            A list of search results, note that this may be empty
+        """
+        async with session.get(f"https://www.pixiv.net/ajax/search/artworks/{query}") as response:
             if response.ok:
                 json = await response.json()
                 try:
                     artworks = json["body"]["illustManga"]["data"]
                 except KeyError:
-                    return
+                    pass
                 else:
                     return list(cls(artwork) for artwork in artworks[:6])
-            else:
-                return
+
+        return []
 
     @classmethod
-    async def from_id(
-        cls: Type[PixivArtwork],
-        id: int,
-    ) -> Optional[PixivArtwork]:
-        async with bot.session.get(f"https://pixiv.net/en/artworks/{id}") as response:
+    async def from_id(cls: Type[PixivArtwork], id: int, *, session: aiohttp.ClientSession) -> Optional[PixivArtwork]:
+        async with session.get(f"https://pixiv.net/en/artworks/{id}") as response:
             if response.ok:
                 html = await response.text(encoding="utf-8")
                 soup = bs4.BeautifulSoup(html, "html.parser")

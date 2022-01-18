@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import datetime
 import io
 import os
 import signal
@@ -16,40 +17,38 @@ from aiohttp import web
 from discord.ext import commands, tasks
 from discord.utils import escape_markdown as escape
 
+import _server
+import env
 import image
-import server
 import task
 from slash import SlashMixin
 
 
 class Haruka(commands.Bot, SlashMixin):
 
-    if sys.platform == "win32":
-        loop: asyncio.ProactorEventLoop
-    else:
-        try:
-            import uvloop
-        except ImportError:
-            loop: asyncio.SelectorEventLoop
-        else:
-            loop: uvloop.Loop
-
     if TYPE_CHECKING:
-        TOKEN: str
-        DATABASE_URL: str
-        HOST: str
-        TOPGG_TOKEN: Optional[str]
-        logfile: io.TextIOWrapper
-        owner: Optional[discord.User]
         _command_count: Dict[str, List[commands.Context]]
         _slash_command_count: Dict[str, List[discord.Interaction]]
 
-    def __init__(self, *args, **kwargs) -> None:
-        self.TOKEN = os.environ["TOKEN"]
-        self.DATABASE_URL = os.environ["DATABASE_URL"]
-        self.HOST = os.environ.get("HOST", "https://haruka39.herokuapp.com/").strip("/")
-        self.TOPGG_TOKEN = os.environ.get("TOPGG_TOKEN")
+        app: _server.WebApp
+        conn: asyncpg.Pool
+        logfile: io.TextIOWrapper
+        owner: Optional[discord.User]
+        runner: web.AppRunner
+        session: aiohttp.ClientSession
+        uptime: datetime.datetime
 
+        if sys.platform == "win32":
+            loop: asyncio.ProactorEventLoop
+        else:
+            try:
+                import uvloop
+            except ImportError:
+                loop: asyncio.SelectorEventLoop
+            else:
+                loop: uvloop.Loop
+
+    def __init__(self, *args, **kwargs) -> None:
         self.logfile = open("./log.txt", "a", encoding="utf-8")
         self.owner = None
         self._clear_counter()
@@ -74,8 +73,8 @@ class Haruka(commands.Bot, SlashMixin):
         self.log(f"Created side session, using User-Agent: {user_agent}")
 
         # Start server asynchronously
-        app = server.WebApp(bot=self)
-        self.runner = web.AppRunner(app)
+        self.app = _server.WebApp(bot=self)
+        self.runner = web.AppRunner(self.app)
         await self.runner.setup()
         port = int(os.environ.get("PORT", 8080))
         site = web.TCPSite(self.runner, None, port)
@@ -85,11 +84,11 @@ class Haruka(commands.Bot, SlashMixin):
         # Start the bot
         self.loop.create_task(self.startup())
         self.uptime = discord.utils.utcnow()
-        await super().start(self.TOKEN)
+        await super().start(env.get_token())
 
     async def prepare_database(self) -> None:
         self.conn = await asyncpg.create_pool(
-            self.DATABASE_URL,
+            env.get_database_url(),
             min_size=2,
             max_size=10,
             max_inactive_connection_lifetime=3.0,
@@ -173,10 +172,11 @@ class Haruka(commands.Bot, SlashMixin):
             self.log("Started _keep_alive task")
 
         # Post server count every 15 minutes
-        if self.TOPGG_TOKEN:
+        topgg_token = env.get_topgg_token()
+        if topgg_token:
             self.topgg = topgg.DBLClient(
                 self,
-                self.TOPGG_TOKEN,
+                topgg_token,
                 autopost=True,
                 autopost_interval=900,
                 session=self.session,
@@ -202,7 +202,7 @@ class Haruka(commands.Bot, SlashMixin):
                 self.latest_commits = "*No data*"
 
         # Run tests
-        await tests.run_all_tests(log=self.log)
+        await tests.run_all_tests()
 
         try:
             await self.report("Haruka is ready!", send_state=False)
@@ -307,7 +307,7 @@ class Haruka(commands.Bot, SlashMixin):
     @tasks.loop(minutes=10)
     async def _keep_alive(self) -> None:
         asyncio.current_task().set_name("KeepServerAlive")
-        async with self.session.get(self.HOST) as response:
+        async with self.session.get(env.get_host()) as response:
             if not response.status == 200:
                 self.log(f"Warning: _keep_alive task returned response code {response.status}")
 
