@@ -60,22 +60,22 @@ class PixivArtwork:
         thumbnail: str
         author: PixivUser
 
-    def __init__(self, json: Dict[str, Any]) -> None:
-        self.title = json["title"]
-        self.id = json["id"]
-        self.image_url = json["url"]
-        self.width = json["width"]
-        self.height = json["height"]
+    def __init__(self, js: Dict[str, Any]) -> None:
+        self.title = js["title"]
+        self.id = js["id"]
+        self.image_url = js["url"]
+        self.width = js["width"]
+        self.height = js["height"]
 
-        self.nsfw = json.get("xRestrict", False)
-        self.description = json.get("description")
-        self.tags = json.get("tags")
+        self.nsfw = js.get("xRestrict", False)
+        self.description = js.get("description")
+        self.tags = js.get("tags")
         self.url = f"https://www.pixiv.net/en/artworks/{self.id}"
         self.thumbnail = f"https://embed.pixiv.net/decorate.php?illust_id={self.id}"
 
-        author_id = json["userId"]
-        author_name = json["userName"]
-        author_avatar_url = json["profileImageUrl"]
+        author_id = js["userId"]
+        author_name = js["userName"]
+        author_avatar_url = js["profileImageUrl"]
         self.author = PixivUser(author_id, author_name, author_avatar_url)
 
     async def stream(self, *, session: aiohttp.ClientSession) -> None:
@@ -136,7 +136,7 @@ class PixivArtwork:
     async def search(cls: Type[PixivArtwork], query: str, *, session: aiohttp.ClientSession) -> List[PixivArtwork]:
         """This function is a coroutine
 
-        Get Pixiv images sorted by date that match the searching query.
+        Get 6 Pixiv images sorted by date that match the searching query.
 
         Parameters
         -----
@@ -152,13 +152,13 @@ class PixivArtwork:
         """
         async with session.get(f"https://www.pixiv.net/ajax/search/artworks/{query}") as response:
             if response.ok:
-                json = await response.json()
+                js = await response.json()
                 try:
-                    artworks = json["body"]["illustManga"]["data"]
+                    artworks = js["body"]["illustManga"]["data"]
                 except KeyError:
                     pass
                 else:
-                    return list(cls(artwork) for artwork in artworks)
+                    return list(cls(artwork) for artwork in artworks[:6])
 
         return []
 
@@ -207,7 +207,7 @@ class PixivArtwork:
 
 async def parse(query: str, *, session: aiohttp.ClientSession) -> Union[PixivArtwork, List[PixivArtwork]]:
     """This function is a coroutine
-    
+
     Parse ``query`` to predict the user's intention when processing a
     Pixiv-related request.
 

@@ -22,7 +22,7 @@ async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
             return await ctx.send("No matching result was found.")
 
         embeds = []
-        for index, artwork in enumerate(parsed[:6]):
+        for index, artwork in enumerate(parsed):
             embed = await artwork.create_embed(session=bot.session)
             embed.set_footer(text=f"Displaying result #{index + 1}")
             embed.set_author(
