@@ -59,6 +59,9 @@ async def _pixiv_middleware(request: WebRequest, handler: Callable[[WebRequest],
         if match:
             artwork_id = match.group(1)
             artwork = await _pixiv.PixivArtwork.from_id(artwork_id, session=request.app.session)
+            if not artwork:
+                raise
+
             try:
                 await artwork.stream(session=request.app.session)
             except _pixiv.StreamError:

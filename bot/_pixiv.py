@@ -165,25 +165,42 @@ class PixivArtwork:
 
     @classmethod
     async def from_id(cls: Type[PixivArtwork], id: int, *, session: aiohttp.ClientSession) -> Optional[PixivArtwork]:
-        async with session.get(f"https://pixiv.net/en/artworks/{id}") as response:
-            if response.ok:
-                html = await response.text(encoding="utf-8")
-                soup = bs4.BeautifulSoup(html, "html.parser")
-                content = soup.find("meta", attrs={"name": "preload-data"}).get("content")
-                if content:
-                    data = json.loads(content)
-                    illust = data["illust"][str(id)]
-                    user_id = int(illust.get("userId"))
-                    ret = {
-                        "title": illust.get("title"),
-                        "id": id,
-                        "xRestrict": illust.get("xRestrict"),
-                        "url": illust.get("urls", {}).get("regular", discord.Embed.Empty),
-                        "tags": list(tag["tag"] for tag in illust["tags"]["tags"]),
-                        "width": illust.get("width"),
-                        "height": illust.get("height"),
-                        "userId": user_id,
-                        "userName": illust.get("userName"),
-                        "profileImageUrl": data["user"][str(user_id)]["image"],
-                    }
-                    return cls(ret)
+        """This function is a coroutine
+
+        Gets a Pixiv artwork from an ID
+
+        Parameters
+        -----
+        id: ``int``
+            The artwork ID
+        session: ``aiohttp.ClientSession``
+            The session to perform the request
+
+        Returns
+        -----
+        Optional[``PixivArtwork``]
+            The artwork with the given ID, or ``None`` if not found
+        """
+        with contextlib.suppress(aiohttp.ClientError):
+            async with session.get(f"https://pixiv.net/en/artworks/{id}") as response:
+                if response.ok:
+                    html = await response.text(encoding="utf-8")
+                    soup = bs4.BeautifulSoup(html, "html.parser")
+                    content = soup.find("meta", attrs={"name": "preload-data"}).get("content")
+                    if content:
+                        data = json.loads(content)
+                        illust = data["illust"][str(id)]
+                        user_id = int(illust.get("userId"))
+                        ret = {
+                            "title": illust.get("title"),
+                            "id": id,
+                            "xRestrict": illust.get("xRestrict"),
+                            "url": illust.get("urls", {}).get("regular", discord.Embed.Empty),
+                            "tags": list(tag["tag"] for tag in illust["tags"]["tags"]),
+                            "width": illust.get("width"),
+                            "height": illust.get("height"),
+                            "userId": user_id,
+                            "userName": illust.get("userName"),
+                            "profileImageUrl": data["user"][str(user_id)]["image"],
+                        }
+                        return cls(ret)
