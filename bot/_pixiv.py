@@ -17,8 +17,7 @@ import env
 
 PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
 HOST = env.get_host()
-ID_PATTERN = re.compile(r"(?<!\d)\d{8}(?!\d)")
-CHUNK_SIZE = 4 << 10
+ID_PATTERN = re.compile(r"(?<!\d)\d{7,8}(?!\d)")
 
 
 class StreamError(Exception):
