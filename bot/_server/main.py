@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     import haruka
 
 
-PIXIV_PATH_PATTERN = re.compile(r"/image/(\d{7,8}).png")
+PIXIV_PATH_PATTERN = re.compile(r"/image/(\d{4,8}).png")
 if not os.path.exists("./server"):
     os.mkdir("./server")
 if not os.path.exists("./server/image"):

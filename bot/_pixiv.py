@@ -1,11 +1,10 @@
 from __future__ import annotations
 import contextlib
-import imp
 
 import json
 import os
 import re
-from typing import Any, Dict, List, Optional, Type, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Type, Union, TYPE_CHECKING
 
 import aiohttp
 import bs4
@@ -17,7 +16,8 @@ import env
 
 PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
 HOST = env.get_host()
-ID_PATTERN = re.compile(r"(?<!\d)\d{7,8}(?!\d)")
+ID_PATTERN = re.compile(r"(?<!\d)\d{4,8}(?!\d)")
+URL_PATTERN = re.compile(r"https://www\.pixiv\.net/en/artworks/\d{4,8}")
 
 
 class StreamError(Exception):
@@ -136,7 +136,7 @@ class PixivArtwork:
     async def search(cls: Type[PixivArtwork], query: str, *, session: aiohttp.ClientSession) -> List[PixivArtwork]:
         """This function is a coroutine
 
-        Get 6 Pixiv images sorted by date that match the searching query.
+        Get Pixiv images sorted by date that match the searching query.
 
         Parameters
         -----
@@ -158,7 +158,7 @@ class PixivArtwork:
                 except KeyError:
                     pass
                 else:
-                    return list(cls(artwork) for artwork in artworks[:6])
+                    return list(cls(artwork) for artwork in artworks)
 
         return []
 
@@ -203,3 +203,40 @@ class PixivArtwork:
                             "profileImageUrl": data["user"][str(user_id)]["image"],
                         }
                         return cls(ret)
+
+
+async def parse(query: str, *, session: aiohttp.ClientSession) -> Union[PixivArtwork, List[PixivArtwork]]:
+    """This function is a coroutine
+    
+    Parse ``query`` to predict the user's intention when processing a
+    Pixiv-related request.
+
+    Note that this coroutine never returns ``None``. When no result is
+    found, an empty list is returned.
+
+    Parameters
+    -----
+    query: ``str``
+        The input string
+    session: ``aiohttp.ClientSession``
+        The session to perform the request
+
+    Returns
+    -----
+    Union[``PixivArtwork``, List[``PixivArtwork``]]
+        A certain artwork (when an ID or URL is detected), or multiple
+        artworks as a list (in case of a searching string)
+    """
+    match = ID_PATTERN.fullmatch(query)
+    if match:
+        artwork = await PixivArtwork.from_id(match.group(), session=session)
+        if artwork:
+            return artwork
+
+    match = URL_PATTERN.fullmatch(query)
+    if match:
+        artwork = await PixivArtwork.from_id(match.group(1), session=session)
+        if artwork:
+            return artwork
+
+    return await PixivArtwork.search(query, session=session)
