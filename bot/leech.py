@@ -31,7 +31,6 @@ with open("./bot/assets/misc/quotes.json", "r", encoding="utf-8") as f:
 
 
 async def get_quote(anime: Optional[str] = None) -> discord.Embed:
-    original_name: Optional[str]
     if anime is not None:
         anime = anime.casefold()
         original_name = quotes_k.get(anime)

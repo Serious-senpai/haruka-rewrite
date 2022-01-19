@@ -163,7 +163,7 @@ async def _emoji_cmd(ctx: commands.Context):
         embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
         embed.set_footer(text=f"Showing page {page + 1}/{pages}")
         embeds.append(embed)
-    display = emoji_ui.Pagination(embeds)
+    display = emoji_ui.NavigatorPagination(embeds)
     await display.send(ctx.channel)
 
 

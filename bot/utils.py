@@ -1,16 +1,16 @@
 import asyncio
 import contextlib
-import sys
+import re
 import time
 from types import TracebackType
-from typing import Callable, Iterator, List, Optional, Tuple, Type, TypeVar
+from typing import Callable, Iterator, Optional, Type, TypeVar, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
 
 T = TypeVar("T")
-TESTING_GUILD_IDS: Tuple[int, ...] = (764494394430193734, 886311355211190372)
+TESTING_GUILD_IDS = (764494394430193734, 886311355211190372)
 
 
 def testing() -> Callable[[T], T]:
@@ -49,8 +49,6 @@ def format(time: float) -> str:
     elif time < 60:
         return "{:.2f} s".format(time)
     else:
-        ret: List[str] = []
-
         days: int = int(time / 86400)
         time -= days * 86400
         hours: int = int(time / 3600)
@@ -58,6 +56,7 @@ def format(time: float) -> str:
         minutes: int = int(time / 60)
         time -= minutes * 60
 
+        ret = []
         if days > 0:
             ret.append(f"{days}d")
         if hours > 0:
@@ -77,10 +76,13 @@ class TimingContextManager(contextlib.AbstractContextManager):
         "_start",
         "_result",
     )
+    if TYPE_CHECKING:
+        _start: float
+        _result: Optional[float]
 
     def __init__(self) -> None:
-        self._start: float = time.perf_counter()
-        self._result: Optional[float] = None
+        self._start = time.perf_counter()
+        self._result = None
 
     def __exit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
         self._result = time.perf_counter() - self._start
@@ -118,19 +120,11 @@ def get_reply(message: discord.Message) -> Optional[discord.Message]:
 
 
 async def fuzzy_match(string: str, against: Iterator[str]) -> str:
-    args: List[str]
-    if sys.platform == "win32":
-        args = ["py"]
-    else:
-        args = ["python"]
-    args.append("./bot/levenshtein.py")
+    args = ["python", "./bot/levenshtein.py"]
     args.append(string)
     args.extend(against)
 
-    process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
-        *args,
-        stdout=asyncio.subprocess.PIPE,
-    )
+    process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.PIPE)
     stdout, _ = await process.communicate()
-    word: str = stdout.decode("utf-8").replace("\n", "").replace("\r", "")
-    return word
+    match = re.search(r"\w+", stdout.decode("utf-8"))
+    return match.group()

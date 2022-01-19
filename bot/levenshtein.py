@@ -2,27 +2,6 @@ import functools
 import sys
 
 
-IGNORE = (
-    "bash",
-    "blacklist",
-    "cancel",
-    "eval",
-    "exec",
-    "log",
-    "raise",
-    "sql",
-    "sh",
-    "ssh",
-    "state",
-    "status",
-    "task",
-    "tasks",
-    "thread",
-    "threads",
-    "trace",
-)
-
-
 @functools.cache
 def lev(i: str, j: str) -> int:
     if not i:
@@ -41,17 +20,15 @@ def lev(i: str, j: str) -> int:
     )
 
 
-string = sys.argv[1]
-words = sys.argv[2:]
-val = 9999
+if __name__ == "__main__":
+    string = sys.argv[1]
+    words = sys.argv[2:]
+    val = 9999
 
-for word in words:
-    if word in IGNORE:
-        continue
+    for word in words:
+        measure = lev(string, word)
+        if measure < val:
+            ret = word
+            val = measure
 
-    measure = lev(string, word)
-    if measure < val:
-        ret = word
-        val = measure
-
-print(ret)
+    print(ret)

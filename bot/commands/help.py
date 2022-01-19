@@ -8,9 +8,30 @@ import emoji_ui
 from core import bot, prefix
 
 
+IGNORE = (
+    "bash",
+    "blacklist",
+    "cancel",
+    "eval",
+    "exec",
+    "log",
+    "raise",
+    "sql",
+    "sh",
+    "ssh",
+    "state",
+    "status",
+    "task",
+    "tasks",
+    "thread",
+    "threads",
+    "trace",
+)
+
+
 class CustomHelpCommand(commands.MinimalHelpCommand):
-    def __init__(self):
-        command_attrs: Dict[str, str] = {
+    def __init__(self) -> None:
+        command_attrs = {
             "name": "help",
             "description": "Get all available commands or for a specific command.",
             "usage": "help\nhelp <command>",
@@ -22,7 +43,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         super().__init__(command_attrs=command_attrs)
 
     def template(self, page: int, pref: str) -> discord.Embed:
-        embed: discord.Embed = discord.Embed(description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.")
+        embed = discord.Embed(description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.")
         embed.set_author(
             name=f"{bot.user} Command List",
             icon_url=bot.user.avatar.url,
@@ -31,12 +52,12 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         embed.set_footer(text=f"Current prefix: {pref} | Page {page}/4")
         return embed
 
-    async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]):
+    async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]) -> None:
         # Initialize
-        pref: str = await prefix(bot, self.context.message)
-        help_em: List[discord.Embed] = []
+        pref = await prefix(bot, self.context.message)
+        help_em = []
 
-        embed: discord.Embed = self.template(1, pref)
+        embed = self.template(1, pref)
         embed.add_field(
             name="💬 General",
             value="```\nabout, avatar, emoji, help, info, ping, prefix, remind, say, source, svinfo\n```",
@@ -53,7 +74,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         help_em.append(embed)
 
-        embed: discord.Embed = self.template(2, pref)
+        embed = self.template(2, pref)
         embed.add_field(
             name="🖼️ Images",
             value="```\ndanbooru, nsfw, pixiv, sfw, tenor, zerochan\n```",
@@ -71,7 +92,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         help_em.append(embed)
 
-        embed: discord.Embed = self.template(3, pref)
+        embed = self.template(3, pref)
         embed.add_field(
             name="🖼️ SFW images",
             value=f"Remember to add the prefix `{pref}`! E.g. `{pref}*waifu`\n" + self._sfw_description,
@@ -79,7 +100,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         help_em.append(embed)
 
-        embed: discord.Embed = self.template(4, pref)
+        embed = self.template(4, pref)
         embed.add_field(
             name="🔞 NSFW images",
             value=f"Remember to add the prefix `{pref}`! E.g. `{pref}**waifu`\n" + self._nsfw_description,
@@ -87,12 +108,12 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         help_em.append(embed)
 
-        display: emoji_ui.Pagination = emoji_ui.Pagination(help_em)
+        display = emoji_ui.Pagination(help_em)
         await display.send(self.context)
 
-    async def send_command_help(self, command: commands.Command):
+    async def send_command_help(self, command: commands.Command) -> None:
         # Fetch server's prefix
-        pref: str = await prefix(bot, self.context.message)
+        pref = await prefix(bot, self.context.message)
 
         if command.aliases and command.qualified_name not in command.aliases:
             command.aliases.insert(0, command.qualified_name)
@@ -100,15 +121,15 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
             command.aliases = [command.qualified_name]
 
         command.usage = command.usage if command.usage else command.qualified_name
-        usage: str = command.usage.replace("\n", f"\n{pref}")
+        usage = command.usage.replace("\n", f"\n{pref}")
 
-        description: str = command.description.format(pref)
+        description = command.description.format(prefix=pref)
 
-        cooldown: commands.CooldownMapping = command._buckets
-        cooldown_notify: str = "**Cooldown**\nNo cooldown"
+        cooldown = command._buckets
+        cooldown_notify = "**Cooldown**\nNo cooldown"
 
         if cooldown._cooldown:
-            _cd_time: float = cooldown._cooldown.per
+            _cd_time = cooldown._cooldown.per
             cooldown_notify = f"**Cooldown**\n{utils.format(_cd_time)} per {cooldown._type.name}"
 
         if command.name == "sfw":
@@ -117,7 +138,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         elif command.name == "nsfw":
             description += ", ".join(f"`{key}`" for key in self.nsfw_keys)
 
-        embed: discord.Embed = discord.Embed(
+        embed = discord.Embed(
             title=command.qualified_name,
             description=f"```\n{pref}{usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
         )
@@ -126,11 +147,11 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
 
     async def prepare_help_command(self, ctx: commands.Context, command: Optional[str] = None) -> None:
         await ctx.bot.wait_until_ready()
-        self.sfw_keys: List[str] = list(ctx.bot.image.sfw.keys())
+        self.sfw_keys = list(ctx.bot.image.sfw.keys())
         self.sfw_keys.sort()
         self._sfw_description: str = "```\n" + ", ".join(f"*{s.replace(' ', '_')}" for s in self.sfw_keys) + "\n```"
 
-        self.nsfw_keys: List[str] = list(ctx.bot.image.nsfw.keys())
+        self.nsfw_keys = list(ctx.bot.image.nsfw.keys())
         self.nsfw_keys.sort()
         self._nsfw_description: str = "```\n" + ", ".join(f"**{s.replace(' ', '_')}" for s in self.nsfw_keys) + "\n```"
 
@@ -138,7 +159,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         if len(string) > 20:
             return "There is no such long command."
 
-        word: str = await utils.fuzzy_match(string, bot.all_commands.keys())
+        word: str = await utils.fuzzy_match(string, [k for k in bot.all_commands.keys() if k not in IGNORE])
         return f"No command called `{string}` was found. Did you mean `{word}`?"
 
 
