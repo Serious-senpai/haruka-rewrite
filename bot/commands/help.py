@@ -159,7 +159,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         if len(string) > 20:
             return "There is no such long command."
 
-        word: str = await utils.fuzzy_match(string, [k for k in bot.all_commands.keys() if k not in IGNORE])
+        word: str = await utils.fuzzy_match(string, [k for k in bot.all_commands.keys() if k not in IGNORE], pattern=r"\*{0,2}\w+")
         return f"No command called `{string}` was found. Did you mean `{word}`?"
 
 

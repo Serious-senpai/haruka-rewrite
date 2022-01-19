@@ -119,12 +119,12 @@ def get_reply(message: discord.Message) -> Optional[discord.Message]:
     return message.reference.cached_message
 
 
-async def fuzzy_match(string: str, against: Iterator[str]) -> str:
+async def fuzzy_match(string: str, against: Iterator[str], *, pattern: str = r"\w+") -> str:
     args = ["python", "./bot/levenshtein.py"]
     args.append(string)
     args.extend(against)
 
     process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.PIPE)
     stdout, _ = await process.communicate()
-    match = re.search(r"\w+", stdout.decode("utf-8"))
+    match = re.search(pattern, stdout.decode("utf-8"))
     return match.group()
