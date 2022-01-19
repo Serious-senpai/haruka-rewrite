@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import os
 import re
+import traceback
 from typing import Any, Callable, Coroutine, TYPE_CHECKING
 
 import aiohttp
@@ -59,23 +60,20 @@ async def _favicon(request: WebRequest) -> web.Response:
 async def _pixiv_middleware(request: WebRequest, handler: Callable[[WebRequest], Coroutine[None, None, web.Response]]) -> web.Response:
     try:
         response = await handler(request)
-    except web.HTTPNotFound as exc:
+    except web.HTTPNotFound:
         match = PIXIV_PATH_PATTERN.fullmatch(request.path_qs)
         if match:
             artwork_id = match.group(1)
             artwork = await _pixiv.PixivArtwork.from_id(artwork_id, session=request.app.session)
             if not artwork:
-                raise
+                return web.HTTPNotFound()
 
             try:
                 await artwork.stream(session=request.app.session)
-            except _pixiv.StreamError:
-                raise exc
-
-            with open(f"./server/image/{artwork_id}.png", "rb") as f:
-                return web.Response(body=f.read(), status=304, content_type="application/octet-stream")
-
-        raise
+                response = await handler(request)
+            except BaseException as exc:
+                await request.app.report_error(exc)
+                return web.HTTPInternalServerError()
 
     return response
 
@@ -108,3 +106,8 @@ class WebApp(web.Application):
         content = str(content).replace("\n", "\nSERVER | ")
         self.logfile.write(f"SERVER | {content}\n")
         self.logfile.flush()
+
+    async def report_error(self, error: Exception) -> None:
+        self.log("An exception occured while running server.")
+        self.log("".join(traceback.format_exception(error.__class__, error, error.__traceback__)))
+        await self.bot.report("An exception has just occured in the `_server` module", send_state=False)
