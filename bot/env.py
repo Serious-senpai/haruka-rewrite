@@ -16,3 +16,7 @@ def get_database_url() -> str:
 
 def get_topgg_token() -> Optional[str]:
     return os.environ.get("TOPGG_TOKEN")
+
+
+def get_testing() -> bool:
+    return bool(os.environ.get("TESTING"))
