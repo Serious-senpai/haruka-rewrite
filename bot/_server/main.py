@@ -11,11 +11,11 @@ import asyncpg
 from aiohttp import web
 
 import _pixiv
-import env
 if TYPE_CHECKING:
     import haruka
 
 
+PIXIV_PATH_PATTERN = re.compile(r"/image/(\d{4,8}).png/?")
 if not os.path.exists("./server"):
     os.mkdir("./server")
 if not os.path.exists("./server/image"):
@@ -24,16 +24,10 @@ if not os.path.exists("./server/audio"):
     os.mkdir("./server/audio")
 
 
-PIXIV_PATH_PATTERN = re.compile(r"/image/(\d{4,8}).png/?")
-TESTING = env.get_testing()
-
-
 if TYPE_CHECKING:
     class WebRequest(web.Request):
         @property
         def app(self) -> WebApp: ...
-
-    RequestHandler = Callable[[WebRequest], Coroutine[None, None, web.Response]]
 
 
 routes = web.RouteTableDef()
@@ -63,16 +57,7 @@ async def _favicon(request: WebRequest) -> web.Response:
 
 
 @web.middleware
-async def _enforce_https_middleware(request: WebRequest, handler: RequestHandler) -> web.Response:
-    if TESTING or request.scheme == "https":
-        return await handler(request)
-
-    message = {"message": "Only HTTPS protocol is supported"}
-    return web.json_response(message, status=403)
-
-
-@web.middleware
-async def _pixiv_middleware(request: WebRequest, handler: RequestHandler) -> web.Response:
+async def _pixiv_middleware(request: WebRequest, handler: Callable[[WebRequest], Coroutine[None, None, web.Response]]) -> web.Response:
     try:
         response = await handler(request)
     except web.HTTPNotFound:
@@ -108,7 +93,6 @@ class WebApp(web.Application):
         self.session = self.bot.session
 
         super().__init__(middlewares=[
-            _enforce_https_middleware,
             _pixiv_middleware,
         ])
         self.add_routes(routes)
