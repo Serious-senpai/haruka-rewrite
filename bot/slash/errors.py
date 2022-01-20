@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import TYPE_CHECKING
 
 import discord
 
@@ -9,9 +9,6 @@ __all__ = (
     "NoPrivateMessage",
     "CommandInvokeError",
 )
-
-
-ET = TypeVar("ET", bound=BaseException)
 
 
 class SlashException(discord.DiscordException):
@@ -28,6 +25,10 @@ class NoPrivateMessage(CheckFailure):
 
 
 class CommandInvokeError(SlashException):
-    def __init__(self, command: str, original: ET) -> None:
-        self.original: ET = original
+
+    if TYPE_CHECKING:
+        original: Exception
+
+    def __init__(self, command: str, original: Exception) -> None:
+        self.original = original
         super().__init__(f"Command '{command}' raised an exception: {original.__class__.__name__}: {original}")

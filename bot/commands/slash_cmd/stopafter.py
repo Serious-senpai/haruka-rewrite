@@ -1,13 +1,10 @@
-from typing import Any, Dict, Optional
-
 import discord
 
 import slash
-from audio import MusicClient
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "stopafter",
     "type": 1,
     "description": "Tell the bot to disconnect after playing the current song",
@@ -18,7 +15,7 @@ json: Dict[str, Any] = {
 @slash.guild_only()
 async def _stopafter_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    player: Optional[MusicClient] = interaction.guild.voice_client
+    player = interaction.guild.voice_client
 
     if not player:
         return await interaction.followup.send("No currently connected player.")

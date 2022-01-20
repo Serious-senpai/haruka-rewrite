@@ -1,5 +1,4 @@
 import random
-from typing import Any, Dict, List
 
 import discord
 
@@ -8,7 +7,7 @@ import slash
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "tenor",
     "type": 1,
     "description": "Search tenor for an image",
@@ -24,13 +23,13 @@ json: Dict[str, Any] = {
 @bot.slash(json)
 async def _tenor_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    args: Dict[str, str] = slash.parse(interaction)
-    query: str = args["query"]
-    urls: List[str] = await _tenor.search(query)
+    args = slash.parse(interaction)
+    query = args["query"]
+    urls = await _tenor.search(query)
     if not urls:
         return await interaction.followup.send("No matching result was found.")
 
-    embed: discord.Embed = discord.Embed()
+    embed = discord.Embed()
     embed.set_image(url=random.choice(urls[:10]))
     embed.set_author(
         name=f"Tenor search for {query}",

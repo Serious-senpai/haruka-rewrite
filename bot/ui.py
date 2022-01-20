@@ -1,13 +1,28 @@
 import asyncio
-from typing import List, Optional, Union
+import sys
+from typing import List, Optional, Union, TYPE_CHECKING
 
 import discord
 
 
 class SelectMenu(discord.ui.Select):
+
+    if TYPE_CHECKING:
+        if sys.platform == "win32":
+            _loop: asyncio.ProactorEventLoop
+        else:
+            try:
+                import uvloop
+            except ImportError:
+                _loop: asyncio.SelectorEventLoop
+            else:
+                _loop: uvloop.Loop
+
+        _future: asyncio.Future
+
     def __init__(self, *, placeholder: str, options: List[discord.SelectOption]) -> None:
-        self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-        self._future: asyncio.Future = self._loop.create_future()
+        self._loop = asyncio.get_event_loop()
+        self._future = self._loop.create_future()
         super().__init__(placeholder=placeholder, options=options, min_values=1, max_values=1)
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -20,10 +35,12 @@ class SelectMenu(discord.ui.Select):
 
 class DropdownMenu(discord.ui.View):
 
-    children: List[SelectMenu]
+    if TYPE_CHECKING:
+        children: List[SelectMenu]
+        message: Optional[Union[discord.Message, discord.WebhookMessage]]
 
     def __init__(self, *, timeout: Optional[float] = 120.0) -> None:
-        self.message: Optional[Union[discord.Message, discord.WebhookMessage]] = None
+        self.message = None
         super().__init__(timeout=timeout)
 
     def stop(self) -> asyncio.Task:

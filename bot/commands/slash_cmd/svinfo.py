@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 import discord
 
 import slash
@@ -7,7 +5,7 @@ import info
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "svinfo",
     "type": 1,
     "description": "Get the information about the server.",

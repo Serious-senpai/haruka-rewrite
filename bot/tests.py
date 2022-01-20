@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, TYPE_CHECKING
 
 import _nhentai
 import _pixiv
@@ -9,10 +9,10 @@ import mal
 from core import bot
 
 
-NHENTAI_TESTS: Tuple[int, ...] = (177013,)
-PIXIV_TESTS: Tuple[int, ...] = (92390471,)
-URBAN_TESTS: Tuple[str, ...] = ("paimon", "hunter")
-YTDL_TESTS: Tuple[str, ...] = (
+NHENTAI_TESTS = (177013,)
+PIXIV_TESTS = (92390471,)
+URBAN_TESTS = ("paimon", "hunter")
+YTDL_TESTS = (
     "Hy9s13hWsoc",
     "n89SKAymNfA",
     "a9LDPn-MO4I",  # 256k DASH audio (format 141) via DASH manifest
@@ -22,51 +22,54 @@ YTDL_TESTS: Tuple[str, ...] = (
     "Z4Vy8R84T1U",  # Video with unsupported adaptive stream type formats
     "sJL6WA-aGkQ",  # Geo restricted to JP
 )
-ANIME_TESTS: Tuple[int, ...] = (8425,)
-MANGA_TESTS: Tuple[int, ...] = (1313,)
+ANIME_TESTS = (8425,)
+MANGA_TESTS = (1313,)
 
 
 class MiniInvidiousObject:
     """Class which only contains a video ID for testing"""
 
+    if TYPE_CHECKING:
+        id: str
+
     def __init__(self, id: str) -> None:
-        self.id: str = id
+        self.id = id
 
 
 async def nhentai_test(*, log: Callable[..., Any]) -> None:
     for id in NHENTAI_TESTS:
-        doujin: Optional[_nhentai.NHentai] = await _nhentai.NHentai.get(id)
+        doujin = await _nhentai.NHentai.get(id)
         log(f"Finished NHentai test for ID {id}: {doujin}")
 
 
 async def pixiv_test(*, log: Callable[..., Any]) -> None:
     for id in PIXIV_TESTS:
-        artwork: Optional[_pixiv.PixivArtwork] = await _pixiv.PixivArtwork.from_id(id, session=bot.session)
+        artwork = await _pixiv.PixivArtwork.from_id(id, session=bot.session)
         log(f"Finished Pixiv test for ID {id}: {artwork}")
 
 
 async def urban_test(*, log: Callable[..., Any]) -> None:
     for term in URBAN_TESTS:
-        result: Optional[_urban.UrbanSearch] = await _urban.UrbanSearch.search(term)
+        result = await _urban.UrbanSearch.search(term)
         log(f"Finished Urban test for term \"{term}\": {result}")
 
 
 async def ytdl_test(*, log: Callable[..., Any]) -> None:
     for id in YTDL_TESTS:
-        track: MiniInvidiousObject = MiniInvidiousObject(id)
-        ytdl_result: Optional[str] = await audio.InvidiousSource.get_source(track)
+        track = MiniInvidiousObject(id)
+        ytdl_result = await audio.InvidiousSource.get_source(track)
         log(f"Finished youtube-dl test for ID {id}: {ytdl_result}")
 
 
 async def anime_test(*, log: Callable[..., Any]) -> None:
     for id in ANIME_TESTS:
-        anime: Optional[mal.Anime] = await mal.Anime.get(id)
+        anime = await mal.Anime.get(id)
         log(f"Finished Anime test for ID {id}: {anime}")
 
 
 async def manga_test(*, log: Callable[..., Any]) -> None:
     for id in MANGA_TESTS:
-        manga: Optional[mal.Manga] = await mal.Manga.get(id)
+        manga = await mal.Manga.get(id)
         log(f"Finished Manga test for ID {id}: {manga}")
 
 

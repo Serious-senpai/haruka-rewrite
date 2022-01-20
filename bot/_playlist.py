@@ -107,10 +107,9 @@ class YouTubePlaylist:
             with contextlib.suppress(aiohttp.ClientError):
                 async with bot.session.get(f"{url}/api/v1/playlists/{id}", timeout=audio.TIMEOUT) as response:
                     if response.ok:
-                        data: Dict[str, Any] = await response.json()
+                        data = await response.json()
 
                         # Cache all tracks, though their descriptions are unavailable
-                        video: Dict[str, Any]
                         for video in data["videos"]:
                             video["api_url"] = url
                             await asyncio.to_thread(audio.save_to_memory, video)

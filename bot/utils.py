@@ -49,11 +49,11 @@ def format(time: float) -> str:
     elif time < 60:
         return "{:.2f} s".format(time)
     else:
-        days: int = int(time / 86400)
+        days = int(time / 86400)
         time -= days * 86400
-        hours: int = int(time / 3600)
+        hours = int(time / 3600)
         time -= hours * 3600
-        minutes: int = int(time / 60)
+        minutes = int(time / 60)
         time -= minutes * 60
 
         ret = []

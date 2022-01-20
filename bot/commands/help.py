@@ -149,17 +149,17 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         await ctx.bot.wait_until_ready()
         self.sfw_keys = list(ctx.bot.image.sfw.keys())
         self.sfw_keys.sort()
-        self._sfw_description: str = "```\n" + ", ".join(f"*{s.replace(' ', '_')}" for s in self.sfw_keys) + "\n```"
+        self._sfw_description = "```\n" + ", ".join(f"*{s.replace(' ', '_')}" for s in self.sfw_keys) + "\n```"
 
         self.nsfw_keys = list(ctx.bot.image.nsfw.keys())
         self.nsfw_keys.sort()
-        self._nsfw_description: str = "```\n" + ", ".join(f"**{s.replace(' ', '_')}" for s in self.nsfw_keys) + "\n```"
+        self._nsfw_description = "```\n" + ", ".join(f"**{s.replace(' ', '_')}" for s in self.nsfw_keys) + "\n```"
 
     async def command_not_found(self, string: str) -> str:
         if len(string) > 20:
             return "There is no such long command."
 
-        word: str = await utils.fuzzy_match(string, [k for k in bot.all_commands.keys() if k not in IGNORE], pattern=r"\*{0,2}\w+")
+        word = await utils.fuzzy_match(string, [k for k in bot.all_commands.keys() if k not in IGNORE], pattern=r"\*{0,2}\w+")
         return f"No command called `{string}` was found. Did you mean `{word}`?"
 
 

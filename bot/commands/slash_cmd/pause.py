@@ -1,13 +1,10 @@
-from typing import Any, Dict, Optional
-
 import discord
 
 import slash
-from audio import MusicClient
 from core import bot
 
 
-json: Dict[str, Any] = {
+json = {
     "name": "pause",
     "type": 1,
     "description": "Pause the playing audio",
@@ -18,7 +15,7 @@ json: Dict[str, Any] = {
 @slash.guild_only()
 async def _pause_slash(interaction: discord.Interaction):
     await interaction.response.defer()
-    player: Optional[MusicClient] = interaction.guild.voice_client
+    player = interaction.guild.voice_client
 
     if player:
         await player.operable.wait()
