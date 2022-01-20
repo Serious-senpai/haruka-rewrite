@@ -73,4 +73,8 @@ async def _youtube_slash(interaction: discord.Interaction):
     )
     embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
 
-    await interaction.followup.send(embed=embed)
+    button = discord.ui.Button(style=discord.ButtonStyle.link, url=url, label="Audio URL")
+    view = discord.ui.View()
+    view.add_item(button)
+
+    await interaction.followup.send(embed=embed, view=view)
