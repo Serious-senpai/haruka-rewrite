@@ -15,7 +15,6 @@ async def ping(url: str) -> None:
             print(await response.text())
 
 
-url: str
 try:
     url = sys.argv[1]
 except IndexError:
