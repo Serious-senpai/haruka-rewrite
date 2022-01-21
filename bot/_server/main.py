@@ -62,7 +62,7 @@ async def _pixiv_middleware(request: WebRequest, handler: Callable[[WebRequest],
         response = await handler(request)
     except web.HTTPNotFound:
         match = PIXIV_PATH_PATTERN.fullmatch(request.path_qs)
-        if match:
+        if match is not None:
             artwork_id = match.group(1)
             artwork = await _pixiv.PixivArtwork.from_id(artwork_id, session=request.app.session)
             if not artwork:

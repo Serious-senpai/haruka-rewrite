@@ -17,7 +17,7 @@ import env
 PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
 HOST = env.get_host()
 ID_PATTERN = re.compile(r"(?<!\d)\d{4,8}(?!\d)")
-URL_PATTERN = re.compile(r"https://www\.pixiv\.net/en/artworks/(\d{4,8})/?")
+URL_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?artworks/\d{4,8}/?")
 
 
 class StreamError(Exception):
@@ -163,6 +163,42 @@ class PixivArtwork:
         return []
 
     @classmethod
+    def parse_html(cls: Type[PixivArtwork], html: str) -> Optional[PixivArtwork]:
+        """Parse the HTML string of the artwork site into a ``PixivArtwork`` object.
+
+        Parameters
+        -----
+        html: ``str``
+            The HTML string
+        
+        Returns
+        -----
+        Optional[``PixivArtwork``]
+            The created ``PixivArtwork`` object
+        """
+        soup = bs4.BeautifulSoup(html, "html.parser")
+        content = soup.find("meta", attrs={"name": "preload-data"}).get("content")
+        if content:
+            data = json.loads(content)
+            id = int(list(data["illust"].keys())[0])
+            illust = data["illust"][str(id)]
+            user_id = int(illust.get("userId"))
+            ret = {
+                "title": illust.get("title"),
+                "id": id,
+                "xRestrict": illust.get("xRestrict"),
+                "url": illust.get("urls", {}).get("regular", discord.Embed.Empty),
+                "tags": list(tag["tag"] for tag in illust["tags"]["tags"]),
+                "width": illust.get("width"),
+                "height": illust.get("height"),
+                "userId": user_id,
+                "userName": illust.get("userName"),
+                "profileImageUrl": data["user"][str(user_id)]["image"],
+            }
+            return cls(ret)
+
+
+    @classmethod
     async def from_id(cls: Type[PixivArtwork], id: int, *, session: aiohttp.ClientSession) -> Optional[PixivArtwork]:
         """This function is a coroutine
 
@@ -184,25 +220,7 @@ class PixivArtwork:
             async with session.get(f"https://pixiv.net/en/artworks/{id}") as response:
                 if response.ok:
                     html = await response.text(encoding="utf-8")
-                    soup = bs4.BeautifulSoup(html, "html.parser")
-                    content = soup.find("meta", attrs={"name": "preload-data"}).get("content")
-                    if content:
-                        data = json.loads(content)
-                        illust = data["illust"][str(id)]
-                        user_id = int(illust.get("userId"))
-                        ret = {
-                            "title": illust.get("title"),
-                            "id": id,
-                            "xRestrict": illust.get("xRestrict"),
-                            "url": illust.get("urls", {}).get("regular", discord.Embed.Empty),
-                            "tags": list(tag["tag"] for tag in illust["tags"]["tags"]),
-                            "width": illust.get("width"),
-                            "height": illust.get("height"),
-                            "userId": user_id,
-                            "userName": illust.get("userName"),
-                            "profileImageUrl": data["user"][str(user_id)]["image"],
-                        }
-                        return cls(ret)
+                    return cls.parse_html(html)
 
 
 async def parse(query: str, *, session: aiohttp.ClientSession) -> Union[PixivArtwork, List[PixivArtwork]]:
@@ -233,10 +251,14 @@ async def parse(query: str, *, session: aiohttp.ClientSession) -> Union[PixivArt
         if artwork:
             return artwork
 
-    match = URL_PATTERN.fullmatch(query)
-    if match:
-        artwork = await PixivArtwork.from_id(match.group(1), session=session)
-        if artwork:
-            return artwork
+    if query.startswith("http"):
+        with contextlib.suppress(aiohttp.ClientError):
+            async with session.get(query) as response:
+                if response.ok:
+                    match = URL_PATTERN.fullmatch(str(response.url))
+                    if match is not None:
+                        # Valid URL, parse HTML to get the artwork
+                        html = await response.text(encoding="utf-8")
+                        return PixivArtwork.parse_html(html)
 
     return await PixivArtwork.search(query, session=session)
