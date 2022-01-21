@@ -202,7 +202,7 @@ class PartialInvidiousSource:
             with contextlib.suppress(aiohttp.ClientError):
                 async with bot.session.get(f"{url}/api/v1/search", params=params, timeout=TIMEOUT) as response:
                     if response.status == 200:
-                        json = await response.json()
+                        json = await response.json(encoding="utf-8")
                         items.extend(cls(data, url) for data in json[:max_results])
                         return items
 
@@ -415,7 +415,7 @@ class InvidiousSource(PartialInvidiousSource):
                     timeout=TIMEOUT,
                 ) as response:
                     if response.status == 200:
-                        js = await response.json()
+                        js = await response.json(encoding="utf-8")
                         js["api_url"] = url
                         await asyncio.to_thread(save_to_memory, js)
                         return cls(js, url)

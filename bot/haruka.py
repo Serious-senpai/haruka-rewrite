@@ -29,6 +29,7 @@ class Haruka(commands.Bot, SlashMixin):
     if TYPE_CHECKING:
         _command_count: Dict[str, List[commands.Context]]
         _slash_command_count: Dict[str, List[discord.Interaction]]
+        _eval_task: Optional[asyncio.Task]
 
         app: _server.WebApp
         conn: asyncpg.Pool
@@ -185,7 +186,7 @@ class Haruka(commands.Bot, SlashMixin):
         # Fetch repository's latest commits
         async with self.session.get("https://api.github.com/repos/Saratoga-CV6/haruka-rewrite/commits") as response:
             if response.ok:
-                js = await response.json()
+                js = await response.json(encoding="utf-8")
                 desc = []
 
                 for commit in js[:4]:

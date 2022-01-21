@@ -107,7 +107,7 @@ class YouTubePlaylist:
             with contextlib.suppress(aiohttp.ClientError):
                 async with bot.session.get(f"{url}/api/v1/playlists/{id}", timeout=audio.TIMEOUT) as response:
                     if response.ok:
-                        data = await response.json()
+                        data = await response.json(encoding="utf-8")
 
                         # Cache all tracks, though their descriptions are unavailable
                         for video in data["videos"]:

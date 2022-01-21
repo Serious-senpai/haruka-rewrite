@@ -115,7 +115,7 @@ class WaifuPics(ImageSource):
         }
         async with self.session.get(self.endpoints_url) as response:
             if response.status == 200:
-                data = await response.json()
+                data = await response.json(encoding="utf-8")
 
         return data["sfw"], data["nsfw"]
 
@@ -123,7 +123,7 @@ class WaifuPics(ImageSource):
         url = f"https://api.waifu.pics/{mode}/{category}"
         async with self.session.get(url) as response:
             if response.status == 200:
-                json = await response.json()
+                json = await response.json(encoding="utf-8")
                 return json["url"]
 
         return
@@ -142,7 +142,7 @@ class WaifuIm(ImageSource):
 
         async with self.session.get(self.endpoints_url) as response:
             if response.status == 200:
-                data = await response.json()
+                data = await response.json(encoding="utf-8")
 
         return data["sfw"], data["nsfw"]
 
@@ -150,7 +150,7 @@ class WaifuIm(ImageSource):
         url = f"https://api.waifu.im/{mode}/{category}"
         async with self.session.get(url) as response:
             if response.status == 200:
-                json = await response.json()
+                json = await response.json(encoding="utf-8")
                 return json["images"][0]["url"]
 
         return
@@ -195,7 +195,7 @@ class NekosLife(ImageSource):
 
         async with self.session.get(self.endpoints_url) as response:
             if response.ok:
-                js = await response.json()
+                js = await response.json(encoding="utf-8")
                 for endpoint in js:
                     if "/api/v2/img/" in endpoint:
                         categories = [category.group(1) for category in re.finditer(r"'(\w+)'", endpoint)]
@@ -224,7 +224,7 @@ class NekosLife(ImageSource):
         url = f"https://nekos.life/api/v2/img/{category}"
         async with self.session.get(url) as response:
             if response.status == 200:
-                json = await response.json()
+                json = await response.json(encoding="utf-8")
                 return json["url"]
 
         return
@@ -249,7 +249,7 @@ class Asuna(ImageSource):
 
         async with self.session.get(self.endpoints_url) as response:
             if response.ok:
-                json = await response.json()
+                json = await response.json(encoding="utf-8")
                 endpoints = json["allEndpoints"]
 
                 for name in data["sfw"]:
@@ -265,7 +265,7 @@ class Asuna(ImageSource):
         category = self.converter.get(category, category)
         async with self.session.get(f"https://asuna.ga/api/{category}") as response:
             if response.ok:
-                json = await response.json()
+                json = await response.json(encoding="utf-8")
                 return json["url"]
 
         return

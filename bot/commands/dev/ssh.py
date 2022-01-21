@@ -7,12 +7,6 @@ import utils
 from core import bot
 
 
-def save_to(content: str) -> discord.File:
-    with open("./ssh.txt", "w", encoding="utf-8") as f:
-        f.write(content)
-    return discord.File("./ssh.txt")
-
-
 @bot.command(
     name="ssh",
     aliases=["bash", "sh"],
@@ -20,25 +14,17 @@ def save_to(content: str) -> discord.File:
     usage="ssh <command>",
 )
 @commands.is_owner()
+@commands.max_concurrency(1)
 async def _ssh_cmd(ctx: commands.Context, *, cmd: str):
-    process = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.STDOUT,
-    )
-
-    try:
+    with open("./ssh.txt", "w", encoding="utf-8") as writer:
         with utils.TimingContextManager() as measure:
-            stdout, _ = await asyncio.wait_for(process.communicate(), timeout=30.0)
-    except asyncio.TimeoutError:
-        process.kill()
-        await ctx.send(f"Process didn't complete within 30 seconds and was killed. Return code `{process.returncode}`")
-    else:
-        output = stdout.decode("utf-8")
-        notify = f"Process completed with return code {process.returncode} after {utils.format(measure.result)}"
+            try:
+                process = await asyncio.create_subprocess_shell(cmd, stdout=writer, stderr=writer)
+                await asyncio.wait_for(process.communicate(), timeout=30.0)
+            except asyncio.TimeoutError:
+                process.kill()
 
-        if output:
-            f = await asyncio.to_thread(save_to, output)
-            await ctx.send(notify, file=f)
-        else:
-            await ctx.send(notify)
+    await ctx.send(
+        f"Process completed with return code {process.returncode} after {utils.format(measure.result)}",
+        file=discord.File("./ssh.txt"),
+    )

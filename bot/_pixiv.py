@@ -152,7 +152,7 @@ class PixivArtwork:
         """
         async with session.get(f"https://www.pixiv.net/ajax/search/artworks/{query}") as response:
             if response.ok:
-                js = await response.json()
+                js = await response.json(encoding="utf-8")
                 try:
                     artworks = js["body"]["illustManga"]["data"]
                 except KeyError:

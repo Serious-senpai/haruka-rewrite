@@ -1,8 +1,6 @@
-import asyncio
-import io
+import contextlib
 import textwrap
 import traceback
-from typing import Any
 
 import discord
 from discord.ext import commands
@@ -12,14 +10,7 @@ from core import bot
 
 
 INDENT = " " * 4
-IN_PROGRESS = asyncio.Event()
-IN_PROGRESS.set()
 bot._eval_task = None
-
-
-def write(content: Any):
-    with open("eval.txt", "w", encoding="utf-8") as f:
-        f.write(content)
 
 
 @bot.command(
@@ -29,48 +20,36 @@ def write(content: Any):
     usage="eval <code>",
 )
 @commands.is_owner()
+@commands.max_concurrency(1)
 async def _eval_cmd(ctx: commands.Context, *, code: str):
-    if not IN_PROGRESS.is_set():
-        return await ctx.send("Another `eval` operation is in progress, please wait for it to terminate.")
-
-    output = io.StringIO()
-    env = {}
-    env.update(__stdout=output, bot=bot, ctx=ctx)
-
     code = code.strip("`")
     code = code.removeprefix("python")
     code = code.removeprefix("py")
-    code = textwrap.indent(code, INDENT * 2)
+    code = textwrap.indent(code, INDENT)
     code = code.strip("\n")
-    code = f"import contextlib\nasync def __exec():\n{INDENT}with contextlib.redirect_stdout(__stdout):\n" + code
+    code = f"async def func():\n" + code
 
-    IN_PROGRESS.clear()
-
+    env = {
+        "bot": bot,
+        "ctx": ctx,
+    }
     try:
-        exec(code, env)
+        exec(code, env, env)
     except BaseException:
-        await ctx.send("Cannot create coroutine:\n```\n" + traceback.format_exc() + "\n```")
-        return IN_PROGRESS.set()
+        await ctx.send("Cannot create coroutine\n```\n" + traceback.format_exc() + "\n```")
+        return
 
-    with utils.TimingContextManager() as measure:
-        bot._eval_task = bot.loop.create_task(locals()["env"]["__exec"]())
+    with open("eval.txt", "w", encoding="utf-8") as writer:
+        with contextlib.redirect_stdout(writer):
+            with utils.TimingContextManager() as measure:
+                bot._eval_task = bot.loop.create_task(env["func"]())
 
-        try:
-            await bot._eval_task
-        except asyncio.CancelledError:
-            pass
-        except BaseException:
-            output.write(traceback.format_exc())
+                try:
+                    await bot._eval_task
+                except BaseException:
+                    writer.write(traceback.format_exc())
 
-    IN_PROGRESS.set()
-    content = output.getvalue()
-
-    if content:
-        await asyncio.to_thread(write, content)
-
-        await ctx.send(
-            f"Process completed after {utils.format(measure.result)}.",
-            file=discord.File("eval.txt"),
-        )
-    else:
-        await ctx.send(f"Process completed after {utils.format(measure.result)}.")
+    await ctx.send(
+        f"Process completed after {utils.format(measure.result)}.",
+        file=discord.File("eval.txt"),
+    )
