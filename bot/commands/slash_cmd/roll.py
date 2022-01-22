@@ -29,7 +29,6 @@ json = {
 
 @bot.slash(json)
 async def _roll_slash(interaction: discord.Interaction):
-    await interaction.response.defer()
     args = slash.parse(interaction)
     i = args["first-integer"]
     j = args["second-integer"]
@@ -39,4 +38,4 @@ async def _roll_slash(interaction: discord.Interaction):
     else:
         ans = random.randint(j, i)
 
-    await interaction.followup.send(f"<@!{interaction.user.id}> got **{ans}**")
+    await interaction.response.send_message(f"<@!{interaction.user.id}> got **{ans}**")

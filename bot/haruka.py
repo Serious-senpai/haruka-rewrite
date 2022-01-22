@@ -15,6 +15,7 @@ import topgg
 import youtube_dl
 from aiohttp import web
 from discord.ext import commands, tasks
+from discord.state import ConnectionState
 from discord.utils import escape_markdown as escape
 
 import _server
@@ -24,11 +25,19 @@ import task
 from slash import SlashMixin
 
 
+if TYPE_CHECKING:
+    class _ConnectionState(ConnectionState):
+        conn: asyncpg.Pool
+        task: task.TaskManager
+
+
 class Haruka(commands.Bot, SlashMixin):
 
     if TYPE_CHECKING:
         _command_count: Dict[str, List[commands.Context]]
         _slash_command_count: Dict[str, List[discord.Interaction]]
+        _connection: _ConnectionState
+        _dump_bin: Dict[int, discord.Interaction]
         _eval_task: Optional[asyncio.Task]
 
         app: _server.WebApp
@@ -69,9 +78,11 @@ class Haruka(commands.Bot, SlashMixin):
         await self.prepare_database()
 
         # Create side session
-        user_agent = youtube_dl.utils.random_user_agent()
-        self.session = aiohttp.ClientSession(headers={"User-Agent": user_agent})
-        self.log(f"Created side session, using User-Agent: {user_agent}")
+        headers = {
+            "User-Agent": youtube_dl.utils.random_user_agent(),
+        }
+        self.session = aiohttp.ClientSession(headers=headers)
+        self.log("Created side session")
 
         # Start server asynchronously
         self.app = _server.WebApp(bot=self)

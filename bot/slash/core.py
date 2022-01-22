@@ -30,6 +30,7 @@ __all__ = (
 
 
 PARAMS_MAPPING = {
+    1: subcommand_converter,
     6: user_converter,
     7: role_converter,
     8: channel_converter,
@@ -190,9 +191,8 @@ def parse(interaction: discord.Interaction) -> Dict[str, Any]:
         key = option["name"]
         converter = PARAMS_MAPPING.get(option["type"])
 
-        value: Any
-        if converter:
-            value = converter(interaction, option["value"])
+        if converter is not None:
+            value = converter(interaction, **option)
         else:
             value = option["value"]
 
