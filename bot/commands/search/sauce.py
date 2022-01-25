@@ -1,5 +1,7 @@
+import asyncio
 from typing import Optional
 
+import discord
 from discord.ext import commands
 
 import emoji_ui
@@ -7,22 +9,10 @@ import saucenao
 from core import bot
 
 
-@bot.command(
-    name="sauce",
-    description="Find the image source with saucenao.",
-    usage="sauce <URL to image>\nsauce <attachment>",
-)
-@commands.cooldown(1, 2, commands.BucketType.user)
-async def _sauce_cmd(ctx: commands.Context, src: Optional[str] = None):
-    if src is None:
-        try:
-            src = ctx.message.attachments[0].url
-        except IndexError:
-            raise commands.UserInputError
-
-    results = await saucenao.SauceResult.get_sauce(src)
+async def _send_single_sauce(target: discord.abc.Messageable, image_url: str) -> None:
+    results = await saucenao.SauceResult.get_sauce(image_url)
     if not results:
-        return await ctx.send("Cannot find the image sauce!")
+        return await target.send("Cannot find the image sauce!")
 
     total = len(results)
     embeds = []
@@ -36,4 +26,41 @@ async def _sauce_cmd(ctx: commands.Context, src: Optional[str] = None):
         embeds.append(embed)
 
     display = emoji_ui.NavigatorPagination(embeds)
-    await display.send(ctx.channel)
+    await display.send(target)
+
+
+@bot.command(
+    name="sauce",
+    description="Find the image source with saucenao.",
+    usage="sauce <URL to image>\nsauce <attachment>",
+)
+@commands.cooldown(1, 2, commands.BucketType.user)
+async def _sauce_cmd(ctx: commands.Context, image_url: Optional[str] = None):
+    if image_url is None and not ctx.message.attachments:
+        raise commands.UserInputError
+
+    if image_url is not None:
+        return await _send_single_sauce(ctx.channel, image_url)
+
+    embeds = []
+    image_total = len(ctx.message.attachments)
+    if image_total == 1:
+        return await _send_single_sauce(ctx.channel, ctx.message.attachments[0].url)
+
+    for image_index, attachment in enumerate(ctx.message.attachments):
+        results = await saucenao.SauceResult.get_sauce(attachment.url)
+        result_total = len(results)
+        for result_index, result in enumerate(results):
+            embed = result.create_embed()
+            embed.set_author(
+                name="Image search result",
+                icon_url=bot.user.avatar.url,
+            )
+            embed.set_footer(text=f"Displaying result {result_index + 1}/{result_total} (image {image_index + 1}/{image_total})")
+            embeds.append(embed)
+
+    if embeds:
+        display = emoji_ui.NavigatorPagination(embeds)
+        await display.send(ctx.channel)
+    else:
+        await ctx.send("Cannot find the sauce for any of the images provided!")
