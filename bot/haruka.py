@@ -143,6 +143,9 @@ class Haruka(commands.Bot, SlashMixin):
     async def __do_startup(self) -> None:
         import tests
 
+        # Start tests
+        test_running_task = self.loop.create_task(tests.run_all_tests())
+
         # Get bot owner
         app_info = await self.application_info()
         if app_info.team:
@@ -213,8 +216,8 @@ class Haruka(commands.Bot, SlashMixin):
                 self.log(f"Warning: Unable to fetch repository's commits (status {response.status})")
                 self.latest_commits = "*No data*"
 
-        # Run tests
-        await tests.run_all_tests()
+        # Complete tests
+        await test_running_task
 
         try:
             await self.report("Haruka is ready!", send_state=False)

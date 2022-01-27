@@ -319,49 +319,10 @@ class ImageClient(Generic[IT]):
         """
         self.sfw = {}
         self.nsfw = {}
-        for command in self.bot.walk_commands():
-            if command.name.startswith("*"):
-                self.bot.remove_command(command.name)
 
         await asyncio.gather(*[self._register(source(self.session, self)) for source in self.sources])
-        self.bot.log(f"Loaded {len(self.sources)} ImageSource objects, preparing commands...")
+        self.bot.log(f"Loaded {len(self.sources)} ImageSource objects.")
 
-        async def _wrapped_callback(category: str, mode: Literal["sfw", "nsfw"], ctx: commands.Context):
-            embed = discord.Embed()
-            embed.set_author(
-                name=f"{ctx.author.name}, this is your image!",
-                icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
-            )
-            embed.set_image(url=await self.get(category, mode=mode))
-
-            await ctx.send(embed=embed)
-
-        command: commands.Command
-        for category in self.sfw:
-            command = commands.Command(
-                functools.partial(_wrapped_callback, category, "sfw"),
-                name="*" + category.replace(" ", "_"),
-                description=f"Send you a SFW `{category}` image",
-                cooldown=commands.CooldownMapping(
-                    commands.Cooldown(1, 2),
-                    commands.BucketType.user,
-                ),
-            )
-            self.bot.add_command(command)
-
-        for category in self.nsfw:
-            command = commands.Command(
-                commands.is_nsfw()(functools.partial(_wrapped_callback, category, "nsfw")),
-                name="**" + category.replace(" ", "_"),
-                description=f"Send you a NSFW `{category}` image",
-                cooldown=commands.CooldownMapping(
-                    commands.Cooldown(1, 2),
-                    commands.BucketType.user,
-                ),
-            )
-            self.bot.add_command(command)
-
-        self.bot.log("Added all image commands")
 
     async def _register(self, source: IT) -> None:
         """This function is a coroutine

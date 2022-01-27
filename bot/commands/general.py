@@ -221,8 +221,6 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
 async def _source_cmd(ctx: commands.Context, *, cmd: str):
     if cmd.lower() == "help":
         file = discord.File("./bot/commands/help.py", filename="source.py")
-    elif cmd.startswith("*"):
-        file = discord.File("./bot/image.py", filename="source.py")
     else:
         command = bot.get_command(cmd)
         if not command:

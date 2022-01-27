@@ -42,22 +42,12 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         }
         super().__init__(command_attrs=command_attrs)
 
-    def template(self, page: int, pref: str) -> discord.Embed:
-        embed = discord.Embed(description=f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`.")
-        embed.set_author(
-            name=f"{bot.user} Command List",
-            icon_url=bot.user.avatar.url,
-        )
-        embed.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
-        embed.set_footer(text=f"Current prefix: {pref} | Page {page}/4")
-        return embed
-
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]) -> None:
         # Initialize
         pref = await prefix(bot, self.context.message)
-        help_em = []
+        embeds = []
 
-        embed = self.template(1, pref)
+        embed = discord.Embed()
         embed.add_field(
             name="💬 General",
             value="```\nabout, avatar, emoji, help, info, ping, prefix, remind, say, source, svinfo\n```",
@@ -72,9 +62,9 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
             name="🔍 Searching",
             value="```\nanime, manga, nhentai, sauce, urban, youtube\n```",
         )
-        help_em.append(embed)
+        embeds.append(embed)
 
-        embed = self.template(2, pref)
+        embed = discord.Embed()
         embed.add_field(
             name="🖼️ Images",
             value="```\ndanbooru, nsfw, pixiv, sfw, tenor, zerochan\n```",
@@ -90,25 +80,18 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
             value="```\nban, kick, mute, unmute\n```",
             inline=False,
         )
-        help_em.append(embed)
+        embeds.append(embed)
 
-        embed = self.template(3, pref)
-        embed.add_field(
-            name="🖼️ SFW images",
-            value=f"Remember to add the prefix `{pref}`! E.g. `{pref}*waifu`\n" + self._sfw_description,
-            inline=False,
-        )
-        help_em.append(embed)
+        for index, embed in enumerate(embeds):
+            embed.description = f"You can also invoke command with <@!{bot.user.id}> as a prefix.\nTo get help for a command, type `{pref}help <command>`."
+            embed.set_author(
+                name=f"{bot.user} Command List",
+                icon_url=bot.user.avatar.url,
+            )
+            embed.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
+            embed.set_footer(text=f"Current prefix: {pref} | Page {index + 1}/{len(embeds)}")
 
-        embed = self.template(4, pref)
-        embed.add_field(
-            name="🔞 NSFW images",
-            value=f"Remember to add the prefix `{pref}`! E.g. `{pref}**waifu`\n" + self._nsfw_description,
-            inline=False,
-        )
-        help_em.append(embed)
-
-        display = emoji_ui.Pagination(help_em)
+        display = emoji_ui.Pagination(embeds)
         await display.send(self.context)
 
     async def send_command_help(self, command: commands.Command) -> None:
@@ -149,17 +132,15 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         await ctx.bot.wait_until_ready()
         self.sfw_keys = list(ctx.bot.image.sfw.keys())
         self.sfw_keys.sort()
-        self._sfw_description = "```\n" + ", ".join(f"*{s.replace(' ', '_')}" for s in self.sfw_keys) + "\n```"
 
         self.nsfw_keys = list(ctx.bot.image.nsfw.keys())
         self.nsfw_keys.sort()
-        self._nsfw_description = "```\n" + ", ".join(f"**{s.replace(' ', '_')}" for s in self.nsfw_keys) + "\n```"
 
     async def command_not_found(self, string: str) -> str:
         if len(string) > 20:
             return "There is no such long command."
 
-        word = await utils.fuzzy_match(string, [k for k in bot.all_commands.keys() if k not in IGNORE], pattern=r"\*{0,2}\w+")
+        word = await utils.fuzzy_match(string, [k for k in bot.all_commands.keys() if k not in IGNORE])
         return f"No command called `{string}` was found. Did you mean `{word}`?"
 
 
