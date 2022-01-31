@@ -12,6 +12,7 @@ from aiohttp import web
 
 import _pixiv
 import env
+import image
 if TYPE_CHECKING:
     import haruka
 
@@ -24,8 +25,6 @@ if not os.path.exists("./server/image"):
     os.mkdir("./server/image")
 if not os.path.exists("./server/audio"):
     os.mkdir("./server/audio")
-if not os.path.exists("./server/storage"):
-    os.mkdir("./server/storage")
 
 
 if TYPE_CHECKING:
@@ -33,12 +32,13 @@ if TYPE_CHECKING:
         @property
         def app(self) -> WebApp: ...
 
+    Handler = Callable[[WebRequest], Coroutine[None, None, web.Response]]
+
 
 routes = web.RouteTableDef()
 routes.static("/assets", "./bot/assets/server")
 routes.static("/image", "./server/image")
 routes.static("/audio", "./server/audio")
-routes.static("/storage", "./server/storage")
 
 
 @routes.get("/")
@@ -56,23 +56,30 @@ async def _reload_page(request: WebRequest) -> web.Response:
     raise web.HTTPFound("/")
 
 
-@routes.post("/upload/{filename}")
-async def _upload_api(request: WebRequest) -> web.Response:
-    index = request.app._storage_index
-    filename = request.match_info["filename"]
-    if filename is None:
-        err = {"message": "Please provide a filename."}
-        return web.json_response(err, status=400)
+@routes.get("/img")
+async def _img_api(request: WebRequest) -> web.Response:
+    mode = request.query.get("mode")
+    category = request.query.get("category")
+    try:
+        image_url = await request.app.bot.image.get(category, mode=mode)
+    except image.CategoryNotFound:
+        raise web.HTTPNotFound
+    else:
+        if not image_url:
+            raise web.HTTPNotFound
 
-    with open(f"./server/storage/{index}_{filename}", "wb", buffering=0) as f:
-        request.app._storage_index += 1
-        while data := await request.content.read(4096):
-            f.write(data)
+        result = {"url": image_url}
+        return web.json_response(result)
 
-    ret = {
-        "url": f"{HOST}/storage/{index}_{filename}",
+
+@routes.get("/img/endpoints")
+async def _img_endpoints_api(request: WebRequest) -> web.Response:
+    client = request.app.bot.image
+    data = {
+        "sfw": list(client.sfw.keys()),
+        "nsfw": list(client.nsfw.keys()),
     }
-    return web.json_response(ret)
+    return web.json_response(data)
 
 
 @routes.get("/favicon.ico")
@@ -81,7 +88,13 @@ async def _favicon(request: WebRequest) -> web.Response:
 
 
 @web.middleware
-async def _pixiv_middleware(request: WebRequest, handler: Callable[[WebRequest], Coroutine[None, None, web.Response]]) -> web.Response:
+async def _img_middleware(request: WebRequest, handler: Handler) -> web.Response:
+    await request.app.bot.image.wait_until_ready()
+    return await handler(request)
+
+
+@web.middleware
+async def _pixiv_middleware(request: WebRequest, handler: Handler) -> web.Response:
     try:
         return await handler(request)
     except web.HTTPNotFound:
@@ -105,7 +118,6 @@ async def _pixiv_middleware(request: WebRequest, handler: Callable[[WebRequest],
 class WebApp(web.Application):
 
     if TYPE_CHECKING:
-        _storage_index: int
         bot: haruka.Haruka
         pool: asyncpg.Pool
         logfile: io.TextIOWrapper
@@ -116,8 +128,6 @@ class WebApp(web.Application):
         self.pool = self.bot.conn
         self.logfile = self.bot.logfile
         self.session = self.bot.session
-
-        self._storage_index = 0
 
         super().__init__(middlewares=[
             _pixiv_middleware,

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import functools
 import random
 import re
 from typing import (
@@ -18,8 +17,6 @@ from typing import (
 )
 
 import aiohttp
-import discord
-from discord.ext import commands
 
 if TYPE_CHECKING:
     import haruka
@@ -292,6 +289,7 @@ class ImageClient(Generic[IT]):
         All the ``ImageSource`` that this client contains.
     """
     __slots__ = (
+        "_ready",
         "bot",
         "sfw",
         "nsfw",
@@ -299,6 +297,7 @@ class ImageClient(Generic[IT]):
         "sources",
     )
     if TYPE_CHECKING:
+        _ready: asyncio.Event
         bot: haruka.Haruka
         session: aiohttp.ClientSession
         sources: List[Type[IT]]
@@ -306,6 +305,7 @@ class ImageClient(Generic[IT]):
         nsfw: Dict[str, List[IT]]
 
     def __init__(self, bot: haruka.Haruka, *sources) -> None:
+        self._ready = asyncio.Event()
         self.bot = bot
         self.session = bot.session
         self.sources = sources
@@ -322,7 +322,7 @@ class ImageClient(Generic[IT]):
 
         await asyncio.gather(*[self._register(source(self.session, self)) for source in self.sources])
         self.bot.log(f"Loaded {len(self.sources)} ImageSource objects.")
-
+        self._ready.set()
 
     async def _register(self, source: IT) -> None:
         """This function is a coroutine
@@ -353,6 +353,14 @@ class ImageClient(Generic[IT]):
                 self.nsfw[endpoint].append(source)
 
         self.bot.log(f"Loaded {len(sfw)} SFW endpoints and {len(nsfw)} NSFW endpoints from {source.__class__.__name__}")
+
+    async def wait_until_ready(self) -> None:
+        """This function is a coroutine
+        
+        Asynchronously block until all image categories have
+        been loaded.
+        """
+        await self._ready.wait()
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         """This function is a coroutine

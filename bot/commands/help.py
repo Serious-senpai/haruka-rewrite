@@ -1,4 +1,6 @@
-from typing import Dict, List, Mapping, Optional
+from __future__ import annotations
+
+from typing import List, Mapping, Optional, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
@@ -6,6 +8,8 @@ from discord.ext import commands
 import utils
 import emoji_ui
 from core import bot, prefix
+if TYPE_CHECKING:
+    import haruka
 
 
 IGNORE = (
@@ -27,6 +31,11 @@ IGNORE = (
     "threads",
     "trace",
 )
+
+
+if TYPE_CHECKING:
+    class Context(commands.Context):
+        bot: haruka.Haruka
 
 
 class CustomHelpCommand(commands.MinimalHelpCommand):
@@ -128,8 +137,8 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         embed.set_author(name=f"{self.context.author.name}, this is an instruction for {command.qualified_name}!", icon_url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
         await self.context.send(embed=embed)
 
-    async def prepare_help_command(self, ctx: commands.Context, command: Optional[str] = None) -> None:
-        await ctx.bot.wait_until_ready()
+    async def prepare_help_command(self, ctx: Context, command: Optional[str] = None) -> None:
+        await ctx.bot.image.wait_until_ready()
         self.sfw_keys = list(ctx.bot.image.sfw.keys())
         self.sfw_keys.sort()
 

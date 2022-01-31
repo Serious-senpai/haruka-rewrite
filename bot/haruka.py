@@ -84,6 +84,16 @@ class Haruka(commands.Bot, SlashMixin):
         self.session = aiohttp.ClientSession(headers=headers)
         self.log("Created side session")
 
+        # Load image client
+        self.image = image.ImageClient(
+            self,
+            image.WaifuPics,
+            image.WaifuIm,
+            image.NekosLife,
+            image.Asuna,
+        )
+        self.log("Loaded image client")
+
         # Start server asynchronously
         self.app = _server.WebApp(bot=self)
         self.runner = web.AppRunner(self.app)
@@ -165,17 +175,10 @@ class Haruka(commands.Bot, SlashMixin):
                 await self.conn.execute(f"INSERT INTO inactivity VALUES ('{guild.id}', $1);", now)
         self.log("Initialized all guild inactivity checks")
 
-        # Load bot helpers
-        self.image = image.ImageClient(
-            self,
-            image.WaifuPics,
-            image.WaifuIm,
-            image.NekosLife,
-            image.Asuna,
-        )
+        # Load task manager
         self.task = task.TaskManager(self)
         self._connection.task = self.task
-        self.log("Loaded all bot helpers.")
+        self.log("Loaded task manager.")
 
         # Keep the server alive
         try:
