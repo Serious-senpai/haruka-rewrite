@@ -35,7 +35,7 @@ async def _about_cmd(ctx: commands.Context):
     )
     embed.add_field(
         name="Links",
-        value=f"[Top.gg](https://top.gg/bot/848178172536946708)\n[GitHub](https://github.com/Saratoga-CV6/haruka-rewrite)\n[Website]({env.get_host()})",
+        value=f"[Top.gg](https://top.gg/bot/848178172536946708)\n[GitHub](https://github.com/Serious-senpai/haruka-rewrite)\n[Website]({env.get_host()})",
     )
     await ctx.send(embed=embed)
 

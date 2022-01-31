@@ -201,7 +201,7 @@ class Haruka(commands.Bot, SlashMixin):
             )
 
         # Fetch repository's latest commits
-        async with self.session.get("https://api.github.com/repos/Saratoga-CV6/haruka-rewrite/commits") as response:
+        async with self.session.get("https://api.github.com/repos/Serious-senpai/haruka-rewrite/commits") as response:
             if response.ok:
                 js = await response.json(encoding="utf-8")
                 desc = []

@@ -19,7 +19,7 @@ async def _sfw_cmd(ctx: commands.Context, *, category: str):
     except image.CategoryNotFound:
         return await ctx.send(f"No category named `{category}` was found.")
 
-    embed = discord.Embed(description="Check out this [Android app](https://github.com/Saratoga-CV6/waifu-generator/releases/latest) to view images directly on your phone!")
+    embed = discord.Embed(description="Check out this [Android app](https://github.com/Serious-senpai/waifu-generator/releases/latest) to view images directly on your phone!")
     embed.set_author(
         name=f"{ctx.author.name}, this is your image!",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
