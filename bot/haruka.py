@@ -39,6 +39,7 @@ class Haruka(commands.Bot, SlashMixin):
         _connection: _ConnectionState
         _dump_bin: Dict[int, discord.Interaction]
         _eval_task: Optional[asyncio.Task]
+        _image: image.ImageClient[image.ImageSource]
 
         app: _server.WebApp
         conn: asyncpg.Pool
@@ -85,7 +86,7 @@ class Haruka(commands.Bot, SlashMixin):
         self.log("Created side session")
 
         # Load image client
-        self.image = image.ImageClient(
+        self._image = image.ImageClient(
             self,
             image.WaifuPics,
             image.WaifuIm,
@@ -321,6 +322,10 @@ class Haruka(commands.Bot, SlashMixin):
         )
 
         return embed
+
+    @property
+    def image(self) -> image.ImageClient[image.ImageSource]:
+        return self._image
 
     @tasks.loop(minutes=10)
     async def _keep_alive(self) -> None:

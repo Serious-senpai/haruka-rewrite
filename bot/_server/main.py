@@ -60,16 +60,13 @@ async def _reload_page(request: WebRequest) -> web.Response:
 async def _img_api(request: WebRequest) -> web.Response:
     mode = request.query.get("mode")
     category = request.query.get("category")
+    host, url = await request.app.bot.image.get_url(category, mode=mode)
     try:
-        image_url = await request.app.bot.image.get(category, mode=mode)
+        data = {"host": host, "url": url}
     except image.CategoryNotFound:
         raise web.HTTPNotFound
     else:
-        if not image_url:
-            raise web.HTTPNotFound
-
-        result = {"url": image_url}
-        return web.json_response(result)
+        return web.json_response(data)
 
 
 @routes.get("/img/endpoints")

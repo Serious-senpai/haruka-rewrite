@@ -170,7 +170,7 @@ class PixivArtwork:
         -----
         html: ``str``
             The HTML string
-        
+
         Returns
         -----
         Optional[``PixivArtwork``]
@@ -196,7 +196,6 @@ class PixivArtwork:
                 "profileImageUrl": data["user"][str(user_id)]["image"],
             }
             return cls(ret)
-
 
     @classmethod
     async def from_id(cls: Type[PixivArtwork], id: int, *, session: aiohttp.ClientSession) -> Optional[PixivArtwork]:

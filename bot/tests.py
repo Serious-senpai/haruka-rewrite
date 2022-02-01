@@ -73,6 +73,20 @@ async def manga_test(*, log: Callable[..., Any]) -> None:
         log(f"Finished Manga test for ID {id}: {manga}")
 
 
+async def image_test(*, log: Callable[..., Any]) -> None:
+    await bot.image.wait_until_ready()
+    checked = []
+    for category, sources in bot.image.sfw.items():
+        for source in sources:
+            if source not in checked:
+                checked.append(source)
+                url = await source.get(category)
+                if url is None:
+                    log(f"Test failed for {source.__class__.__name__}, category {category}")
+                else:
+                    log(f"Finished image test for {source.__class__.__name__} (category {category}): {url}")
+
+
 async def run_all_tests() -> None:
     await asyncio.gather(
         nhentai_test(log=bot.log),
@@ -81,4 +95,5 @@ async def run_all_tests() -> None:
         ytdl_test(log=bot.log),
         anime_test(log=bot.log),
         manga_test(log=bot.log),
+        image_test(log=bot.log),
     )

@@ -70,7 +70,7 @@ class ImageSource:
         """
         raise NotImplementedError
 
-    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"]) -> Optional[str]:
+    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         """This function is a coroutine
 
         Get the URL of the requested category and mode.
@@ -90,6 +90,10 @@ class ImageSource:
         Optional[``str``]
             The image URL
         """
+        raise NotImplementedError
+
+    def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
+        """Get the API URL for the specified category and mode."""
         raise NotImplementedError
 
     @property
@@ -116,14 +120,18 @@ class WaifuPics(ImageSource):
 
         return data["sfw"], data["nsfw"]
 
-    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"]) -> Optional[str]:
-        url = f"https://api.waifu.pics/{mode}/{category}"
+    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
+        url = self.get_url(category, mode=mode)
         async with self.session.get(url) as response:
             if response.status == 200:
                 json = await response.json(encoding="utf-8")
                 return json["url"]
 
-        return
+    def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
+        return f"https://api.waifu.pics/{mode}/{category}"
+
+    def __str__(self) -> str:
+        return "waifu.pics"
 
 
 class WaifuIm(ImageSource):
@@ -143,14 +151,18 @@ class WaifuIm(ImageSource):
 
         return data["sfw"], data["nsfw"]
 
-    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"]) -> Optional[str]:
-        url = f"https://api.waifu.im/{mode}/{category}"
+    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
+        url = self.get_url(category, mode=mode)
         async with self.session.get(url) as response:
             if response.status == 200:
                 json = await response.json(encoding="utf-8")
                 return json["images"][0]["url"]
 
-        return
+    def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
+        return f"https://api.waifu.im/{mode}/{category}"
+
+    def __str__(self) -> str:
+        return "waifu.im"
 
 
 class NekosLife(ImageSource):
@@ -195,36 +207,49 @@ class NekosLife(ImageSource):
                 js = await response.json(encoding="utf-8")
                 for endpoint in js:
                     if "/api/v2/img/" in endpoint:
-                        categories = [category.group(1) for category in re.finditer(r"'(\w+)'", endpoint)]
+                        endpoints = [match.group(1) for match in re.finditer(r"'(\w+)'", endpoint)]
+                        remove = {
+                            "sfw": [],
+                            "nsfw": [],
+                        }
 
-                        value: str
                         for name in data["sfw"]:
                             value = self.sfw_converter.get(name, name)
-                            if value not in categories:
-                                self.bot.log(f"Warning in NekosLife: no SFW endpoint called '{value}' (corresponding name '{name}')")
+                            if value not in endpoints:
+                                remove["sfw"].append(value)
+                                self.bot.log(f"Warning in NekosLife: no SFW endpoint called \"{value}\" (corresponding name \"{name}\")")
 
                         for name in data["nsfw"]:
                             value = self.nsfw_converter.get(name, name)
-                            if value not in categories:
-                                self.bot.log(f"Warning in NekosLife: no NSFW endpoint called '{value}' (corresponding name '{name}')")
+                            if value not in endpoints:
+                                remove["nsfw"].append(value)
+                                self.bot.log(f"Warning in NekosLife: no NSFW endpoint called \"{value}\" (corresponding name \"{name}\")")
+
+                        for mode, categories in remove.items():
+                            for category in categories:
+                                data[mode].remove(category)
 
                         return data["sfw"], data["nsfw"]
 
             return [], []
 
-    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"]) -> Optional[str]:
-        if mode == "sfw":
-            category = self.sfw_converter.get(category, category)
-        else:
-            category = self.nsfw_converter.get(category, category)
-
-        url = f"https://nekos.life/api/v2/img/{category}"
+    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
+        url = self.get_url(category, mode=mode)
         async with self.session.get(url) as response:
             if response.status == 200:
                 json = await response.json(encoding="utf-8")
                 return json["url"]
 
-        return
+    def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
+        if mode == "sfw":
+            category = self.sfw_converter.get(category, category)
+        else:
+            category = self.nsfw_converter.get(category, category)
+
+        return f"https://nekos.life/api/v2/img/{category}"
+
+    def __str__(self) -> str:
+        return "nekos.life"
 
 
 class Asuna(ImageSource):
@@ -239,33 +264,40 @@ class Asuna(ImageSource):
     }
 
     async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
-        data = {
-            "sfw": ["hug", "kiss", "neko", "pat", "slap", "fox"],
-            "nsfw": [],
-        }
+        sfw_endpoints = ["hug", "kiss", "neko", "pat", "slap", "fox"]
 
         async with self.session.get(self.endpoints_url) as response:
             if response.ok:
                 json = await response.json(encoding="utf-8")
                 endpoints = json["allEndpoints"]
+                remove = []
 
-                for name in data["sfw"]:
+                for name in sfw_endpoints:
                     value = self.converter.get(name, name)
                     if value not in endpoints:
-                        self.bot.log(f"Warning in Asuna: no SFW endpoint called '{value}' (corresponding name '{name}')")
+                        remove.append(value)
+                        self.bot.log(f"Warning in Asuna: no SFW endpoint called \"{value}\" (corresponding name \"{name}\")")
 
-                return data["sfw"], data["nsfw"]
+                for r in remove:
+                    sfw_endpoints.remove(r)
+
+                return sfw_endpoints, []
 
             return [], []
 
-    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"]) -> Optional[str]:
-        category = self.converter.get(category, category)
-        async with self.session.get(f"https://asuna.ga/api/{category}") as response:
+    async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
+        url = self.get_url(category, mode=mode)
+        async with self.session.get(url) as response:
             if response.ok:
                 json = await response.json(encoding="utf-8")
                 return json["url"]
 
-        return
+    def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
+        category = self.converter.get(category, category)
+        return f"https://asuna.ga/api/{category}"
+
+    def __str__(self) -> str:
+        return "asuna.ga"
 
 
 class ImageClient(Generic[IT]):
@@ -342,25 +374,35 @@ class ImageClient(Generic[IT]):
 
         for endpoint in sfw:
             if endpoint not in self.sfw:
-                self.sfw[endpoint] = [source]
-            else:
-                self.sfw[endpoint].append(source)
+                self.sfw[endpoint] = []
+
+            self.sfw[endpoint].append(source)
 
         for endpoint in nsfw:
             if endpoint not in self.nsfw:
-                self.nsfw[endpoint] = [source]
-            else:
-                self.nsfw[endpoint].append(source)
+                self.nsfw[endpoint] = []
+
+            self.nsfw[endpoint].append(source)
 
         self.bot.log(f"Loaded {len(sfw)} SFW endpoints and {len(nsfw)} NSFW endpoints from {source.__class__.__name__}")
 
     async def wait_until_ready(self) -> None:
         """This function is a coroutine
-        
+
         Asynchronously block until all image categories have
         been loaded.
         """
         await self._ready.wait()
+
+    def _check_category(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> None:
+        if mode not in ("sfw", "nsfw"):
+            raise CategoryNotFound(mode)
+
+        if category not in self.sfw and mode == "sfw":
+            raise CategoryNotFound(category)
+
+        if category not in self.nsfw and mode == "nsfw":
+            raise CategoryNotFound(category)
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         """This function is a coroutine
@@ -393,12 +435,8 @@ class ImageClient(Generic[IT]):
             The category does not exist in the requested mode
             (SFW or NSFW).
         """
-        if category not in self.sfw and mode == "sfw":
-            raise CategoryNotFound(category)
-
-        if category not in self.nsfw and mode == "nsfw":
-            raise CategoryNotFound(category)
-
+        await self.wait_until_ready()
+        self._check_category(category, mode=mode)
         if mode == "sfw":
             random.shuffle(self.sfw[category])
 
@@ -414,3 +452,13 @@ class ImageClient(Generic[IT]):
                 image_url = await source.get(category, mode="nsfw")
                 if image_url:
                     return image_url
+
+    async def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Tuple[str, str]:
+        await self.wait_until_ready()
+        self._check_category(category, mode=mode)
+        if mode == "sfw":
+            source = random.choice(self.sfw[category])
+        else:
+            source = random.choice(self.nsfw[category])
+
+        return str(source), source.get_url(category, mode=mode)
