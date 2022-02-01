@@ -60,8 +60,8 @@ async def _reload_page(request: WebRequest) -> web.Response:
 async def _img_api(request: WebRequest) -> web.Response:
     mode = request.query.get("mode")
     category = request.query.get("category")
-    host, url = await request.app.bot.image.get_url(category, mode=mode)
     try:
+        host, url = await request.app.bot.image.get_url(category, mode=mode)
         data = {"host": host, "url": url}
     except image.CategoryNotFound:
         raise web.HTTPNotFound
