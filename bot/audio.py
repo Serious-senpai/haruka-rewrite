@@ -234,11 +234,7 @@ class PartialInvidiousSource:
 
         track = await InvidiousSource.build(id)
         if track:
-            # Construct json
             js = track.json
-            js["api_url"] = track._api_url
-            # Save to disk
-            await asyncio.to_thread(save_to_memory, js)
             return cls(js, track._api_url)
 
 
