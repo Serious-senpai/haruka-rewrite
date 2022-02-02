@@ -22,41 +22,30 @@ async def _queue_cmd(ctx: commands.Context):
 
     channel = ctx.author.voice.channel
     track_ids = await audio.MusicClient.queue(channel.id)
+    pages = 1 + len(track_ids) // SONGS_PER_PAGE
 
-    names = []
-    values = []
-    index = []
+    counter = 0
+    embeds = []
 
     async with ctx.typing():
-        for _index, track_id in enumerate(track_ids):
-            track = await audio.PartialInvidiousSource.build(track_id)
-            if track:
-                names.append(f"**#{_index + 1}** {track.title}")
-                values.append(track.channel)
-            else:
-                names.append(f"**#{_index + 1}** *Unknown track* {track_id}")
-                values.append(f"https://www.youtube.com/watch?v={track_id}")
-
-        pages = 1 + int(len(track_ids) / SONGS_PER_PAGE)
-
         for page in range(pages):
             embed = discord.Embed(title=f"Music queue of channel {channel.name}")
-            embed.set_footer(
-                text=f"Currently has {len(track_ids)} song(s) | Page {page + 1}/{pages}"
-            )
+            embed.set_footer(text=f"Currently has {len(track_ids)} song(s) | Page {page + 1}/{pages}")
 
             for _ in range(SONGS_PER_PAGE):
                 try:
-                    name = names.pop(0)
-                    value = values.pop(0)
-                    embed.add_field(
-                        name=name,
-                        value=value,
-                        inline=INLINE,
-                    )
+                    track = await audio.PartialInvidiousSource.build(track_ids[counter])
                 except IndexError:
                     break
-            index.append(embed)
 
-    display = emoji_ui.NavigatorPagination(index)
+                counter += 1
+                embed.add_field(
+                    name=f"**#{counter}** {track.title}",
+                    value=track.channel,
+                    inline=False,
+                )
+
+            embeds.append(embed)
+
+    display = emoji_ui.NavigatorPagination(embeds)
     await display.send(ctx)
