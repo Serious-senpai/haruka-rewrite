@@ -7,7 +7,6 @@ from core import bot
 
 
 SONGS_PER_PAGE = 8
-INLINE = False
 
 
 @bot.command(
