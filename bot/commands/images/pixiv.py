@@ -14,7 +14,13 @@ from core import bot
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
     async with ctx.typing():
-        parsed = await _pixiv.parse(query, session=bot.session)
+        try:
+            parsed = await _pixiv.parse(query, session=bot.session)
+        except _pixiv.NSFWArtworkDetected as exc:
+            parsed = exc.artwork
+            if isinstance(ctx.channel, discord.TextChannel) and not ctx.channel.is_nsfw():
+                return await ctx.send("🔞 This artwork is NSFW and can only be shown in a NSFW channel!")
+
         if isinstance(parsed, _pixiv.PixivArtwork):
             return await ctx.send(embed=await parsed.create_embed(session=bot.session))
 

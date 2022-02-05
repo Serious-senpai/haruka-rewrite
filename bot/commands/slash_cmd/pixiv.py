@@ -24,7 +24,13 @@ async def _pixiv_slash(interaction: discord.Interaction):
     args = slash.parse(interaction)
     query = args["string"]
 
-    parsed = await _pixiv.parse(query, session=bot.session)
+    try:
+        parsed = await _pixiv.parse(query, session=bot.session)
+    except _pixiv.NSFWArtworkDetected as exc:
+        parsed = exc.artwork
+        if isinstance(interaction.channel, discord.TextChannel) and not interaction.channel.is_nsfw():
+            return await interaction.followup.send("🔞 This artwork is NSFW and can only be shown in a NSFW channel!")
+
     if isinstance(parsed, list):
         try:
             parsed = parsed[0]

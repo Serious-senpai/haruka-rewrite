@@ -20,6 +20,18 @@ ID_PATTERN = re.compile(r"(?<!\d)\d{4,8}(?!\d)")
 URL_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?artworks/\d{4,8}/?")
 
 
+class NSFWArtworkDetected(Exception):
+    """Exception raised when a NSFW artwork is detected from a given ID"""
+
+    __slots__ = ("artwork",)
+    if TYPE_CHECKING:
+        artwork: PixivArtwork
+
+    def __init__(self, artwork: PixivArtwork) -> None:
+        self.artwork = artwork
+        super().__init__(f"NSFW artwork with ID {artwork.id}")
+
+
 class StreamError(Exception):
     """Exception raised when collecting image data from Pixiv fails"""
     pass
@@ -67,7 +79,7 @@ class PixivArtwork:
         self.width = js["width"]
         self.height = js["height"]
 
-        self.nsfw = js.get("xRestrict", False)
+        self.nsfw = bool(js.get("xRestrict", False))
         self.description = js.get("description")
         self.tags = js.get("tags")
         self.url = f"https://www.pixiv.net/en/artworks/{self.id}"
@@ -248,6 +260,9 @@ async def parse(query: str, *, session: aiohttp.ClientSession) -> Union[PixivArt
     if match:
         artwork = await PixivArtwork.from_id(match.group(), session=session)
         if artwork:
+            if artwork.nsfw:
+                raise NSFWArtworkDetected(artwork)
+
             return artwork
 
     if query.startswith("http"):
@@ -258,6 +273,10 @@ async def parse(query: str, *, session: aiohttp.ClientSession) -> Union[PixivArt
                     if match is not None:
                         # Valid URL, parse HTML to get the artwork
                         html = await response.text(encoding="utf-8")
-                        return PixivArtwork.parse_html(html)
+                        artwork = PixivArtwork.parse_html(html)
+                        if artwork.nsfw:
+                            raise NSFWArtworkDetected(artwork)
+
+                        return artwork
 
     return await PixivArtwork.search(query, session=session)
