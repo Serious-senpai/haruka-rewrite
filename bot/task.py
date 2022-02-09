@@ -116,6 +116,7 @@ class GuildLeavingTask(Task):
         if guild:
             with contextlib.suppress(discord.HTTPException):
                 await guild.leave()
+                await asyncio.sleep(3.0)
 
 
 class TaskManager:
