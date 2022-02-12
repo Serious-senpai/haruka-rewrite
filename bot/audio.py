@@ -199,7 +199,7 @@ class PartialInvidiousSource:
         items = []
 
         for url in INVIDIOUS_URLS:
-            with contextlib.suppress(aiohttp.ClientError):
+            with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
                 async with bot.session.get(f"{url}/api/v1/search", params=params, timeout=TIMEOUT) as response:
                     if response.status == 200:
                         json = await response.json(encoding="utf-8")
@@ -337,7 +337,7 @@ class InvidiousSource(PartialInvidiousSource):
             The URL to the audio. This is the same as the
             ``source`` attribute of the object.
         """
-        with contextlib.suppress(aiohttp.ClientError):
+        with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
             if self.source:
                 async with bot.session.get(self.source, timeout=TIMEOUT) as response:
                     if response.ok:
@@ -405,7 +405,7 @@ class InvidiousSource(PartialInvidiousSource):
             The video object with the given ID.
         """
         for url in INVIDIOUS_URLS:
-            with contextlib.suppress(aiohttp.ClientError):
+            with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
                 async with bot.session.get(
                     f"{url}/api/v1/videos/{id}",
                     timeout=TIMEOUT,
@@ -704,11 +704,13 @@ class MusicClient(discord.VoiceClient):
                     await self.target.send("Cannot fetch the audio for this track, removing from queue.")
                 continue
 
-            async with bot.session.get(url, timeout=TIMEOUT) as response:
-                if not response.ok:
-                    with contextlib.suppress(discord.HTTPException):
-                        await self.target.send(f"Cannot fetch the audio for this track ({response.status}), removing from queue.")
-                    continue
+            try:
+                async with bot.session.get(url, timeout=TIMEOUT) as response:
+                    response.raise_for_status()
+            except (aiohttp.ClientError, asyncio.TimeoutError):
+                with contextlib.suppress(discord.HTTPException):
+                    await self.target.send(f"Cannot fetch the audio for this track ({response.status}), removing from queue.")
+                continue
 
             repeat_id = track_id
             if not self._repeat:
