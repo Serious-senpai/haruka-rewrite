@@ -33,16 +33,24 @@ async def _queue_cmd(ctx: commands.Context):
 
             for _ in range(SONGS_PER_PAGE):
                 try:
-                    track = await audio.PartialInvidiousSource.build(track_ids[counter])
+                    track_id = track_ids[counter]
+                    track = await audio.PartialInvidiousSource.build(track_id)
                 except IndexError:
                     break
 
                 counter += 1
-                embed.add_field(
-                    name=f"**#{counter}** {track.title}",
-                    value=track.channel,
-                    inline=False,
-                )
+                if track is None:
+                    embed.add_field(
+                        name=f"**#{counter}** <Track ID={track_id}>",
+                        value=f"https://www.youtube.com/watch?v={track_id}",
+                        inline=False,
+                    )
+                else:
+                    embed.add_field(
+                        name=f"**#{counter}** {track.title}",
+                        value=track.channel,
+                        inline=False,
+                    )
 
             embeds.append(embed)
 

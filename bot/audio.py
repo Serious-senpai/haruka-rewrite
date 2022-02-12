@@ -401,15 +401,12 @@ class InvidiousSource(PartialInvidiousSource):
 
         Returns
         -----
-        ``InvidiousSource``
+        Optional[``InvidiousSource``]
             The video object with the given ID.
         """
         for url in INVIDIOUS_URLS:
             with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
-                async with bot.session.get(
-                    f"{url}/api/v1/videos/{id}",
-                    timeout=TIMEOUT,
-                ) as response:
+                async with bot.session.get(f"{url}/api/v1/videos/{id}", timeout=TIMEOUT) as response:
                     if response.status == 200:
                         js = await response.json(encoding="utf-8")
                         js["api_url"] = url
