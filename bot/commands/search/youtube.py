@@ -17,11 +17,11 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
     if len(query) < 3:
         return await ctx.send("Search query must have at least 3 characters")
 
-    source = await audio.embed_search(query, ctx.channel, ctx.author.id)
-    if not source:
-        return
-
     async with ctx.typing():
+        source = await audio.embed_search(query, ctx.channel, ctx.author.id)
+        if not source:
+            return
+
         embed = audio.create_audio_embed(source)
         with utils.TimingContextManager() as measure:
             url = await audio.fetch(source)
