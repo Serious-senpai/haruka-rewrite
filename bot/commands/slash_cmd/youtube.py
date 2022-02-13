@@ -54,7 +54,7 @@ async def _youtube_slash(interaction: discord.Interaction):
         track = await audio.InvidiousSource.build(id)
 
     if track is None:
-        await interaction.followup.send(f"{emojis.MIKUCRY} Cannot fetch track ID `{id}`")
+        return await interaction.followup.send(f"{emojis.MIKUCRY} Cannot fetch track ID `{id}`")
 
     embed = audio.create_audio_embed(track)
     with utils.TimingContextManager() as measure:
