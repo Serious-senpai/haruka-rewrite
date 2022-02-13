@@ -55,4 +55,5 @@ async def _download_cmd(ctx: commands.Context):
                 embeds.append(audio.create_audio_embed(track))
 
         display = emoji_ui.Pagination(embeds)
-        await display.send(ctx.channel)
+
+    await display.send(ctx.channel)
