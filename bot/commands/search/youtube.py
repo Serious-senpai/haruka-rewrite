@@ -21,29 +21,20 @@ async def _youtube_cmd(ctx: commands.Context, *, query: str):
     if not source:
         return
 
-    embed = source.create_embed()
-    embed.set_author(
-        name=f"{ctx.author.name}'s request",
-        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
-    )
-
     async with ctx.typing():
+        embed = audio.create_audio_embed(source)
         with utils.TimingContextManager() as measure:
             url = await audio.fetch(source)
 
-        if not url:
-            embed.set_footer(text="Cannot fetch audio file")
-            return await ctx.send(embed=embed)
+        if url is not None:
+            embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
+            button = discord.ui.Button(style=discord.ButtonStyle.link, url=url, label="Audio URL")
+            view = discord.ui.View()
+            view.add_item(button)
 
-        embed.add_field(
-            name="Audio URL",
-            value=f"[Download]({url})",
-            inline=False,
-        )
-        embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
+            await ctx.send(embed=embed, view=view)
 
-        button = discord.ui.Button(style=discord.ButtonStyle.link, url=url, label="Audio URL")
-        view = discord.ui.View()
-        view.add_item(button)
-
-        await ctx.send(embed=embed, view=view)
+        else:
+            embed.set_footer(text="Cannot fetch this track")
+            embed.remove_field(-1)
+            await ctx.send(embed=embed)

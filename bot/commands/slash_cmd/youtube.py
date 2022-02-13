@@ -3,6 +3,7 @@ import asyncio
 import discord
 
 import audio
+import emojis
 import slash
 import ui
 import utils
@@ -52,28 +53,22 @@ async def _youtube_slash(interaction: discord.Interaction):
     else:
         track = await audio.InvidiousSource.build(id)
 
-    embed = track.create_embed()
-    embed.set_author(
-        name="YouTube audio request",
-        icon_url=bot.user.avatar.url,
-    )
+    if track is None:
+        await interaction.followup.send(f"{emojis.MIKUCRY} Cannot fetch track ID `{id}`")
 
+    embed = audio.create_audio_embed(track)
     with utils.TimingContextManager() as measure:
         url = await audio.fetch(track)
 
-    if not url:
-        embed.set_footer(text="Cannot fetch audio file")
-        return await interaction.followup.send(embed=embed)
+        if url is not None:
+            embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
+            button = discord.ui.Button(style=discord.ButtonStyle.link, url=url, label="Audio URL")
+            view = discord.ui.View()
+            view.add_item(button)
 
-    embed.add_field(
-        name="Audio URL",
-        value=f"[Download]({url})",
-        inline=False,
-    )
-    embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
+            await interaction.followup.send(embed=embed, view=view)
 
-    button = discord.ui.Button(style=discord.ButtonStyle.link, url=url, label="Audio URL")
-    view = discord.ui.View()
-    view.add_item(button)
-
-    await interaction.followup.send(embed=embed, view=view)
+        else:
+            embed.set_footer(text="Cannot fetch this track")
+            embed.remove_field(-1)
+            await interaction.followup.send(embed=embed)

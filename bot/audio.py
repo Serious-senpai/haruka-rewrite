@@ -17,6 +17,7 @@ from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
 import emoji_ui
+import emojis
 import env
 import utils
 from core import bot
@@ -476,7 +477,59 @@ async def embed_search(
     track_index = await display.listen(user_id)
 
     if track_index is not None:
-        return await InvidiousSource.build(results[track_index].id)
+        track_id = results[track_index].id
+        track = await InvidiousSource.build(track_id)
+        if not track:
+            await target.send(f"{emojis.MIKUCRY} Cannot fetch track ID `{track_id}`")
+            return
+
+        return track
+
+
+def create_audio_url(video_id: str) -> str:
+    """Create an URL to the local audio file of the video with ID
+    ``video_id`` which is exposed to the server side.
+
+    Parameters
+    -----
+    video_id: ``str``
+        The video ID
+
+    Returns
+    -----
+    ``str``
+        The created URL
+    """
+    return HOST + f"/audio/{video_id}.mp3"
+
+
+def create_audio_embed(source: PartialInvidiousSource) -> discord.Embed:
+    """Create an embed displaying the video information and URL
+    to the video audio. Note that the audio URL will always be created
+    even if it does not exist so it is recommended to perform necessary
+    checks before sending this embed to end users.
+
+    Parameters
+    -----
+    source: ``PartialInvidiousSource``
+        The video source object
+
+    Returns
+    -----
+    ``discord.Embed``
+        The created embed
+    """
+    embed = source.create_embed()
+    embed.set_author(
+        name="YouTube audio request",
+        icon_url=bot.user.avatar.url,
+    )
+    embed.add_field(
+        name="Audio URL",
+        value=f"[Download]({create_audio_url(source.id)})",
+        inline=False,
+    )
+    return embed
 
 
 async def fetch(track: InvidiousSource) -> Optional[str]:
@@ -517,7 +570,7 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
         stderr=asyncio.subprocess.DEVNULL,
     )
     await process.communicate()
-    return HOST + f"/audio/{track.id}.mp3"
+    return create_audio_url(track.id)
 
 
 class MusicClient(discord.VoiceClient):
@@ -698,7 +751,7 @@ class MusicClient(discord.VoiceClient):
 
             if not url:
                 with contextlib.suppress(discord.HTTPException):
-                    await self.target.send("Cannot fetch the audio for this track, removing from queue.")
+                    await self.target.send(f"{emojis.MIKUCRY} Cannot fetch the audio for track ID `{track.id}`, removing from queue.")
                 continue
 
             try:
@@ -706,7 +759,7 @@ class MusicClient(discord.VoiceClient):
                     response.raise_for_status()
             except (aiohttp.ClientError, asyncio.TimeoutError):
                 with contextlib.suppress(discord.HTTPException):
-                    await self.target.send(f"Cannot fetch the audio for this track ({response.status}), removing from queue.")
+                    await self.target.send(f"{emojis.MIKUCRY} Cannot fetch the audio for track ID `{track.id}` ({response.status}), removing from queue.")
                 continue
 
             repeat_id = track_id
