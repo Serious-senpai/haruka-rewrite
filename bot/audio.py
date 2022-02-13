@@ -557,7 +557,7 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
         status = asyncio.Event()
         fetching_in_progress[track.id] = status
     else:
-        await status
+        await status.wait()
         if os.path.isfile(f"./server/audio/{track.id}.mp3"):
             return HOST + f"/audio/{track.id}.mp3"
         else:
