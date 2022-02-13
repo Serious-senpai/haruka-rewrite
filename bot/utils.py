@@ -128,3 +128,7 @@ async def fuzzy_match(string: str, against: Iterator[str], *, pattern: str = r"\
     stdout, _ = await process.communicate()
     match = re.search(pattern, stdout.decode("utf-8"))
     return match.group()
+
+
+async def coro_func(value: T) -> T:
+    return value

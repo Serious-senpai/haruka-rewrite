@@ -28,7 +28,11 @@ async def _queue_cmd(ctx: commands.Context):
 
     async with ctx.typing():
         for page in range(pages):
-            embed = discord.Embed(title=f"Music queue of channel {channel.name}")
+            embed = discord.Embed()
+            embed.set_author(
+                name=f"Music queue of channel {channel.name}",
+                icon_url=bot.user.avatar.url,
+            )
             embed.set_footer(text=f"Currently has {len(track_ids)} song(s) | Page {page + 1}/{pages}")
 
             for _ in range(SONGS_PER_PAGE):

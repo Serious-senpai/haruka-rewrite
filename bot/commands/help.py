@@ -81,7 +81,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         embed.add_field(
             name="🎶 Music",
-            value="```\nadd, export, import, pause, play, playlist, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, vping\n```",
+            value="```\nadd, download, export, import, pause, play, playlist, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, vping\n```",
             inline=False,
         )
         embed.add_field(

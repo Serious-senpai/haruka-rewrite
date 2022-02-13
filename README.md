@@ -21,7 +21,7 @@ danbooru, nsfw, pixiv, sfw, tenor, zerochan
 ```
 ### Music
 ```
-add, export, import, pause, play, playlist, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, vping
+add, download, export, import, pause, play, playlist, queue, remove, repeat, resume, shuffle, skip, stop, stopafter, vping
 ```
 ### Moderation
 ```
