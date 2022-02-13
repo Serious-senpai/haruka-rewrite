@@ -28,6 +28,9 @@ TIMEOUT = aiohttp.ClientTimeout(total=15)
 HOST = env.get_host()
 
 
+fetching_in_progress: Dict[str, asyncio.Event] = {}
+
+
 def in_voice() -> Callable[[T], T]:
     async def predicate(ctx: commands.Context) -> bool:
         if not getattr(ctx.author, "voice", None):
@@ -548,8 +551,17 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
         The URL to the audio, remember that we are hosting
         on Heroku.
     """
-    if os.path.isfile(f"./server/audio/{track.id}.mp3"):
-        return HOST + f"/audio/{track.id}.mp3"
+    try:
+        status = fetching_in_progress[track.id]
+    except KeyError:
+        status = asyncio.Event()
+        fetching_in_progress[track.id] = status
+    else:
+        await status
+        if os.path.isfile(f"./server/audio/{track.id}.mp3"):
+            return HOST + f"/audio/{track.id}.mp3"
+        else:
+            return
 
     url = await track.ensure_source()
     if not url:
@@ -570,6 +582,7 @@ async def fetch(track: InvidiousSource) -> Optional[str]:
         stderr=asyncio.subprocess.DEVNULL,
     )
     await process.communicate()
+    status.set()
     return create_audio_url(track.id)
 
 
