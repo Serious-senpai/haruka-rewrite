@@ -1,6 +1,7 @@
 import contextlib
 import textwrap
 import traceback
+from os import path
 
 import discord
 from discord.ext import commands
@@ -51,5 +52,5 @@ async def _eval_cmd(ctx: commands.Context, *, code: str):
 
     await ctx.send(
         f"Process completed after {utils.format(measure.result)}.",
-        file=discord.File("eval.txt"),
+        file=discord.File("eval.txt") if path.getsize("eval.txt") > 0 else None,
     )
