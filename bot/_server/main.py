@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import io
 import json
 import os
@@ -89,7 +90,7 @@ async def _favicon(request: WebRequest) -> web.Response:
 
 
 @routes.get("/chat")
-async def _websocket_endpoint(request: WebRequest) -> web.WebSocketResponse:
+async def _chat_ws_endpoint(request: WebRequest) -> web.WebSocketResponse:
     websocket = web.WebSocketResponse()
     authenticate = False
     await websocket.prepare(request)
@@ -138,7 +139,9 @@ async def _websocket_endpoint(request: WebRequest) -> web.WebSocketResponse:
             else:
                 await websocket.send_json({"action": "ERROR", "message": "Unauthorized websocket connection"})
 
-    websockets.remove(websocket)
+    with contextlib.suppress(ValueError):
+        websockets.remove(websocket)
+
     return websocket
 
 
