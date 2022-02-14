@@ -125,6 +125,8 @@ class Haruka(commands.Bot, SlashMixin):
             CREATE TABLE IF NOT EXISTS blacklist (id text);
             CREATE TABLE IF NOT EXISTS remind (id text, time timestamptz, content text, url text, original timestamptz);
             CREATE TABLE IF NOT EXISTS inactivity (id text, time timestamptz);
+            CREATE TABLE IF NOT EXISTS chat_users (username text, password text);
+            CREATE TABLE IF NOT EXISTS messages (id serial primary key, author text, content text, time timestamptz);
         """)
 
         for extension in ("pg_trgm",):

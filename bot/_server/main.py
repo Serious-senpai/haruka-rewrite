@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import asyncio
 import io
+import json
 import os
 import re
 import traceback
-from typing import Any, Callable, Coroutine, TYPE_CHECKING
+from typing import Any, Callable, Coroutine, List, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
+import discord
 from aiohttp import web
 
 import _pixiv
@@ -39,6 +42,7 @@ routes = web.RouteTableDef()
 routes.static("/assets", "./bot/assets/server")
 routes.static("/image", "./server/image")
 routes.static("/audio", "./server/audio")
+websockets: List[web.WebSocketResponse] = []
 
 
 @routes.get("/")
@@ -84,6 +88,60 @@ async def _favicon(request: WebRequest) -> web.Response:
     raise web.HTTPFound(request.app.bot.user.avatar.url)
 
 
+@routes.get("/chat")
+async def _websocket_endpoint(request: WebRequest) -> web.WebSocketResponse:
+    websocket = web.WebSocketResponse()
+    authenticate = False
+    await websocket.prepare(request)
+
+    async for ws_message in websocket:
+        try:
+            data = json.loads(ws_message.data)
+        except json.JSONDecodeError:
+            await websocket.send_json({"action": "ERROR", "message": "invalid JSON data"})
+        else:
+            if data["action"] == "REGISTER":
+                username = data["username"]
+                password = data["password"]
+                match = await request.app.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1", username)
+                if match:
+                    await websocket.send_json({"action": "REGISTER_ERROR", "message": "This username has already existed!"})
+                else:
+                    await request.app.pool.execute("INSERT INTO chat_users VALUES ($1, $2)", username, password)
+                    await websocket.send_json({"action": "REGISTER_SUCCESS", "message": "Successfully registered!"})
+                    authenticate = True
+                    websockets.append(websocket)
+
+            elif data["action"] == "LOGIN":
+                username = data["username"]
+                password = data["password"]
+                match = await request.app.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1", username)
+                if match:
+                    await websocket.send_json({"action": "LOGIN_ERROR", "message": "Invalid credentials"})
+                else:
+                    correct_password = data["password"]
+                    if password == correct_password:
+                        await websocket.send_json({"action": "LOGIN_SUCCESS", "message": "Successfully logged in!"})
+                        authenticate = True
+                        websockets.append(websocket)
+                    else:
+                        await websocket.send_json({"action": "LOGIN_ERROR", "message": "Invalid credentials"})
+
+            elif authenticate:
+                if data["action"] == "MESSAGE":
+                    author = data["author"]
+                    content = data["content"]
+                    time = discord.utils.utcnow()
+                    await request.app.pool.execute("INSERT INTO messages (author, content, time) VALUES ($1, $2, $3)", author, content, time)
+                    await asyncio.gather(*[ws.send_json({"action": "MESSAGE", "author": author, "content": content, "time": time}) for ws in websockets])
+
+            else:
+                await websocket.send_json({"action": "ERROR", "message": "Unauthorized websocket connection"})
+
+    websockets.remove(websocket)
+    return websocket
+
+
 @web.middleware
 async def _img_middleware(request: WebRequest, handler: Handler) -> web.Response:
     await request.app.bot.image.wait_until_ready()
@@ -100,14 +158,14 @@ async def _pixiv_middleware(request: WebRequest, handler: Handler) -> web.Respon
             artwork_id = match.group(1)
             artwork = await _pixiv.PixivArtwork.from_id(artwork_id, session=request.app.session)
             if not artwork:
-                return web.HTTPNotFound()
+                raise web.HTTPNotFound
 
             try:
                 await artwork.stream(session=request.app.session)
                 return await handler(request)
             except BaseException as exc:
                 await request.app.report_error(exc)
-                return web.HTTPInternalServerError()
+                raise web.HTTPInternalServerError
 
         raise
 
@@ -127,6 +185,7 @@ class WebApp(web.Application):
         self.session = self.bot.session
 
         super().__init__(middlewares=[
+            _img_middleware,
             _pixiv_middleware,
         ])
         self.add_routes(routes)
