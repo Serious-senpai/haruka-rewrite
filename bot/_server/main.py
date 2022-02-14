@@ -117,10 +117,10 @@ async def _chat_ws_endpoint(request: WebRequest) -> web.WebSocketResponse:
                 username = data["username"]
                 password = data["password"]
                 match = await request.app.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1", username)
-                if match:
+                if not match:
                     await websocket.send_json({"action": "LOGIN_ERROR", "message": "Invalid credentials"})
                 else:
-                    correct_password = data["password"]
+                    correct_password = match["password"]
                     if password == correct_password:
                         await websocket.send_json({"action": "LOGIN_SUCCESS", "message": "Successfully logged in!"})
                         authenticate = True
