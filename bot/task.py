@@ -112,7 +112,7 @@ class GuildLeavingTask(Task):
         guild_id = row["id"]
         await self.conn.execute("DELETE FROM inactivity WHERE id = $1", guild_id)
 
-        guild = self.bot.get_guild(guild_id)
+        guild = self.bot.get_guild(int(guild_id))
         if guild:
             with contextlib.suppress(discord.HTTPException):
                 await guild.leave()
