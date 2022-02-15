@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import io
 import traceback
-from typing import Any, List, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -11,9 +11,6 @@ from aiohttp import web
 from .core import middleware_group, routes
 if TYPE_CHECKING:
     import haruka
-
-
-websockets: List[web.WebSocketResponse] = []
 
 
 class WebApp(web.Application):
