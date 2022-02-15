@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @routes.get("/img")
-async def _img_api(request: WebRequest) -> web.Response:
+async def _img_route(request: WebRequest) -> web.Response:
     mode = request.query.get("mode")
     category = request.query.get("category")
     try:
@@ -24,7 +24,7 @@ async def _img_api(request: WebRequest) -> web.Response:
 
 
 @routes.get("/img/endpoints")
-async def _img_endpoints_api(request: WebRequest) -> web.Response:
+async def _img_endpoints_route(request: WebRequest) -> web.Response:
     client = request.app.bot.image
     data = {
         "sfw": list(client.sfw.keys()),

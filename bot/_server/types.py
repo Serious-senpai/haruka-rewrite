@@ -9,7 +9,7 @@ if not TYPE_CHECKING:
 
 from aiohttp import web
 
-from ..core import WebApp
+from .app import WebApp
 
 
 class WebRequest(web.Request):

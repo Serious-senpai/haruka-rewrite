@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 @routes.get("/")
-async def _main_page(request: WebRequest) -> web.Response:
+async def _main_route(request: WebRequest) -> web.Response:
     return web.Response(
         text=request.app.index,
         status=200,

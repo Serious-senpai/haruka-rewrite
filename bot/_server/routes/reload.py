@@ -10,6 +10,6 @@ if TYPE_CHECKING:
 
 
 @routes.get("/reload")
-async def _reload_page(request: WebRequest) -> web.Response:
+async def _reload_route(request: WebRequest) -> web.Response:
     request.app.reload()
     raise web.HTTPFound("/")
