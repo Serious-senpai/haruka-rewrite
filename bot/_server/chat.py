@@ -17,10 +17,6 @@ def error_json(message: str) -> Dict[str, str]:
     return {"action": "ERROR", "message": message}
 
 
-def json_decode_error() -> Dict[str, str]:
-    return error_json("Invalid JSON data")
-
-
 def json_missing_field(field: str) -> Dict[str, str]:
     return error_json(f"Missing required field \"{field}\" in JSON data")
 
@@ -69,7 +65,7 @@ class UserSession:
             try:
                 data = message.json()
             except json.JSONDecodeError:
-                await self.websocket.send_json(json_decode_error())
+                await self.websocket.send_json(error_json("Invalid JSON data"))
             else:
                 await self.process_message(data)
 
@@ -91,6 +87,12 @@ class UserSession:
             username = data["username"]
             password = data["password"]
 
+            if not isinstance(username, str) or not isinstance(password, str):
+                return await self.websocket.send_json(error_json("Invalid data type"))
+
+            if len(username) < 3:
+                return await self.websocket.send_json(error_json("Username must have at least 3 characters!"))
+
             match = await self.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1", username)
             if match:
                 return await self.websocket.send_json(error_json(f"Username \"{username}\" has already existed!"))
@@ -106,6 +108,9 @@ class UserSession:
 
             username = data["username"]
             password = data["password"]
+
+            if not isinstance(username, str) or not isinstance(password, str):
+                return await self.websocket.send_json(error_json("Invalid credentials"))
 
             match = await self.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1", username)
             if not match:
