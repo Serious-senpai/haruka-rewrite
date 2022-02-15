@@ -124,7 +124,7 @@ class UserSession:
 
         if action == "MESSAGE_CREATE":
             if not self.authorized:
-                return await self.websocket.send_json(error_json("Please login or register first to get message history"))
+                return await self.websocket.send_json(error_json("Please login or register first to create a message"))
 
             missing_key = self.check_json_field(data, "username", "content")
             if missing_key is not None:
@@ -140,7 +140,7 @@ class UserSession:
 
         if action == "GET_HISTORY":
             if not self.authorized:
-                return await self.websocket.send_json(error_json("Please login or register first to create a message"))
+                return await self.websocket.send_json(error_json("Please login or register first to get message history"))
 
             rows = await self.pool.fetch("SELECT * FROM messages ORDER BY id DESC LIMIT 50;")
             results = [dict(id=row["id"], author=row["author"], content=row["content"], time=row["time"]) for row in rows]
