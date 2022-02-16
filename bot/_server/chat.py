@@ -126,7 +126,7 @@ class UserSession:
             if not self.authorized:
                 return await self.websocket.send_json(error_json("Please login or register first to create a message"))
 
-            missing_key = self.check_json_field(data, "username", "content")
+            missing_key = self.check_json_field(data, "content")
             if missing_key is not None:
                 return await self.websocket.send_json(json_missing_field(missing_key))
 
