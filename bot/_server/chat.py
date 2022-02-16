@@ -134,7 +134,7 @@ class UserSession:
             content = data["content"]
             time = discord.utils.utcnow()
 
-            await self.pool.execute("INSERT INTO messages (author, content, time) VALUES $1, $2, $3", username, content, time)
+            await self.pool.execute("INSERT INTO messages (author, content, time) VALUES ($1, $2, $3);", username, content, time)
             for ws in authorized_websockets:
                 await ws.send_json(action_json("MESSAGE_CREATE", username=username, content=content, time=time))
 
