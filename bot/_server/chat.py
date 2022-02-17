@@ -21,7 +21,7 @@ def action_json(action: str, **kwargs) -> Dict[str, Any]:
 
 
 def error_json(message: str) -> Dict[str, str]:
-    return action_json(message=message)
+    return action_json("ERROR", message=message)
 
 
 def json_missing_field(field: str) -> Dict[str, str]:
