@@ -13,19 +13,30 @@ if TYPE_CHECKING:
     from .types import WebRequest
 
 
-def error_json(message: str) -> Dict[str, str]:
-    return {"action": "ERROR", "message": message}
-
-
-def json_missing_field(field: str) -> Dict[str, str]:
-    return error_json(f"Missing required field \"{field}\" in JSON data")
+authorized_websockets: Set[web.WebSocketResponse] = set()
 
 
 def action_json(action: str, **kwargs) -> Dict[str, Any]:
     return dict(action=action, **kwargs)
 
 
-authorized_websockets: Set[web.WebSocketResponse] = set()
+def error_json(message: str) -> Dict[str, str]:
+    return action_json(message=message)
+
+
+def json_missing_field(field: str) -> Dict[str, str]:
+    return error_json(f"Missing required field \"{field}\" in JSON data")
+
+
+async def http_authentication(request: WebRequest) -> None:
+    username = request.headers.get("username")
+    password = request.headers.get("password")
+    if not username or not password:
+        raise web.HTTPForbidden
+
+    row = await request.app.pool.fetchrow("SELECT FROM chat_users WHERE username = $1 AND password = $2", username=username, password=password)
+    if not row:
+        raise web.HTTPForbidden
 
 
 class UserSession:
@@ -112,15 +123,12 @@ class UserSession:
             if not isinstance(username, str) or not isinstance(password, str):
                 return await self.websocket.send_json(error_json("Invalid credentials"))
 
-            match = await self.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1", username)
+            match = await self.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1 AND password = $2;", username, password)
             if not match:
                 return await self.websocket.send_json(error_json("Invalid credentials"))
 
-            if password == match["password"]:
-                self.authorize(username)
-                return await self.websocket.send_json(action_json("LOGIN_SUCCESS"))
-            else:
-                return await self.websocket.send_json(error_json("Invalid credentials"))
+            self.authorize(username)
+            return await self.websocket.send_json(action_json("LOGIN_SUCCESS"))
 
         if action == "MESSAGE_CREATE":
             if not self.authorized:
@@ -137,13 +145,5 @@ class UserSession:
             row = await self.pool.fetchrow("INSERT INTO messages (author, content, time) VALUES ($1, $2, $3) RETURNING *;", username, content, time)
             for ws in authorized_websockets:
                 await ws.send_json(action_json("MESSAGE_CREATE", id=row["id"], username=row["author"], content=row["content"], time=row["time"].isoformat()))
-
-        if action == "GET_HISTORY":
-            if not self.authorized:
-                return await self.websocket.send_json(error_json("Please login or register first to get message history"))
-
-            rows = await self.pool.fetch("SELECT * FROM messages ORDER BY id DESC LIMIT 50;")
-            results = [dict(id=row["id"], author=row["author"], content=row["content"], time=row["time"].isoformat()) for row in rows]
-            return await self.websocket.send_json(results)
 
         return await self.websocket.send_json(error_json(f"Unrecognized action {action}"))
