@@ -134,9 +134,9 @@ class UserSession:
             content = data["content"]
             time = discord.utils.utcnow()
 
-            await self.pool.execute("INSERT INTO messages (author, content, time) VALUES ($1, $2, $3);", username, content, time)
+            row = await self.pool.fetchrow("INSERT INTO messages (author, content, time) VALUES ($1, $2, $3) RETURNING *;", username, content, time)
             for ws in authorized_websockets:
-                await ws.send_json(action_json("MESSAGE_CREATE", username=username, content=content, time=time.isoformat()))
+                await ws.send_json(action_json("MESSAGE_CREATE", id=row["id"], username=row["author"], content=row["content"], time=row["time"].isoformat()))
 
         if action == "GET_HISTORY":
             if not self.authorized:
