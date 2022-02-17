@@ -34,7 +34,7 @@ async def http_authentication(request: WebRequest) -> None:
     if not username or not password:
         raise web.HTTPForbidden
 
-    row = await request.app.pool.fetchrow("SELECT FROM chat_users WHERE username = $1 AND password = $2", username=username, password=password)
+    row = await request.app.pool.fetchrow("SELECT FROM chat_users WHERE username = $1 AND password = $2;", username, password)
     if not row:
         raise web.HTTPForbidden
 
