@@ -34,8 +34,8 @@ async def http_authentication(request: WebRequest) -> None:
     if not username or not password:
         raise web.HTTPForbidden
 
-    row = await request.app.pool.fetchrow("SELECT FROM chat_users WHERE username = $1 AND password = $2;", username, password)
-    if not row:
+    row = await request.app.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1 AND password = $2;", username, password)
+    if row is None:
         raise web.HTTPForbidden
 
 
@@ -124,7 +124,7 @@ class UserSession:
                 return await self.websocket.send_json(error_json("Invalid credentials"))
 
             match = await self.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1 AND password = $2;", username, password)
-            if not match:
+            if match is None:
                 return await self.websocket.send_json(error_json("Invalid credentials"))
 
             self.authorize(username)
