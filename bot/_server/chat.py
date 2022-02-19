@@ -5,7 +5,6 @@ import json
 from typing import Any, Dict, Optional, Set, Tuple, TYPE_CHECKING
 
 import asyncpg
-import discord
 from aiohttp import web
 
 if TYPE_CHECKING:
@@ -129,21 +128,5 @@ class UserSession:
 
             self.authorize(username)
             return await self.websocket.send_json(action_json("LOGIN_SUCCESS"))
-
-        if action == "MESSAGE_CREATE":
-            if not self.authorized:
-                return await self.websocket.send_json(error_json("Please login or register first to create a message"))
-
-            missing_key = self.check_json_field(data, "content")
-            if missing_key is not None:
-                return await self.websocket.send_json(json_missing_field(missing_key))
-
-            username = self.username
-            content = data["content"]
-            time = discord.utils.utcnow()
-
-            row = await self.pool.fetchrow("INSERT INTO messages (author, content, time) VALUES ($1, $2, $3) RETURNING *;", username, content, time)
-            for ws in authorized_websockets:
-                await ws.send_json(action_json("MESSAGE_CREATE", id=row["id"], username=row["author"], content=row["content"], time=row["time"].isoformat()))
 
         return await self.websocket.send_json(error_json(f"Unrecognized action {action}"))
