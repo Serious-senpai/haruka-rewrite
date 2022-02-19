@@ -65,3 +65,5 @@ async def _chat_message_endpoint(request: WebRequest) -> web.Response:
         row = await request.app.pool.fetchrow("INSERT INTO messages (author, content, time) VALUES ($1, $2, $3) RETURNING *;", author, content, time)
         for ws in authorized_websockets:
             await ws.send_json(action_json("MESSAGE_CREATE", id=row["id"], author=row["author"], content=row["content"], time=row["time"].isoformat()))
+
+        return web.Response(status=203)
