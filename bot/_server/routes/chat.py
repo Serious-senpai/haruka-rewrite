@@ -56,7 +56,7 @@ async def _chat_message_endpoint(request: WebRequest) -> web.Response:
     await http_authentication(request)
     try:
         data = await request.json()
-        author = request["author"]
+        author = request.headers["username"]
         content = data["content"]
     except BaseException:
         raise web.HTTPBadRequest
@@ -64,4 +64,4 @@ async def _chat_message_endpoint(request: WebRequest) -> web.Response:
         time = discord.utils.utcnow()
         row = await request.app.pool.fetchrow("INSERT INTO messages (author, content, time) VALUES ($1, $2, $3) RETURNING *;", author, content, time)
         for ws in authorized_websockets:
-            await ws.send_json(action_json("MESSAGE_CREATE", id=row["id"], username=row["author"], content=row["content"], time=row["time"].isoformat()))
+            await ws.send_json(action_json("MESSAGE_CREATE", id=row["id"], author=row["author"], content=row["content"], time=row["time"].isoformat()))
