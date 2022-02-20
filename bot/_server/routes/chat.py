@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any, Dict, TYPE_CHECKING
 
+import asyncpg
 import discord
 from aiohttp import web
 
@@ -14,6 +15,15 @@ from ..chat import (
 from ..core import routes
 if TYPE_CHECKING:
     from ..types import WebRequest
+
+
+def construct_message_json(row: asyncpg.Record) -> Dict[str, Any]:
+    return {
+        "id": row["id"],
+        "author": {"username": row["author"]},
+        "content": row["content"],
+        "time": row["time"].isoformat(),
+    }
 
 
 @routes.get("/chat")
@@ -48,7 +58,7 @@ async def _chat_messages_endpoint(request: WebRequest) -> web.Response:
     if row is None:
         raise web.HTTPNotFound
 
-    return web.json_response(id=row["id"], author=row["author"], content=row["content"], time=row["time"].isoformat())
+    return web.json_response(construct_message_json(row))
 
 
 @routes.post("/chat/message")
@@ -63,7 +73,11 @@ async def _chat_message_endpoint(request: WebRequest) -> web.Response:
     else:
         time = discord.utils.utcnow()
         row = await request.app.pool.fetchrow("INSERT INTO messages (author, content, time) VALUES ($1, $2, $3) RETURNING *;", author, content, time)
+
+        # Construct JSON
+        to_send = construct_message_json(row)
+
         for ws in authorized_websockets:
-            await ws.send_json(action_json("MESSAGE_CREATE", id=row["id"], author=row["author"], content=row["content"], time=row["time"].isoformat()))
+            await ws.send_json(action_json("MESSAGE_CREATE", **to_send))
 
         return web.Response(status=203)
