@@ -41,7 +41,7 @@ async def _chat_ws_endpoint(request: WebRequest) -> web.WebSocketResponse:
 async def _chat_history_endpoint(request: WebRequest) -> web.Response:
     await http_authentication(request)
     rows = await request.app.pool.fetch("SELECT * FROM messages ORDER BY id DESC LIMIT 50;")
-    results = [dict(id=row["id"], author=row["author"], content=row["content"], time=row["time"].isoformat()) for row in rows]
+    results = [construct_message_json(row) for row in rows]
     return web.json_response(results)
 
 
