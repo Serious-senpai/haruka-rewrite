@@ -103,6 +103,9 @@ class UserSession:
             if len(username) < 3:
                 return await self.websocket.send_json(error_json("Username must have at least 3 characters!"))
 
+            if len(password) < 5:
+                return await self.websocket.send_json(error_json("Password must have at least 5 characters!"))
+
             match = await self.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1", username)
             if match:
                 return await self.websocket.send_json(error_json(f"Username \"{username}\" has already existed!"))
