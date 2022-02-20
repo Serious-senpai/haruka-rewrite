@@ -40,7 +40,25 @@ async def _chat_ws_endpoint(request: WebRequest) -> web.WebSocketResponse:
 @routes.get("/chat/history")
 async def _chat_history_endpoint(request: WebRequest) -> web.Response:
     await http_authentication(request)
-    rows = await request.app.pool.fetch("SELECT * FROM messages ORDER BY id DESC LIMIT 50;")
+
+    try:
+        start = int(request.query.get("start", "0"))  # Number of latest messages to skip
+    except ValueError:
+        raise web.HTTPBadRequest
+
+    rows = await request.app.pool.fetch(
+        """SELECT *
+        FROM messages
+        WHERE id <= (
+            SELECT MAX(id)
+            FROM messages
+        ) - $1
+        ORDER BY id DESC
+        LIMIT 50;
+        """,
+        start,
+    )
+
     results = [construct_message_json(row) for row in rows]
     return web.json_response(results)
 
