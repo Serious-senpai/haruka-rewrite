@@ -143,13 +143,13 @@ class WaifuIm(ImageSource):
     endpoints_url: ClassVar[str] = "https://api.waifu.im/endpoints"
 
     async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
-        data = {"sfw": [], "nsfw": []}
+        data = {"tags": [], "nsfw": []}
 
         async with self.session.get(self.endpoints_url) as response:
             if response.status == 200:
                 data = await response.json(encoding="utf-8")
 
-        return data["sfw"], data["nsfw"]
+        return data["tags"], data["nsfw"]
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         url = self.get_url(category, mode=mode)
