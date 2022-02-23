@@ -95,7 +95,7 @@ class ImageSource:
 
     def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
         """Get the API URL for the specified category and mode.
-        
+
         Subclasses must implement this.
 
         Parameters
@@ -158,15 +158,33 @@ class WaifuIm(ImageSource):
         "client",
     )
     endpoints_url: ClassVar[str] = "https://api.waifu.im/endpoints"
+    sleeping_duration: ClassVar[float] = 0.2
 
     async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
         async with self.session.get(self.endpoints_url) as response:
             if response.status == 200:
                 data = await response.json(encoding="utf-8")
 
-                all = set(data["tags"])
-                nsfw = set(data["nsfw"])
-                sfw = all - nsfw
+                nsfw = set(data["tags"])
+                sfw = nsfw - set(data["nsfw"])
+
+                sfw_remove = set()
+                nsfw_remove = set()
+
+                for sfw_category in sfw:
+                    url_test = await self.get(sfw_category, mode="sfw")
+                    if url_test is None:
+                        sfw_remove.add(sfw_category)
+                    await asyncio.sleep(self.sleeping_duration)
+
+                for nsfw_category in nsfw:
+                    url_test = await self.get(nsfw_category, mode="nsfw")
+                    if url_test is None:
+                        nsfw_remove.add(nsfw_category)
+                    await asyncio.sleep(self.sleeping_duration)
+
+                sfw -= sfw_remove
+                nsfw -= nsfw_remove
 
                 return list(sfw), list(nsfw)
 
@@ -180,7 +198,15 @@ class WaifuIm(ImageSource):
                 return json["images"][0]["url"]
 
     def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
-        url = yarl.URL.build(scheme="https", host="api.waifu.im", path="/random", query={"selected_tags": category})
+        url = yarl.URL.build(
+            scheme="https",
+            host="api.waifu.im",
+            path="/random",
+            query={
+                "selected_tags": category,
+                "is_nsfw": str(mode == "nsfw"),
+            },
+        )
         return str(url)
 
     def __str__(self) -> str:
