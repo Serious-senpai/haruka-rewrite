@@ -17,6 +17,7 @@ from typing import (
 )
 
 import aiohttp
+import yarl
 
 if TYPE_CHECKING:
     import haruka
@@ -93,7 +94,23 @@ class ImageSource:
         raise NotImplementedError
 
     def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
-        """Get the API URL for the specified category and mode."""
+        """Get the API URL for the specified category and mode.
+        
+        Subclasses must implement this.
+
+        Parameters
+        -----
+        category: ``str``
+            The requested category that the image source can provide,
+            should be registered with ``_get_all_endpoints`` first.
+        mode: Literal["sfw", "nsfw"]
+            Whether the image should be sfw or nsfw.
+
+        Returns
+        -----
+        ``str``
+            The API URL
+        """
         raise NotImplementedError
 
     @property
@@ -143,13 +160,17 @@ class WaifuIm(ImageSource):
     endpoints_url: ClassVar[str] = "https://api.waifu.im/endpoints"
 
     async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
-        data = {"tags": [], "nsfw": []}
-
         async with self.session.get(self.endpoints_url) as response:
             if response.status == 200:
                 data = await response.json(encoding="utf-8")
 
-        return data["tags"], data["nsfw"]
+                all = set(data["tags"])
+                nsfw = set(data["nsfw"])
+                sfw = all - nsfw
+
+                return list(sfw), list(nsfw)
+
+        return [], []
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         url = self.get_url(category, mode=mode)
@@ -159,7 +180,8 @@ class WaifuIm(ImageSource):
                 return json["images"][0]["url"]
 
     def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
-        return f"https://api.waifu.im/{mode}/{category}"
+        url = yarl.URL.build(scheme="https", host="api.waifu.im", path="/random", query={"selected_tags": category})
+        return str(url)
 
     def __str__(self) -> str:
         return "waifu.im"
