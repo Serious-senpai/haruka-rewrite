@@ -329,7 +329,7 @@ class Haruka(commands.Bot, SlashMixin):
     def image(self) -> image.ImageClient[image.ImageSource]:
         return self._image
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=5)
     async def _keep_alive(self) -> None:
         asyncio.current_task().set_name("KeepServerAlive")
         async with self.session.get(env.get_host()) as response:
