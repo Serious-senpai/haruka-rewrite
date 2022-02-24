@@ -45,7 +45,7 @@ class NHentaiSearch:
 
         Search for a list of doujinshis from a query. The number of
         results is not predictable so it is recommended to slice the
-        returnedclist to get only the first 6 results for most use
+        returned list to get only the first 6 results for most use
         cases.
 
         Parameters
@@ -59,8 +59,7 @@ class NHentaiSearch:
             The list of search results. If no result was found then an
             empty list is returned
         """
-        params = {"q": query}
-        async with bot.session.get("https://nhentai.net/search/", params=params) as response:
+        async with bot.session.get("https://nhentai.net/search/", params={"q": query}) as response:
             if response.ok:
                 html = await response.text(encoding="utf-8")
                 soup = bs4.BeautifulSoup(html, "html.parser")
@@ -95,11 +94,15 @@ class NHentai:
         self.url = f"https://nhentai.net/g/{self.id}"
         self.sections = _container.find("section", attrs={"id": "tags"}).find_all("div")
 
-        with contextlib.suppress(AttributeError):
+        try:
             self.thumbnail = _container.find("img").get("data-src")
+        except AttributeError:
+            self.thumbnail = None
 
-        with contextlib.suppress(AttributeError):
+        try:
             self.subtitle = _container.find("h2", attrs={"class": "title"}).find("span", attrs={"class": "pretty"}).get_text()
+        except AttributeError:
+            self.subtitle = None
 
     @property
     def thumb(self) -> Optional[str]:

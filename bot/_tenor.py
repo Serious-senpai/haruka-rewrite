@@ -1,6 +1,6 @@
-from urllib import parse
 from typing import List
 
+import yarl
 from bs4 import BeautifulSoup
 
 from core import bot
@@ -21,7 +21,7 @@ async def search(query: str) -> List[str]:
     List[``str``]
         A list of result image URLs
     """
-    url = "https://tenor.com/search/" + parse.quote(query, encoding="utf-8")
+    url = yarl.URL.build(scheme="https", host="tenor.com", path=f"/search/{query}")
     ret = []
     async with bot.session.get(url) as response:
         if response.ok:

@@ -1,8 +1,8 @@
 import contextlib
 from typing import List
-from urllib import parse
 
 import aiohttp
+import yarl
 from bs4 import BeautifulSoup
 
 from core import bot
@@ -24,14 +24,15 @@ async def search(query: str, *, max_results: int = 200) -> List[str]:
     List[``str``]
         A list of image URLs
     """
-    url = "https://www.zerochan.net/" + parse.quote(query, encoding="utf-8")
+    url = yarl.URL.build(scheme="https", host="zerochan.net", path="/search", query={"q": query})
     ret = []
     page = 0
 
     with contextlib.suppress(aiohttp.ClientError):
         while page := page + 1:
             ext = []
-            async with bot.session.get(url, params={"p": page}) as response:
+            
+            async with bot.session.get(url.update_query(p=page)) as response:
                 if response.ok:
                     html = await response.text(encoding="utf-8")
                     soup = BeautifulSoup(html, "html.parser")

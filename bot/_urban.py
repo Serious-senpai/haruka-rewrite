@@ -57,7 +57,7 @@ class UrbanSearch:
 
     @classmethod
     async def search(cls: Type[UrbanSearch], word: str) -> Optional[UrbanSearch]:
-        url = f"https://www.urbandictionary.com/define.php"
+        url = "https://www.urbandictionary.com/define.php"
         for _ in range(10):
             try:
                 async with bot.session.get(url, params={"term": word}) as response:

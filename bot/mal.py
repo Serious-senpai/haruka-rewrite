@@ -132,10 +132,9 @@ class MALSearchResult(MAL):
         criteria: Literal["manga, anime"],
     ) -> List[MALSearchResult]:
         rslt = []
-        params = {"q": query}
         url = f"https://myanimelist.net/{criteria}.php"
 
-        async with bot.session.get(url, params=params) as response:
+        async with bot.session.get(url, params={"q": query}) as response:
             if response.status == 200:
                 html = await response.text(encoding="utf-8")
                 soup = bs(html, "html.parser")
