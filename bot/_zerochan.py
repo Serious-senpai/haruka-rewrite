@@ -24,7 +24,7 @@ async def search(query: str, *, max_results: int = 200) -> List[str]:
     List[``str``]
         A list of image URLs
     """
-    url = yarl.URL.build(scheme="https", host="zerochan.net", path="/search", query={"q": query})
+    url = yarl.URL.build(scheme="https", host="zerochan.net", path=f"/{query}")
     ret = []
     page = 0
 
@@ -32,7 +32,7 @@ async def search(query: str, *, max_results: int = 200) -> List[str]:
         while page := page + 1:
             ext = []
             
-            async with bot.session.get(url.update_query(p=page)) as response:
+            async with bot.session.get(url.with_query(p=page)) as response:
                 if response.ok:
                     html = await response.text(encoding="utf-8")
                     soup = BeautifulSoup(html, "html.parser")
