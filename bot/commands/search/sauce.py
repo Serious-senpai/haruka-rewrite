@@ -1,4 +1,3 @@
-import asyncio
 from typing import Optional
 
 import discord
@@ -6,6 +5,7 @@ from discord.ext import commands
 
 import emoji_ui
 import saucenao
+from _types import Context
 from core import bot
 
 
@@ -35,7 +35,7 @@ async def _send_single_sauce(target: discord.abc.Messageable, image_url: str) ->
     usage="sauce <URL to image>\nsauce <attachment>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _sauce_cmd(ctx: commands.Context, image_url: Optional[str] = None):
+async def _sauce_cmd(ctx: Context, image_url: Optional[str] = None):
     if image_url is None and not ctx.message.attachments:
         raise commands.UserInputError
 

@@ -4,6 +4,7 @@ from discord.utils import escape_markdown as escape
 
 import emoji_ui
 import _nhentai
+from _types import Context
 from core import bot
 from emoji_ui import CHOICES
 
@@ -16,7 +17,7 @@ from emoji_ui import CHOICES
 )
 @commands.is_nsfw()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _nhentai_cmd(ctx: commands.Context, *, query: str):
+async def _nhentai_cmd(ctx: Context, *, query: str):
     hentai = None
     if _nhentai.ID_PATTERN.fullmatch(query):
         hentai = await _nhentai.NHentai.get(query)

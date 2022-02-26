@@ -3,6 +3,7 @@ from discord.ext import commands
 
 import emoji_ui
 import _pixiv
+from _types import Context
 from core import bot
 
 
@@ -12,7 +13,7 @@ from core import bot
     usage="pixiv <query, URL or ID>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _pixiv_cmd(ctx: commands.Context, *, query: str = ""):
+async def _pixiv_cmd(ctx: Context, *, query: str = ""):
     async with ctx.typing():
         try:
             parsed = await _pixiv.parse(query, session=bot.session)

@@ -1,7 +1,6 @@
-import discord
-
 import leech
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -19,7 +18,7 @@ json = {
 
 
 @bot.slash(json)
-async def _quote_slash(interaction: discord.Interaction):
+async def _quote_slash(interaction: Interaction):
     await interaction.response.defer()
     args = slash.parse(interaction)
     anime = args.get("anime")

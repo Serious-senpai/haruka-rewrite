@@ -20,6 +20,7 @@ import emoji_ui
 import emojis
 import env
 import utils
+from _types import Context
 from core import bot
 
 
@@ -32,7 +33,7 @@ fetching_in_progress: Dict[str, asyncio.Event] = {}
 
 
 def in_voice() -> Callable[[T], T]:
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: Context) -> bool:
         if not getattr(ctx.author, "voice", None):
             await ctx.send("Please join a voice channel first.")
             return False

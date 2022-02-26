@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 import audio
+from _types import Context
 from core import bot
 
 
@@ -14,7 +15,7 @@ from core import bot
 )
 @audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _remove_cmd(ctx: commands.Context, pos: Union[int, str] = 1):
+async def _remove_cmd(ctx: Context, pos: Union[int, str] = 1):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")
 

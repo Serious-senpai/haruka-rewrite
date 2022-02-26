@@ -10,6 +10,7 @@ import env
 import info
 import utils
 from core import bot, prefix
+from _types import Context
 
 
 @bot.command(
@@ -17,7 +18,7 @@ from core import bot, prefix
     description="Display bot information",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _about_cmd(ctx: commands.Context):
+async def _about_cmd(ctx: Context):
     embed = info.user_info(bot.user)
     embed.description += "\nIf you are too bored, [vote](https://top.gg/bot/848178172536946708/vote) for me on top.gg!"
     embed.add_field(
@@ -47,7 +48,7 @@ async def _about_cmd(ctx: commands.Context):
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _info_cmd(ctx: commands.Context, *, user: discord.User = None):
+async def _info_cmd(ctx: Context, *, user: discord.User = None):
     if user is None:
         user = ctx.author
     info_em = info.user_info(user)
@@ -63,7 +64,7 @@ async def _info_cmd(ctx: commands.Context, *, user: discord.User = None):
     description="Measure the bot's latency",
 )
 @commands.cooldown(1, 10, commands.BucketType.user)
-async def _ping_cmd(ctx: commands.Context):
+async def _ping_cmd(ctx: Context):
     with utils.TimingContextManager() as measure:
         message = await ctx.send("🏓 **Ping!**")
     await message.edit(f"🏓 **Pong!** in {utils.format(measure.result)} (average {utils.format(bot.latency)})")
@@ -76,7 +77,7 @@ async def _ping_cmd(ctx: commands.Context):
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.guild)
-async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
+async def _prefix_cmd(ctx: Context, *, pref: str = None):
     if not pref:
         p = await prefix(bot, ctx.message)
         return await ctx.send(f"The current prefix is `{p}`")
@@ -101,7 +102,7 @@ async def _prefix_cmd(ctx: commands.Context, *, pref: str = None):
     usage="say <anything>"
 )
 @commands.cooldown(1, 1, commands.BucketType.user)
-async def _say_cmd(ctx: commands.Context, *, content: str):
+async def _say_cmd(ctx: Context, *, content: str):
     files = []
     for attachment in ctx.message.attachments:
         files.append(await attachment.to_file())
@@ -115,7 +116,7 @@ async def _say_cmd(ctx: commands.Context, *, content: str):
     usage="avatar <user | default: yourself>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _avatar_cmd(ctx: commands.Context, *, user: discord.User = None):
+async def _avatar_cmd(ctx: Context, *, user: discord.User = None):
     if user is None:
         user = ctx.author
     if not user.avatar:
@@ -135,7 +136,7 @@ async def _avatar_cmd(ctx: commands.Context, *, user: discord.User = None):
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _svinfo_cmd(ctx: commands.Context):
+async def _svinfo_cmd(ctx: Context):
     sv_em = info.server_info(ctx.guild)
     await ctx.send(embed=sv_em)
 
@@ -147,7 +148,7 @@ async def _svinfo_cmd(ctx: commands.Context):
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _emoji_cmd(ctx: commands.Context):
+async def _emoji_cmd(ctx: Context):
     emojis = ctx.guild.emojis
     pages = 1 + int(len(emojis) / 50)
     embeds = []
@@ -173,7 +174,7 @@ async def _emoji_cmd(ctx: commands.Context):
     usage="remind <hours> <minutes> <content>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, content: str):
+async def _remind_cmd(ctx: Context, hours: int, minutes: int, *, content: str):
     if hours < 0 or minutes < 0:
         return await ctx.send("Both `hours` and `minutes` must be greater than or equal to 0.")
 
@@ -218,7 +219,7 @@ async def _remind_cmd(ctx: commands.Context, hours: int, minutes: int, *, conten
     usage="source <command name>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _source_cmd(ctx: commands.Context, *, cmd: str):
+async def _source_cmd(ctx: Context, *, cmd: str):
     if cmd.lower() == "help":
         file = discord.File("./bot/commands/help.py", filename="source.py")
     else:

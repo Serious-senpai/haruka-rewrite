@@ -4,6 +4,7 @@ import discord
 
 import _tenor
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -21,7 +22,7 @@ json = {
 
 
 @bot.slash(json)
-async def _tenor_slash(interaction: discord.Interaction):
+async def _tenor_slash(interaction: Interaction):
     await interaction.response.defer()
     args = slash.parse(interaction)
     query = args["query"]

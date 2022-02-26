@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 import utils
+from _types import Context
 from core import bot
 
 
@@ -15,7 +16,7 @@ from core import bot
 )
 @commands.is_owner()
 @commands.max_concurrency(1)
-async def _ssh_cmd(ctx: commands.Context, *, cmd: str):
+async def _ssh_cmd(ctx: Context, *, cmd: str):
     with open("./ssh.txt", "w", encoding="utf-8") as writer:
         with utils.TimingContextManager() as measure:
             try:

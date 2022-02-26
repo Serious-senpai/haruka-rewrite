@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 import leech
+from _types import Context
 from core import bot
 
 
@@ -10,5 +11,5 @@ from core import bot
     usage="quote <anime | default: random>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _quote_cmd(ctx: commands.Context, *, anime: str = None):
+async def _quote_cmd(ctx: Context, *, anime: str = None):
     await ctx.send(embed=await leech.get_quote(anime))

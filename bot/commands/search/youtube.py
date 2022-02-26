@@ -3,6 +3,7 @@ from discord.ext import commands
 
 import audio
 import utils
+from _types import Context
 from core import bot
 
 
@@ -13,7 +14,7 @@ from core import bot
     usage="youtube <query>",
 )
 @commands.cooldown(1, 15, commands.BucketType.user)
-async def _youtube_cmd(ctx: commands.Context, *, query: str):
+async def _youtube_cmd(ctx: Context, *, query: str):
     if len(query) < 3:
         return await ctx.send("Search query must have at least 3 characters")
 

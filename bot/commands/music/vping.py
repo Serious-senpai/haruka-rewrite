@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 import utils
+from _types import Context
 from core import bot
 
 
@@ -11,7 +12,7 @@ from core import bot
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _vping_cmd(ctx: commands.Context):
+async def _vping_cmd(ctx: Context):
     player = ctx.voice_client
 
     if player and player.is_connected():

@@ -4,6 +4,7 @@ from discord.utils import escape_markdown as escape
 
 import mal
 import emoji_ui
+from _types import Context
 from core import bot
 from emoji_ui import CHOICES
 
@@ -14,7 +15,7 @@ from emoji_ui import CHOICES
     usage="manga <query>"
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _manga_cmd(ctx: commands.Context, *, query):
+async def _manga_cmd(ctx: Context, *, query):
     if len(query) < 3:
         await ctx.send(f"Search query must have at least 3 characters")
         return

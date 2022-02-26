@@ -37,8 +37,8 @@ PARAMS_MAPPING = {
 }
 
 
-SlashCallback = Callable[[discord.Interaction], Coroutine[Any, Any, Any]]
-MaybeCoroutine = Union[Callable[[discord.Interaction], Any], Callable[[discord.Interaction], Coroutine[Any, Any, Any]]]
+SlashCallback = Callable[[Interaction], Coroutine[Any, Any, Any]]
+MaybeCoroutine = Union[Callable[[Interaction], Any], Callable[[Interaction], Coroutine[Any, Any, Any]]]
 
 
 class Command:
@@ -106,7 +106,7 @@ class SlashMixin:
 
         Returns
         -----
-        Callable[[``discord.Interaction``], Coroutine[Any, Any, Any]]
+        Callable[[``Interaction``], Coroutine[Any, Any, Any]]
             A decorator that converts the provided method into a ``SlashCommand``, adds it
             to the bot, then returns it.
         """
@@ -132,14 +132,14 @@ class SlashMixin:
         data = await self.http.bulk_upsert_global_commands(self.user.id, self._json)
         self.log(f"Returned JSON:\n{data}")
 
-    async def process_slash_commands(self, interaction: discord.Interaction) -> None:
+    async def process_slash_commands(self, interaction: Interaction) -> None:
         """This function is a coroutine
 
         Process a slash command from an interaction
 
         Parameters
         -----
-        interaction: ``discord.Interaction``
+        interaction: ``Interaction``
             The interaction to process
         """
         name = interaction.data["name"]
@@ -167,12 +167,12 @@ class SlashMixin:
                 self.dispatch("slash_command_error", interaction, wrapped)
 
 
-def parse(interaction: discord.Interaction) -> Dict[str, Any]:
+def parse(interaction: Interaction) -> Dict[str, Any]:
     """Get all slash commands arguments from an interaction
 
     Parameters
     -----
-    interaction: ``discord.Interaction``
+    interaction: ``Interaction``
         The slash command interaction
 
     Returns

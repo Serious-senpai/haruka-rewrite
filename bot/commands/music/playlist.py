@@ -1,10 +1,10 @@
-from urllib import parse
-
 import discord
+import yarl
 from discord.ext import commands
 
 import audio
 import _playlist
+from _types import Context
 from core import bot
 
 
@@ -15,12 +15,11 @@ from core import bot
 )
 @audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _playlist_cmd(ctx: commands.Context, *, url: str):
+async def _playlist_cmd(ctx: Context, *, url: str):
     channel = ctx.author.voice.channel
 
     try:
-        query = parse.urlparse(url).query
-        playlist_id = parse.parse_qs(query)["list"][0]
+        playlist_id = yarl.URL(url).query["list"]
     except BaseException:
         raise commands.UserInputError
     else:

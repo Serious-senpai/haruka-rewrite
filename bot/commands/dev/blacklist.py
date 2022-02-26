@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
+from _types import Context
 from core import bot
 
 
@@ -11,7 +12,7 @@ from core import bot
     usage="blacklist <user>",
 )
 @commands.is_owner()
-async def _blacklist_cmd(ctx: commands.Context, user: discord.User, *, reason: str = "*No reason given*"):
+async def _blacklist_cmd(ctx: Context, user: discord.User, *, reason: str = "*No reason given*"):
     if user.id == ctx.author.id:
         return await ctx.send(f"Please don't blacklist yourself, <@!{ctx.author.id}>?")
 

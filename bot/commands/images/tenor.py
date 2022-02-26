@@ -3,6 +3,7 @@ from discord.ext import commands
 
 import _tenor
 import emoji_ui
+from _types import Context
 from core import bot
 
 
@@ -12,7 +13,7 @@ from core import bot
     usage="tenor <query>",
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
-async def _tenor_cmd(ctx: commands.Context, *, query: str):
+async def _tenor_cmd(ctx: Context, *, query: str):
     urls = await _tenor.search(query)
 
     if not urls:

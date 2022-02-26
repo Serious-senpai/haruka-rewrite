@@ -3,6 +3,7 @@ from typing import Literal
 
 from discord.ext import commands
 
+from _types import Context
 from core import bot
 
 
@@ -12,7 +13,7 @@ from core import bot
     usage="trace <keytype>",
 )
 @commands.is_owner()
-async def _trace_cmd(ctx: commands.Context, keytype: Literal["filename", "lineno", "traceback"] = "filename"):
+async def _trace_cmd(ctx: Context, keytype: Literal["filename", "lineno", "traceback"] = "filename"):
     async with ctx.typing():
         snap = tracemalloc.take_snapshot()
 

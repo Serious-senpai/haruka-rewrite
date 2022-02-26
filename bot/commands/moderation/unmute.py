@@ -1,9 +1,7 @@
-from typing import Optional
-
-import asyncpg
 import discord
 from discord.ext import commands
 
+from _types import Context
 from core import bot
 
 
@@ -16,7 +14,7 @@ from core import bot
 @commands.bot_has_guild_permissions(manage_members=True)
 @commands.has_guild_permissions(manage_members=True)
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _unmute_cmd(ctx: commands.Context, member: discord.Member, *, reason: str = None):
+async def _unmute_cmd(ctx: Context, member: discord.Member, *, reason: str = None):
     try:
         await member.edit(timed_out_until=None, reason=reason)
     except discord.HTTPException:
@@ -34,10 +32,6 @@ async def _unmute_cmd(ctx: commands.Context, member: discord.Member, *, reason: 
         name="Unmuted member",
         value=member,
     )
-    embed.add_field(
-        name="Reason",
-        value=reason,
-        inline=False,
-    )
+    embed.add_field(name="Reason", value=reason, inline=False)
     embed.set_thumbnail(url=member.avatar.url if member.avatar else discord.Embed.Empty)
     await ctx.send(embed=embed, reference=ctx.message.reference)

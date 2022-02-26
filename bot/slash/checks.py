@@ -1,7 +1,6 @@
 from typing import Any, Callable, TypeVar
 
-import discord
-
+from _types import Interaction
 from .core import (
     Command,
     MaybeCoroutine,
@@ -39,8 +38,8 @@ def check(predicate: MaybeCoroutine) -> Callable[[ST], ST]:
     return decorator
 
 
-def guild_only() -> Callable[[discord.Interaction], Callable[[ST], ST]]:
-    def predicate(interaction: discord.Interaction) -> Any:
+def guild_only() -> Callable[[Interaction], Callable[[ST], ST]]:
+    def predicate(interaction: Interaction) -> Any:
         if not interaction.guild_id:
             raise NoPrivateMessage(interaction.data["name"])
 

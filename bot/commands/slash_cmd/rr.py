@@ -1,5 +1,6 @@
 import discord
 
+from _types import Interaction
 from core import bot
 
 
@@ -11,6 +12,6 @@ json = {
 
 
 @bot.slash(json)
-async def _rr_slash(interaction: discord.Interaction):
+async def _rr_slash(interaction: Interaction):
     await interaction.response.defer()
     await interaction.followup.send(file=discord.File("./bot/assets/misc/video0.mp4"))

@@ -3,6 +3,7 @@ import random
 from discord.ext import commands
 
 import utils
+from _types import Context
 from core import bot
 
 
@@ -14,6 +15,6 @@ exceptions = tuple(utils.get_all_subclasses(Exception))
     description="Raise a random exception",
 )
 @commands.is_owner()
-async def _raise_cmd(ctx: commands.Context):
+async def _raise_cmd(ctx: Context):
     exc = random.choice(exceptions)
     raise exc

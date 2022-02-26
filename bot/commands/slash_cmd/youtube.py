@@ -7,6 +7,7 @@ import emojis
 import slash
 import ui
 import utils
+from _types import Interaction
 from core import bot
 
 
@@ -24,7 +25,7 @@ json = {
 
 
 @bot.slash(json)
-async def _youtube_slash(interaction: discord.Interaction):
+async def _youtube_slash(interaction: Interaction):
     await interaction.response.defer()
     args = slash.parse(interaction)
     query = args["query"]

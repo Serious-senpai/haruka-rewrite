@@ -2,6 +2,7 @@ from random import randint
 
 from discord.ext import commands
 
+from _types import Context
 from core import bot
 
 
@@ -11,7 +12,7 @@ from core import bot
     usage="roll <i> <j>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _roll_cmd(ctx: commands.Context, i: int, j: int):
+async def _roll_cmd(ctx: Context, i: int, j: int):
     if i < j:
         ans = randint(i, j)
     else:

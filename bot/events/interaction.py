@@ -1,10 +1,11 @@
 import discord
 
+from _types import Interaction
 from core import bot
 
 
 @bot.event
-async def on_interaction(interaction: discord.Interaction):
+async def on_interaction(interaction: Interaction):
     if interaction.type == discord.InteractionType.application_command:
         """Execute slash commands"""
         row = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{interaction.user.id}';")

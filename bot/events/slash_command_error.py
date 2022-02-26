@@ -1,13 +1,12 @@
 import traceback
 
-import discord
-
 import slash
+from _types import Interaction
 from core import bot
 
 
 @bot.event
-async def on_slash_command_error(interaction: discord.Interaction, error: Exception):
+async def on_slash_command_error(interaction: Interaction, error: Exception):
     if isinstance(error, slash.NoPrivateMessage):
         await interaction.response.send_message("This command can only be invoked in a server channel.")
 

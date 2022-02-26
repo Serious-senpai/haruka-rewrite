@@ -22,6 +22,7 @@ import _server
 import env
 import image
 import task
+from _types import Context, Interaction
 from slash import SlashMixin
 
 
@@ -34,10 +35,10 @@ if TYPE_CHECKING:
 class Haruka(commands.Bot, SlashMixin):
 
     if TYPE_CHECKING:
-        _command_count: Dict[str, List[commands.Context]]
-        _slash_command_count: Dict[str, List[discord.Interaction]]
+        _command_count: Dict[str, List[Context]]
+        _slash_command_count: Dict[str, List[Interaction]]
         _connection: _ConnectionState
-        _dump_bin: Dict[int, discord.Interaction]
+        _dump_bin: Dict[int, Interaction]
         _eval_task: Optional[asyncio.Task]
         _image: image.ImageClient[image.ImageSource]
 

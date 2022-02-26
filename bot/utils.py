@@ -7,6 +7,7 @@ from typing import Callable, Iterator, Optional, Type, TypeVar, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
+from _types import Context
 
 
 T = TypeVar("T")
@@ -15,7 +16,7 @@ TESTING_GUILD_IDS = (764494394430193734, 886311355211190372)
 
 def testing() -> Callable[[T], T]:
     """A check indicates that a command is still in the development phase"""
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: Context) -> bool:
         if await ctx.bot.is_owner(ctx.author):
             return True
         if ctx.guild and ctx.guild.id in TESTING_GUILD_IDS:

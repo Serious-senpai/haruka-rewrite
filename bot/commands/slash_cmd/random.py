@@ -1,9 +1,9 @@
 import random
 
-import discord
 from youtube_dl import utils
 
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -27,7 +27,7 @@ json = {
 
 
 @bot.slash(json)
-async def _random_slash(interaction: discord.Interaction):
+async def _random_slash(interaction: Interaction):
     args = slash.parse(interaction)
     if args.get("user-agent"):
         await interaction.response.send_message("```\n" + utils.random_user_agent() + "\n```")

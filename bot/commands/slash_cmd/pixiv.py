@@ -2,6 +2,7 @@ import discord
 
 import _pixiv
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -19,7 +20,7 @@ json = {
 
 
 @bot.slash(json)
-async def _pixiv_slash(interaction: discord.Interaction):
+async def _pixiv_slash(interaction: Interaction):
     await interaction.response.defer()
     args = slash.parse(interaction)
     query = args["string"]

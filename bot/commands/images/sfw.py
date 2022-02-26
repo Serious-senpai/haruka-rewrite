@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 import image
+from _types import Context
 from core import bot
 
 
@@ -12,7 +13,7 @@ from core import bot
     usage="sfw <category>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _sfw_cmd(ctx: commands.Context, *, category: str):
+async def _sfw_cmd(ctx: Context, *, category: str):
     category = category.lower()
     try:
         image_url = await bot.image.get(category.lower(), mode="sfw") or discord.Embed.Empty

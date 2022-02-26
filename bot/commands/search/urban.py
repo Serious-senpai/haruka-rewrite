@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 import _urban
+from _types import Context
 from core import bot
 
 
@@ -11,7 +12,7 @@ from core import bot
     usage="urban <query>"
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _urban_cmd(ctx: commands.Context, *, query: str):
+async def _urban_cmd(ctx: Context, *, query: str):
     result = await _urban.UrbanSearch.search(query)
     if result:
         embed = result.create_embed()

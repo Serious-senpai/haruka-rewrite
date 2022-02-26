@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 import audio
+from _types import Context
 from core import bot
 
 
@@ -15,7 +16,7 @@ QUEUE_MAX_SIZE = 100
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _add_cmd(ctx: commands.Context, *, query: str):
+async def _add_cmd(ctx: Context, *, query: str):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")
 

@@ -3,6 +3,7 @@ import datetime
 import discord
 from discord.ext import commands
 
+from _types import Context
 from core import bot
 
 
@@ -15,7 +16,7 @@ from core import bot
 @commands.bot_has_guild_permissions(manage_members=True)
 @commands.has_guild_permissions(manage_members=True)
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _mute_cmd(ctx: commands.Context, hours: int, minutes: int, member: discord.Member, *, reason: str = None):
+async def _mute_cmd(ctx: Context, hours: int, minutes: int, member: discord.Member, *, reason: str = None):
     if hours < 0 or minutes < 0:
         return await ctx.send("Both `hours` and `minutes` must be greater than or equal to 0.")
 
@@ -44,10 +45,6 @@ async def _mute_cmd(ctx: commands.Context, hours: int, minutes: int, member: dis
         name="Duration",
         value=f"{hours}h {minutes}m",
     )
-    embed.add_field(
-        name="Reason",
-        value=reason,
-        inline=False,
-    )
+    embed.add_field(name="Reason", value=reason, inline=False)
     embed.set_thumbnail(url=member.avatar.url if member.avatar else discord.Embed.Empty)
     await ctx.send(embed=embed, reference=ctx.message.reference)

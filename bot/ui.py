@@ -3,6 +3,7 @@ import sys
 from typing import List, Optional, Union, TYPE_CHECKING
 
 import discord
+from _types import Interaction
 
 
 class SelectMenu(discord.ui.Select):
@@ -25,7 +26,7 @@ class SelectMenu(discord.ui.Select):
         self._future = self._loop.create_future()
         super().__init__(placeholder=placeholder, options=options, min_values=1, max_values=1)
 
-    async def callback(self, interaction: discord.Interaction) -> None:
+    async def callback(self, interaction: Interaction) -> None:
         self.view.stop()
         self._future.set_result(self.values.pop())
 

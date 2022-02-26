@@ -3,6 +3,7 @@ import traceback
 from discord.ext import commands
 
 import utils
+from _types import Context
 from core import bot
 
 
@@ -12,7 +13,7 @@ from core import bot
     usage="sql <query>",
 )
 @commands.is_owner()
-async def _sql_cmd(ctx: commands.Context, *, query):
+async def _sql_cmd(ctx: Context, *, query):
     try:
         with utils.TimingContextManager() as measure:
             status = await bot.conn.execute(query)

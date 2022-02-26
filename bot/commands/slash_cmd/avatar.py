@@ -1,6 +1,7 @@
 import discord
 
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -18,7 +19,7 @@ json = {
 
 
 @bot.slash(json)
-async def _avatar_slash(interaction: discord.Interaction):
+async def _avatar_slash(interaction: Interaction):
     args = slash.parse(interaction)
     user = args.get("user", interaction.user)
 

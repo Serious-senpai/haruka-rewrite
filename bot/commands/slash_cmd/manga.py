@@ -5,6 +5,7 @@ import discord
 import mal
 import slash
 import ui
+from _types import Interaction
 from core import bot
 
 
@@ -22,7 +23,7 @@ json = {
 
 
 @bot.slash(json)
-async def _manga_slash(interaction: discord.Interaction):
+async def _manga_slash(interaction: Interaction):
     await interaction.response.defer()
     args = slash.parse(interaction)
     query = args["query"]

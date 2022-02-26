@@ -4,6 +4,7 @@ import discord
 
 import slash
 from audio import MusicClient
+from _types import Interaction
 from core import bot
 
 
@@ -16,7 +17,7 @@ json = {
 
 @bot.slash(json)
 @slash.guild_only()
-async def _play_slash(interaction: discord.Interaction):
+async def _play_slash(interaction: Interaction):
     await interaction.response.defer()
     if not isinstance(interaction.user, discord.Member):
         await interaction.followup.send("Cannot perform this operation.")

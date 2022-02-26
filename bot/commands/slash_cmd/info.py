@@ -1,7 +1,6 @@
-import discord
-
 import info
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -19,7 +18,7 @@ json = {
 
 
 @bot.slash(json)
-async def info_(interaction: discord.Interaction):
+async def info_(interaction: Interaction):
     args = slash.parse(interaction)
     user = args.get("user", interaction.user)
 

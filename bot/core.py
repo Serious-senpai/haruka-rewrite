@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands
 
 import haruka
+from _types import Context
 
 
 # uvloop does not support Windows
@@ -102,7 +103,7 @@ bot = haruka.Haruka(
 
 
 @bot.check
-async def _blacklist_check(ctx: commands.Context):
+async def _blacklist_check(ctx: Context):
     row = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{ctx.author.id}';")
     return row is None
 
@@ -114,7 +115,7 @@ async def on_ready():
 
 
 @bot.before_invoke
-async def _before_invoke(ctx: commands.Context):
+async def _before_invoke(ctx: Context):
     # Count text commands
     if ctx.command.root_parent:
         return

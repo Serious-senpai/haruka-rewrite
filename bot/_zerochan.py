@@ -31,7 +31,7 @@ async def search(query: str, *, max_results: int = 200) -> List[str]:
     with contextlib.suppress(aiohttp.ClientError):
         while page := page + 1:
             ext = []
-            
+
             async with bot.session.get(url.with_query(p=page)) as response:
                 if response.ok:
                     html = await response.text(encoding="utf-8")

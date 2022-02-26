@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 
 import utils
+from _types import Context
 from core import bot
 
 
@@ -13,7 +14,7 @@ COOLDOWN_NOTIFY = {}
 
 
 @bot.event
-async def on_command_error(ctx: commands.Context, error: Exception):
+async def on_command_error(ctx: Context, error: Exception):
     if isinstance(error, commands.CommandNotFound):
         return
 

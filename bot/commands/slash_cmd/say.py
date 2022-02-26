@@ -1,6 +1,5 @@
-import discord
-
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -18,6 +17,6 @@ json = {
 
 
 @bot.slash(json)
-async def _say_slash(interaction: discord.Interaction):
+async def _say_slash(interaction: Interaction):
     args = slash.parse(interaction)
     await interaction.response.send_message(args["content"])

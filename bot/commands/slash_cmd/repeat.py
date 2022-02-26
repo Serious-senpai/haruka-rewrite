@@ -1,6 +1,5 @@
-import discord
-
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -13,7 +12,7 @@ json = {
 
 @bot.slash(json)
 @slash.guild_only()
-async def _repeat_slash(interaction: discord.Interaction):
+async def _repeat_slash(interaction: Interaction):
     await interaction.response.defer()
     player = interaction.guild.voice_client
 
@@ -22,7 +21,7 @@ async def _repeat_slash(interaction: discord.Interaction):
         player._repeat = not player._repeat
 
         if player._repeat:
-            await interaction.followup.send("Switched to `REPEAT ONE` mode. The current song will be play repeatedly.")
+            await interaction.followup.send("Switched to `REPEAT ONE` mode. The current song will be played repeatedly.")
         else:
             await interaction.followup.send("Switched to `REPEAT ALL` mode. All songs will be played as normal.")
 

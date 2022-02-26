@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands
 
 import utils
+from _types import Context
 from core import bot
 
 
@@ -22,7 +23,7 @@ bot._eval_task = None
 )
 @commands.is_owner()
 @commands.max_concurrency(1)
-async def _eval_cmd(ctx: commands.Context, *, code: str):
+async def _eval_cmd(ctx: Context, *, code: str):
     code = code.strip("`")
     code = code.removeprefix("python")
     code = code.removeprefix("py")

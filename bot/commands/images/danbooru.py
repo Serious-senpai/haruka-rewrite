@@ -3,6 +3,7 @@ from discord.ext import commands
 
 import _danbooru
 import emoji_ui
+from _types import Context
 from core import bot
 
 
@@ -14,7 +15,7 @@ from core import bot
 )
 @commands.is_nsfw()
 @commands.cooldown(1, 5, commands.BucketType.user)
-async def _danbooru_cmd(ctx: commands.Context, *, query: str):
+async def _danbooru_cmd(ctx: Context, *, query: str):
     async with ctx.typing():
         urls = await _danbooru.search(query)
 

@@ -1,10 +1,9 @@
-from typing import List
-
 import discord
 from discord.ext import commands
 
 import _zerochan
 import emoji_ui
+from _types import Context
 from core import bot
 
 
@@ -15,7 +14,7 @@ from core import bot
     usage="zerochan <query>",
 )
 @commands.cooldown(1, 5, commands.BucketType.user)
-async def _zerochan_cmd(ctx: commands.Context, *, query: str):
+async def _zerochan_cmd(ctx: Context, *, query: str):
     async with ctx.typing():
         urls = await _zerochan.search(query)
 

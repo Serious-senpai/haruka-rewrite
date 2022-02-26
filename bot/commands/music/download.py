@@ -6,6 +6,7 @@ from discord.ext import commands
 import audio
 import emoji_ui
 import utils
+from _types import Context
 from core import bot
 
 
@@ -15,7 +16,7 @@ from core import bot
 )
 @audio.in_voice()
 @commands.cooldown(1, 60, commands.BucketType.user)
-async def _download_cmd(ctx: commands.Context):
+async def _download_cmd(ctx: Context):
     channel = ctx.author.voice.channel
     queue = await audio.MusicClient.queue(channel.id)
     if not queue:

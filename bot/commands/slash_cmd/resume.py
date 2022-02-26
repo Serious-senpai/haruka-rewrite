@@ -1,6 +1,5 @@
-import discord
-
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -13,7 +12,7 @@ json = {
 
 @bot.slash(json)
 @slash.guild_only()
-async def _resume_slash(interaction: discord.Interaction):
+async def _resume_slash(interaction: Interaction):
     await interaction.response.defer()
     player = interaction.guild.voice_client
 

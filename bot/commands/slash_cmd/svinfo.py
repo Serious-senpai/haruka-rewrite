@@ -1,7 +1,6 @@
-import discord
-
 import slash
 import info
+from _types import Interaction
 from core import bot
 
 
@@ -14,5 +13,5 @@ json = {
 
 @bot.slash(json)
 @slash.guild_only()
-async def _svinfo_slash(interaction: discord.Interaction):
+async def _svinfo_slash(interaction: Interaction):
     await interaction.response.send_message(embed=info.server_info(interaction.guild))

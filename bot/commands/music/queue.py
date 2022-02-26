@@ -3,6 +3,7 @@ from discord.ext import commands
 
 import audio
 import emoji_ui
+from _types import Context
 from core import bot
 
 
@@ -15,7 +16,7 @@ SONGS_PER_PAGE = 8
 )
 @audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _queue_cmd(ctx: commands.Context):
+async def _queue_cmd(ctx: Context):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")
 

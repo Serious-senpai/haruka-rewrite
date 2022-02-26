@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from _types import Context
 from core import bot
 
 
@@ -10,5 +11,5 @@ from core import bot
     description="Display the bot's `ConnectionState`",
 )
 @commands.is_owner()
-async def _status_cmd(ctx: commands.Context):
+async def _status_cmd(ctx: Context):
     await ctx.send(embed=bot.display_status, file=discord.File("./log.txt"))

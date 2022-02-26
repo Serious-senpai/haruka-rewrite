@@ -1,8 +1,7 @@
 import random
 
-import discord
-
 import slash
+from _types import Interaction
 from core import bot
 
 
@@ -28,7 +27,7 @@ json = {
 
 
 @bot.slash(json)
-async def _roll_slash(interaction: discord.Interaction):
+async def _roll_slash(interaction: Interaction):
     args = slash.parse(interaction)
     i = args["first-integer"]
     j = args["second-integer"]

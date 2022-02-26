@@ -1,8 +1,7 @@
-from typing import List
-
 import discord
 from discord.ext import commands
 
+from _types import Context
 from core import bot
 
 
@@ -15,7 +14,7 @@ from core import bot
 @commands.bot_has_guild_permissions(kick_members=True)
 @commands.has_guild_permissions(kick_members=True)
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _kick_cmd(ctx: commands.Context, users: commands.Greedy[discord.Object], *, reason: str = "*No reason given*"):
+async def _kick_cmd(ctx: Context, users: commands.Greedy[discord.Object], *, reason: str = "*No reason given*"):
     if not users:
         raise commands.UserInputError
 
@@ -57,11 +56,7 @@ async def _kick_cmd(ctx: commands.Context, users: commands.Greedy[discord.Object
             icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
         )
 
-    embed.add_field(
-        name="Reason",
-        value=reason,
-        inline=False,
-    )
+    embed.add_field(name="Reason", value=reason, inline=False)
     embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
 
     await ctx.send(embed=embed, reference=ctx.message.reference)
