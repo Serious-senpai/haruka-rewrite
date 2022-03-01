@@ -18,4 +18,4 @@ async def _info_route(request: WebRequest) -> web.Response:
         "Owner": str(bot.owner),
         "Servers": len(bot.guilds),
     }
-    await web.json_response(to_send)
+    return web.json_response(to_send)
