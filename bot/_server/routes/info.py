@@ -15,7 +15,7 @@ async def _info_route(request: WebRequest) -> web.Response:
     to_send = {
         "Username": str(bot.user),
         "User ID": bot.user.id,
-        "Owner": bot.owner,
+        "Owner": str(bot.owner),
         "Servers": len(bot.guilds),
     }
     await web.json_response(to_send)
