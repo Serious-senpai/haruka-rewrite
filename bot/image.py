@@ -166,7 +166,7 @@ class WaifuIm(ImageSource):
                 data = await response.json(encoding="utf-8")
 
                 sfw = set(data["versatile"])
-                nsfw = sfw + set(data["nsfw"])
+                nsfw = sfw | set(data["nsfw"])
 
                 sfw_remove = set()
                 nsfw_remove = set()
