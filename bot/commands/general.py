@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import inspect
 
@@ -96,6 +97,11 @@ async def _prefix_cmd(ctx: Context, *, pref: str = None):
     await ctx.send(f"Prefix has been set to `{pref}`")
 
 
+async def __repeat_message(ctx: Context, content: str) -> None:
+    files = [await attachment.to_file() for attachment in ctx.message.attachments]
+    await ctx.send(content, files=files, reference=ctx.message.reference)
+
+
 @bot.command(
     name="say",
     description="Make me say something. I can also copy your attachments!",
@@ -103,10 +109,20 @@ async def _prefix_cmd(ctx: Context, *, pref: str = None):
 )
 @commands.cooldown(1, 1, commands.BucketType.user)
 async def _say_cmd(ctx: Context, *, content: str):
-    files = []
-    for attachment in ctx.message.attachments:
-        files.append(await attachment.to_file())
-    await ctx.send(content, files=files, reference=ctx.message.reference)
+    await __repeat_message(ctx, content)
+
+
+@bot.command(
+    name="speak",
+    description="Just like `say`, but will attempt to delete your message. Attachments are also allowed.",
+    usage="speak <something>"
+)
+@commands.cooldown(1, 1, commands.BucketType.user)
+async def _speak_cmd(ctx: Context, *, content: str):
+    with contextlib.suppress(discord.HTTPException):
+        await ctx.message.delete()
+
+    await __repeat_message(ctx, content)
 
 
 @bot.command(

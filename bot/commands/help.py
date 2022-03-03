@@ -59,7 +59,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         embed = discord.Embed()
         embed.add_field(
             name="💬 General",
-            value="```\nabout, avatar, emoji, help, info, ping, prefix, remind, say, source, svinfo\n```",
+            value="```\nabout, avatar, emoji, help, info, ping, prefix, remind, say, source, speak, svinfo\n```",
             inline=False,
         )
         embed.add_field(
