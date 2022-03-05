@@ -91,13 +91,13 @@ class PixivArtwork:
         self.author = PixivUser(author_id, author_name, author_avatar_url)
 
     async def stream(self, *, session: aiohttp.ClientSession) -> None:
-        if os.path.isfile(f"./server/image/{self.id}.png"):
+        if os.path.isfile(f"./server/images/{self.id}.png"):
             return
 
         with contextlib.suppress(aiohttp.ClientError):
             async with session.get(self.image_url, headers=PIXIV_HEADERS) as response:
                 if response.ok:
-                    with open(f"./server/image/{self.id}.png", "wb") as f:
+                    with open(f"./server/images/{self.id}.png", "wb") as f:
                         f.write(await response.read())
                         return
 
@@ -115,7 +115,7 @@ class PixivArtwork:
         except StreamError:
             embed.set_image(url=self.thumbnail)
         else:
-            embed.set_image(url=f"{HOST}/image/{self.id}.png")
+            embed.set_image(url=f"{HOST}/images/{self.id}.png")
 
         embed.add_field(
             name="Tags",

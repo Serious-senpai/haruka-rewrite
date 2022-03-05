@@ -4,12 +4,12 @@ from typing import List, TYPE_CHECKING
 
 from aiohttp import web
 if TYPE_CHECKING:
-    from .types import Middleware, WebRequest
+    from ._types import Middleware, WebRequest
 
 
 routes = web.RouteTableDef()
 routes.static("/assets", "./bot/assets/server")
-routes.static("/image", "./server/image")
+routes.static("/images", "./server/images")
 routes.static("/audio", "./server/audio")
 
 

@@ -6,7 +6,7 @@ from aiohttp import web
 
 from ..core import middleware_group
 if TYPE_CHECKING:
-    from ..types import Handler, WebRequest
+    from .._types import Handler, WebRequest
 
 
 @middleware_group.middleware

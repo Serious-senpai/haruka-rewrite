@@ -9,7 +9,7 @@ from .app import *
 
 if not os.path.exists("./server"):
     os.mkdir("./server")
-if not os.path.exists("./server/image"):
-    os.mkdir("./server/image")
+if not os.path.exists("./server/images"):
+    os.mkdir("./server/images")
 if not os.path.exists("./server/audio"):
     os.mkdir("./server/audio")

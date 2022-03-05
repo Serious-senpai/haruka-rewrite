@@ -14,7 +14,7 @@ from ..chat import (
 )
 from ..core import routes
 if TYPE_CHECKING:
-    from ..types import WebRequest
+    from .._types import WebRequest
 
 
 def construct_message_json(row: asyncpg.Record) -> Dict[str, Any]:
@@ -49,10 +49,7 @@ async def _chat_history_endpoint(request: WebRequest) -> web.Response:
     rows = await request.app.pool.fetch(
         """SELECT *
         FROM messages
-        WHERE id <= (
-            SELECT MAX(id)
-            FROM messages
-        ) - $1
+        WHERE id <= (SELECT MAX(id) FROM messages) - $1
         ORDER BY id DESC
         LIMIT 50;
         """,

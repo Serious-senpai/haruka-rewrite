@@ -9,7 +9,7 @@ from aiohttp import web
 
 if TYPE_CHECKING:
     import haruka
-    from .types import WebRequest
+    from ._types import WebRequest
 
 
 authorized_websockets: Set[web.WebSocketResponse] = set()

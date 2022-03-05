@@ -8,10 +8,10 @@ from aiohttp import web
 import _pixiv
 from ..core import middleware_group
 if TYPE_CHECKING:
-    from ..types import Handler, WebRequest
+    from .._types import Handler, WebRequest
 
 
-PIXIV_PATH_PATTERN = re.compile(r"/image/(\d{4,8}).png/?")
+PIXIV_PATH_PATTERN = re.compile(r"/images/(\d{4,8}).png/?")
 
 
 @middleware_group.middleware
