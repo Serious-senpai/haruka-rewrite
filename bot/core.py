@@ -59,7 +59,7 @@ class Embed(discord.Embed):
 discord.Embed = Embed
 
 
-async def prefix(bot, message) -> str:
+async def prefix(bot: haruka.Haruka, message: discord.Message) -> str:
     if isinstance(message.channel, discord.TextChannel):
         id = message.guild.id
         row = await bot.conn.fetchrow(f"SELECT * FROM prefix WHERE id = '{id}';")
