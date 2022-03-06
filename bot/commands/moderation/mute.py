@@ -13,8 +13,8 @@ from core import bot
     usage="mute <hours> <minutes> <member> <reason>",
 )
 @commands.guild_only()
-@commands.bot_has_guild_permissions(manage_members=True)
-@commands.has_guild_permissions(manage_members=True)
+@commands.bot_has_guild_permissions(moderate_members=True)
+@commands.has_guild_permissions(moderate_members=True)
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _mute_cmd(ctx: Context, hours: int, minutes: int, member: discord.Member, *, reason: str = None):
     if hours < 0 or minutes < 0:

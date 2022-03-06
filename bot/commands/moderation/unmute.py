@@ -11,8 +11,8 @@ from core import bot
     usage="unmute <member> <reason>",
 )
 @commands.guild_only()
-@commands.bot_has_guild_permissions(manage_members=True)
-@commands.has_guild_permissions(manage_members=True)
+@commands.bot_has_guild_permissions(moderate_members=True)
+@commands.has_guild_permissions(moderate_members=True)
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _unmute_cmd(ctx: Context, member: discord.Member, *, reason: str = None):
     try:

@@ -249,12 +249,9 @@ class Haruka(commands.Bot, SlashMixin):
             print("Final report has been sent.")
         finally:
             await super().close()
-
-    def cleanup(self) -> None:
-        super().cleanup()
-        print("Writing log file to the console:\n")
-        with open("./log.txt", "r", encoding="utf-8") as f:
-            print(f.read())
+            print("Writing log file to the console:\n")
+            with open("./log.txt", "r", encoding="utf-8") as f:
+                print(f.read())
 
     async def report(
         self,
