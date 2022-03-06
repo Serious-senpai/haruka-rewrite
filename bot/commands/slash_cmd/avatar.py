@@ -1,28 +1,16 @@
 import discord
+from discord import app_commands
 
-import slash
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "avatar",
-    "type": 1,
-    "description": "Get the avatar from a user.",
-    "options": [{
-        "name": "user",
-        "description": "The target user to get the avatar from",
-        "type": 6,
-        "required": False,
-    }]
-}
-
-
-@bot.slash(json)
-async def _avatar_slash(interaction: Interaction):
-    args = slash.parse(interaction)
-    user = args.get("user", interaction.user)
-
+@bot.slash(
+    name="avatar",
+    description="Get the avatar from a user",
+)
+@app_commands.describe(user="The target user to get the avatar from")
+async def _avatar_slash(interaction: Interaction, user: discord.User):
     embed = discord.Embed()
     embed.set_author(
         name=f"This is {user.name}'s avatar",

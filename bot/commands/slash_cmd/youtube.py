@@ -1,34 +1,23 @@
 import asyncio
 
 import discord
+from discord import app_commands
 
 import audio
 import emojis
-import slash
 import ui
 import utils
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "youtube",
-    "type": 1,
-    "description": "Search for a YouTube video and get the mp3 file",
-    "options": [{
-        "name": "query",
-        "description": "The searching query",
-        "type": 3,
-        "required": True,
-    }]
-}
-
-
-@bot.slash(json)
-async def _youtube_slash(interaction: Interaction):
+@bot.slash(
+    name="youtube",
+    description="Search for a YouTube video and get the mp3 file",
+)
+@app_commands.describe(query="The searching query")
+async def _youtube_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
-    args = slash.parse(interaction)
-    query = args["query"]
     if len(query) < 3:
         return await interaction.followup.send(content="Please provide at least 3 characters in the searching query.")
 

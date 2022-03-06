@@ -1,31 +1,20 @@
 import random
 
 import discord
+from discord import app_commands
 
 import _tenor
-import slash
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "tenor",
-    "type": 1,
-    "description": "Search tenor for an image",
-    "options": [{
-        "name": "query",
-        "description": "The searching query",
-        "type": 3,
-        "required": True,
-    }]
-}
-
-
-@bot.slash(json)
-async def _tenor_slash(interaction: Interaction):
+@bot.slash(
+    name="tenor",
+    description="Search tenor for an image",
+)
+@app_commands.describe(query="The searching query")
+async def _tenor_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
-    args = slash.parse(interaction)
-    query = args["query"]
     urls = await _tenor.search(query)
     if not urls:
         return await interaction.followup.send("No matching result was found.")

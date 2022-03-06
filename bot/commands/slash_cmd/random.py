@@ -1,35 +1,20 @@
 import random
 
+from discord import app_commands
 from youtube_dl import utils
 
-import slash
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "random",
-    "type": 1,
-    "description": "Random generator",
-    "options": [
-        {
-            "name": "user-agent",
-            "description": "Generate a random User-Agent header",
-            "type": 1,
-        },
-        {
-            "name": "number",
-            "description": "Generate a random number in the [0, 1) range",
-            "type": 1,
-        }
-    ]
-}
-
-
-@bot.slash(json)
-async def _random_slash(interaction: Interaction):
-    args = slash.parse(interaction)
-    if args.get("user-agent"):
+class _RandomGeneratorSlash(app_commands.Group):
+    @app_commands.command(name="user-agent", description="Generate a random User-Agent header")
+    async def _user_agent_slash(self, interaction: Interaction):
         await interaction.response.send_message("```\n" + utils.random_user_agent() + "\n```")
-    elif args.get("number"):
+
+    @app_commands.command(name="number", description="Generate a random number in the [0, 1) range")
+    async def _number_slash(self, interaction: Interaction):
         await interaction.response.send_message(random.random())
+
+
+bot.tree.add_command(_RandomGeneratorSlash(name="random", description="Random generator"))

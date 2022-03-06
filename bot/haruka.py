@@ -14,6 +14,7 @@ import discord
 import topgg
 import youtube_dl
 from aiohttp import web
+from discord import app_commands
 from discord.ext import commands, tasks
 from discord.state import ConnectionState
 from discord.utils import escape_markdown as escape
@@ -23,7 +24,6 @@ import env
 import image
 import task
 from _types import Context, Interaction
-from slash import SlashMixin
 
 
 if TYPE_CHECKING:
@@ -32,13 +32,12 @@ if TYPE_CHECKING:
         task: task.TaskManager
 
 
-class Haruka(commands.Bot, SlashMixin):
+class Haruka(commands.Bot):
 
     if TYPE_CHECKING:
         _command_count: Dict[str, List[Context]]
         _slash_command_count: Dict[str, List[Interaction]]
         _connection: _ConnectionState
-        _dump_bin: Dict[int, Interaction]
         _eval_task: Optional[asyncio.Task]
         _image: image.ImageClient[image.ImageSource]
 
@@ -46,8 +45,10 @@ class Haruka(commands.Bot, SlashMixin):
         conn: asyncpg.Pool
         logfile: io.TextIOWrapper
         owner: Optional[discord.User]
+        owner_bypass: bool
         runner: web.AppRunner
         session: aiohttp.ClientSession
+        tree: app_commands.CommandTree
         uptime: datetime.datetime
 
         if sys.platform == "win32":
@@ -67,6 +68,10 @@ class Haruka(commands.Bot, SlashMixin):
         signal.signal(signal.SIGTERM, self.kill)
 
         super().__init__(*args, **kwargs)
+
+        # Slash commands handler
+        self.tree = app_commands.CommandTree(self)
+        self.slash = self.tree.command
 
     def _clear_counter(self) -> None:
         """Clear the text command and slash command counter"""
@@ -168,8 +173,8 @@ class Haruka(commands.Bot, SlashMixin):
             self.owner_id = app_info.owner.id
         self.owner = await self.fetch_user(self.owner_id)
 
-        # Overwrite slash commands
-        await self.overwrite_slash_commands()
+        # Sync slash commands
+        await self.tree.sync()
 
         # Initialize guild activity check
         now = discord.utils.utcnow()

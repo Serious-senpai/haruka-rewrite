@@ -1,26 +1,16 @@
+import discord
+from discord import app_commands
+
 import info
-import slash
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "info",
-    "type": 1,
-    "description": "Get the information about a user.",
-    "options": [{
-        "name": "user",
-        "description": "The target user to retrieve information about.",
-        "type": 6,
-        "required": False,
-    }]
-}
-
-
-@bot.slash(json)
-async def info_(interaction: Interaction):
-    args = slash.parse(interaction)
-    user = args.get("user", interaction.user)
-
+@bot.slash(
+    name="info",
+    description="Get the information about a user",
+)
+@app_commands.describe(user="The target user to retrieve information about")
+async def _info_slash(interaction: Interaction, user: discord.User):
     embed = info.user_info(user)
     await interaction.response.send_message(embed=embed)

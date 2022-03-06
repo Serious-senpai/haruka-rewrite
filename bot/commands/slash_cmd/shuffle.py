@@ -1,18 +1,15 @@
-import slash
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "shuffle",
-    "type": 1,
-    "description": "Enable/Disable music playing shuffle",
-}
-
-
-@bot.slash(json)
-@slash.guild_only()
+@bot.slash(
+    name="shuffle",
+    description="Enable/Disable music playing shuffle",
+)
 async def _shuffle_slash(interaction: Interaction):
+    if not interaction.guild:
+        return await interaction.response.send_message("This command can only be invoked in a server channel.")
+
     player = interaction.guild.voice_client
     if player:
         player._shuffle = not player._shuffle

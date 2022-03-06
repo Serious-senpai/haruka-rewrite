@@ -1,32 +1,21 @@
 import asyncio
 
 import discord
+from discord import app_commands
 
 import mal
-import slash
 import ui
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "manga",
-    "type": 1,
-    "description": "Display manga search results from MyAnimeList",
-    "options": [{
-        "name": "query",
-        "description": "The searching query",
-        "type": 3,
-        "required": True,
-    }]
-}
-
-
-@bot.slash(json)
-async def _manga_slash(interaction: Interaction):
+@bot.slash(
+    name="manga",
+    description="Display manga search results from MyAnimeList",
+)
+@app_commands.describe(query="The searching query",)
+async def _manga_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
-    args = slash.parse(interaction)
-    query = args["query"]
     if len(query) < 3:
         return await interaction.followup.send("Please provide at least 3 characters in the searching query.")
 

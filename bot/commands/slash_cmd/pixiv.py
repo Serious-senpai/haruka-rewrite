@@ -1,30 +1,18 @@
 import discord
+from discord import app_commands
 
 import _pixiv
-import slash
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "pixiv",
-    "type": 1,
-    "description": "Search for an artwork from Pixiv",
-    "options": [{
-        "name": "string",
-        "description": "The searching query, a URL or an ID",
-        "type": 3,
-        "required": True,
-    }]
-}
-
-
-@bot.slash(json)
-async def _pixiv_slash(interaction: Interaction):
+@bot.slash(
+    name="pixiv",
+    description="Search for an artwork from Pixiv",
+)
+@app_commands.describe(query="The searching query, a URL or an ID")
+async def _pixiv_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
-    args = slash.parse(interaction)
-    query = args["string"]
-
     try:
         parsed = await _pixiv.parse(query, session=bot.session)
     except _pixiv.NSFWArtworkDetected as exc:

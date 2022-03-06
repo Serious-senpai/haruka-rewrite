@@ -2,21 +2,15 @@ import traceback
 
 import discord
 
-import slash
 from audio import MusicClient
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "play",
-    "type": 1,
-    "description": "Start playing the queue of the voice channel you are connected to.",
-}
-
-
-@bot.slash(json)
-@slash.guild_only()
+@bot.slash(
+    name="play",
+    description="Start playing the queue of the voice channel you are connected to.",
+)
 async def _play_slash(interaction: Interaction):
     await interaction.response.defer()
     if not isinstance(interaction.user, discord.Member):

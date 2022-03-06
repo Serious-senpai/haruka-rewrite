@@ -1,4 +1,3 @@
-import slash
 from _types import Interaction
 from core import bot
 
@@ -10,9 +9,14 @@ json = {
 }
 
 
-@bot.slash(json)
-@slash.guild_only()
+@bot.slash(
+    name="repeat",
+    description="Switch between REPEAT_ONE and REPEAT_ALL",
+)
 async def _repeat_slash(interaction: Interaction):
+    if not interaction.guild:
+        return await interaction.response.send_message("This command can only be invoked in a server channel.")
+
     await interaction.response.defer()
     player = interaction.guild.voice_client
 

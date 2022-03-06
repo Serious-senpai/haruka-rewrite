@@ -1,27 +1,18 @@
+from discord import app_commands
+
 import saucenao
-import slash
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "sauce",
-    "type": 1,
-    "description": "Find the image source with saucenao",
-    "options": [{
-        "name": "url",
-        "description": "The URL to the image",
-        "type": 3,
-        "required": True,
-    }]
-}
-
-
-@bot.slash(json)
-async def _sauce_slash(interaction: Interaction):
+@bot.slash(
+    name="sauce",
+    description="Find the image source with saucenao",
+)
+@app_commands.describe(url="The image URL")
+async def _sauce_slash(interaction: Interaction, url: str):
     await interaction.response.defer()
-    args = slash.parse(interaction)
-    results = await saucenao.SauceResult.get_sauce(args["url"])
+    results = await saucenao.SauceResult.get_sauce(url)
     if not results:
         return await interaction.followup.send("Cannot find the image sauce.")
 

@@ -1,31 +1,20 @@
 import random
 
 import discord
+from discord import app_commands
 
 import _zerochan
-import slash
 from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "zerochan",
-    "type": 1,
-    "description": "Search zerochan for an image",
-    "options": [{
-        "name": "query",
-        "description": "The searching query",
-        "type": 3,
-        "required": True,
-    }]
-}
-
-
-@bot.slash(json)
-async def _zerochan_slash(interaction: Interaction):
+@bot.slash(
+    name="zerochan",
+    description="Search zerochan for an image",
+)
+@app_commands.describe(query="The searching query")
+async def _zerochan_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
-    args = slash.parse(interaction)
-    query = args["query"]
     urls = await _zerochan.search(query, max_results=20)
     if not urls:
         return await interaction.followup.send("No matching result was found.")
