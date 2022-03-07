@@ -7,7 +7,7 @@ from discord.ext import commands
 
 import utils
 import emoji_ui
-from core import bot
+from core import bot, prefix
 if TYPE_CHECKING:
     import haruka
 
@@ -52,7 +52,8 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         super().__init__(command_attrs=command_attrs)
 
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]) -> None:
-        pref = "@Haruka "
+        # Initialize
+        pref = await prefix(bot, self.context.message)
         embeds = []
 
         embed = discord.Embed()
@@ -103,7 +104,8 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         await display.send(self.context)
 
     async def send_command_help(self, command: commands.Command) -> None:
-        pref = "@Haruka "
+        # Fetch server's prefix
+        pref = await prefix(bot, self.context.message)
 
         if command.aliases and command.qualified_name not in command.aliases:
             command.aliases.insert(0, command.qualified_name)

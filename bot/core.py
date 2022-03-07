@@ -59,8 +59,28 @@ class Embed(discord.Embed):
 discord.Embed = Embed
 
 
+async def prefix(bot: haruka.Haruka, message: discord.Message) -> str:
+    if isinstance(message.channel, discord.TextChannel):
+        id = message.guild.id
+        row = await bot.conn.fetchrow(f"SELECT * FROM prefix WHERE id = '{id}';")
+
+        if not row:
+            return "$"
+        else:
+            return row["pref"]
+
+    else:
+        return "$"
+
+
+async def get_prefix(bot, message) -> List[str]:
+    prefixes = await prefix(bot, message)
+    return commands.when_mentioned_or(*prefixes)(bot, message)
+
+
 # Initialize bot
 intents = discord.Intents.default()
+intents.message_content = True
 intents.bans = False
 intents.typing = False
 intents.integrations = False
@@ -76,7 +96,7 @@ activity = discord.Activity(
 
 bot = haruka.Haruka(
     activity=activity,
-    command_prefix=commands.when_mentioned,
+    command_prefix=get_prefix,
     intents=intents,
     case_insensitive=True,
     strip_after_prefix=True,

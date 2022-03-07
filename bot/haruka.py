@@ -126,6 +126,7 @@ class Haruka(commands.Bot):
         self.log("Created connection pool")
 
         await self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS prefix (id text, pref text);
             CREATE TABLE IF NOT EXISTS youtube (id text, queue text[]);
             CREATE TABLE IF NOT EXISTS blacklist (id text);
             CREATE TABLE IF NOT EXISTS remind (id text, time timestamptz, content text, url text, original timestamptz);
