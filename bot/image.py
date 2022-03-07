@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import random
 import re
 from typing import (
@@ -400,7 +401,9 @@ class ImageClient(Generic[IT]):
         self.sfw = {}
         self.nsfw = {}
 
-        await asyncio.gather(*[self._register(source(self.session, self)) for source in self.sources])
+        with contextlib.suppress(BaseException):
+            await asyncio.gather(*[self._register(source(self.session, self)) for source in self.sources])
+
         self.bot.log(f"Loaded {len(self.sources)} ImageSource objects.")
         self._ready.set()
 

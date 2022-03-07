@@ -10,7 +10,7 @@ import emoji_ui
 import env
 import info
 import utils
-from core import bot, prefix
+from core import bot
 from _types import Context
 
 
@@ -79,22 +79,7 @@ async def _ping_cmd(ctx: Context):
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.guild)
 async def _prefix_cmd(ctx: Context, *, pref: str = None):
-    if not pref:
-        p = await prefix(bot, ctx.message)
-        return await ctx.send(f"The current prefix is `{p}`")
-
-    if not ctx.channel.permissions_for(ctx.author).manage_guild:
-        raise commands.MissingPermissions("manage_guild")
-
-    if " " in pref:
-        return await ctx.send("Prefix must not contain any spaces!")
-
-    id = ctx.guild.id
-    await bot.conn.execute(f"DELETE FROM prefix WHERE id = '{id}' OR pref = '$';")
-    if not pref == "$":
-        await bot.conn.execute(f"INSERT INTO prefix VALUES ('{id}', $1);", pref)
-
-    await ctx.send(f"Prefix has been set to `{pref}`")
+    await ctx.send("Custom prefix is deprecated, please ping the bot instead")
 
 
 async def __repeat_message(ctx: Context, content: str) -> None:
