@@ -120,7 +120,7 @@ async def _say_cmd(ctx: Context, *, content: str):
 @commands.cooldown(1, 1, commands.BucketType.user)
 async def _speak_cmd(ctx: Context, *, content: str):
     with contextlib.suppress(discord.HTTPException):
-        await ctx.message.delete()
+        await ctx.message.delete(delay=0.1)
 
     await __repeat_message(ctx, content)
 
