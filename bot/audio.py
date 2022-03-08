@@ -7,7 +7,6 @@ import json
 import os
 import random
 import shlex
-import time
 import traceback
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, TYPE_CHECKING
 
@@ -808,7 +807,6 @@ class MusicClient(discord.VoiceClient):
                 audio = await asyncio.to_thread(track.fetch)
                 await audios.put(audio)
 
-            t = time.perf_counter()
             seq = 1
 
             while not audios.empty():
@@ -822,10 +820,6 @@ class MusicClient(discord.VoiceClient):
                 else:
                     task = None
 
-                delta = time.perf_counter() - t
-                if delta > 0.5:
-                    bot.log(f"Warning: audio playing in {self.channel_id}/{self.guild_id} delayed for {1000 * delta} ms")
-
                 self._event.clear()
                 self.operable.set()  # Enable pause/resume/toggle repeat
 
@@ -835,12 +829,11 @@ class MusicClient(discord.VoiceClient):
                 await self._event.wait()
                 self.operable.clear()  # Disable pause/resume/toggle repeat
                 seq += 1
-                t = time.perf_counter()
 
                 if not self.is_connected():
                     return
 
-                if task:
+                if task is not None:
                     await task
 
             if not self.is_connected():

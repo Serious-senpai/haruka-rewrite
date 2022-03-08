@@ -2,16 +2,9 @@ from _types import Interaction
 from core import bot
 
 
-json = {
-    "name": "repeat",
-    "type": 1,
-    "description": "Switch between REPEAT_ONE and REPEAT_ALL",
-}
-
-
 @bot.slash(
     name="repeat",
-    description="Switch between REPEAT_ONE and REPEAT_ALL",
+    description="Switch between `REPEAT_ONE` and `REPEAT_ALL`",
 )
 async def _repeat_slash(interaction: Interaction):
     if not interaction.guild:
