@@ -29,3 +29,8 @@ class Interaction(discord.Interaction):
     @property
     def guild(self) -> Optional[Guild]:
         return super().guild
+
+
+class Member(discord.Member):
+    if TYPE_CHECKING:
+        guild: Guild
