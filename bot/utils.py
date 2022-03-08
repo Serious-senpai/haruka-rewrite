@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import contextlib
 import re
@@ -84,6 +86,9 @@ class TimingContextManager(contextlib.AbstractContextManager):
     def __init__(self) -> None:
         self._start = time.perf_counter()
         self._result = None
+
+    def __enter__(self) -> TimingContextManager:
+        return self
 
     def __exit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
         self._result = time.perf_counter() - self._start
