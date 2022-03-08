@@ -20,6 +20,7 @@ from discord.state import ConnectionState
 from discord.utils import escape_markdown as escape
 
 import _server
+import drive
 import env
 import image
 import task
@@ -42,6 +43,7 @@ class Haruka(commands.Bot):
         _image: image.ImageClient[image.ImageSource]
 
         app: _server.WebApp
+        asset_client: drive.AssetClient
         conn: asyncpg.Pool
         logfile: io.TextIOWrapper
         owner: Optional[discord.User]
@@ -163,7 +165,11 @@ class Haruka(commands.Bot):
         import tests
 
         # Start tests
-        test_running_task = self.loop.create_task(tests.run_all_tests())
+        test_running_task = self.loop.create_task(tests.run_all_tests(), name="Startup tests")
+
+        # Fetch anime images
+        self.asset_client = drive.AssetClient(self)
+        image_fetching_task = self.loop.create_task(self.asset_client.fetch_anime_images(), name="Startup image fetching")
 
         # Get bot owner
         app_info = await self.application_info()
@@ -230,6 +236,7 @@ class Haruka(commands.Bot):
 
         # Complete tests
         await test_running_task
+        await image_fetching_task
 
         try:
             await self.report("Haruka is ready!", send_state=False)
