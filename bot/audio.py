@@ -350,7 +350,7 @@ class InvidiousSource(PartialInvidiousSource):
         self.source = await self.get_source()
         return self.source
 
-    async def get_source(self) -> Optional[str]:
+    async def get_source(self, *, ignore_error: bool = False) -> Optional[str]:
         """This function is a coroutine
 
         Get the audio URL of the source. This method launches
@@ -382,7 +382,7 @@ class InvidiousSource(PartialInvidiousSource):
         stdout = __stdout.decode("utf-8").strip("\n")
         stderr = __stderr.decode("utf-8").strip("\n")
 
-        if not stdout:
+        if not stdout and not ignore_error:
             bot.log(f"youtube-dl cannot fetch source for track ID {self.id}:\n{stderr}")
             await bot.report(f"Cannot fetch source for track `{self.id}`", send_state=False)
             return
@@ -850,7 +850,7 @@ class MusicClient(discord.VoiceClient):
         self._event.set()
         if exc is not None:
             player_name = getattr(self._player, "name", "None")
-            bot.log(f"Warning: Voice client in {self.channel_id}/{self.guild_id} raised an exception (ignored in _set_event method)")
+            bot.log(f"WARNING: Voice client in {self.channel_id}/{self.guild_id} raised an exception (ignored in _set_event method)")
             bot.log(f"AudioPlayer instance: {self._player} (thread name {player_name})")
             bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))
             bot.loop.create_task(bot.report("Exception while playing audio, reporting from `_set_event` method", send_state=False))

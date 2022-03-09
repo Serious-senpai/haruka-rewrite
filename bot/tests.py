@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import _nhentai
 import _pixiv
@@ -26,9 +26,17 @@ ANIME_TESTS = (8425,)
 MANGA_TESTS = (1313,)
 
 
+def make_title(title: str) -> str:
+    n = len(title)
+    left = n // 2
+    right = n - left
+    return "\n" + "-" * (20 - left) + title + "-" * (20 - right) + "\n"
+
+
 class MiniInvidiousObject:
     """Class which only contains a video ID for testing"""
 
+    __slots__ = ("id",)
     if TYPE_CHECKING:
         id: str
 
@@ -36,64 +44,86 @@ class MiniInvidiousObject:
         self.id = id
 
 
-async def nhentai_test(*, log: Callable[..., Any]) -> None:
+async def nhentai_test() -> str:
+    content = make_title("NHENTAI TESTS")
     for id in NHENTAI_TESTS:
         doujin = await _nhentai.NHentai.get(id)
-        log(f"Finished NHentai test for ID {id}: {doujin}")
+        content += f"Finished NHentai test for ID {id}: {doujin}\n"
+
+    return content
 
 
-async def pixiv_test(*, log: Callable[..., Any]) -> None:
+async def pixiv_test() -> str:
+    content = make_title("PIXIV TESTS")
     for id in PIXIV_TESTS:
         artwork = await _pixiv.PixivArtwork.from_id(id, session=bot.session)
-        log(f"Finished Pixiv test for ID {id}: {artwork}")
+        content += f"Finished Pixiv test for ID {id}: {artwork}\n"
+
+    return content
 
 
-async def urban_test(*, log: Callable[..., Any]) -> None:
+async def urban_test() -> str:
+    content = make_title("URBAN TESTS")
     for term in URBAN_TESTS:
         result = await _urban.UrbanSearch.search(term)
-        log(f"Finished Urban test for term \"{term}\": {result}")
+        content += f"Finished Urban test for term \"{term}\": {result}\n"
+
+    return content
 
 
-async def ytdl_test(*, log: Callable[..., Any]) -> None:
+async def ytdl_test() -> str:
+    content = make_title("YOUTUBEDL TESTS")
     for id in YTDL_TESTS:
         track = MiniInvidiousObject(id)
-        ytdl_result = await audio.InvidiousSource.get_source(track)
-        log(f"Finished youtube-dl test for ID {id}: {ytdl_result}")
+        ytdl_result = await audio.InvidiousSource.get_source(track, ignore_error=True)
+        content += f"Finished youtube-dl test for ID {id}: {ytdl_result}\n"
+
+    return content
 
 
-async def anime_test(*, log: Callable[..., Any]) -> None:
+async def anime_test() -> str:
+    content = make_title("ANIME TESTS")
     for id in ANIME_TESTS:
         anime = await mal.Anime.get(id)
-        log(f"Finished Anime test for ID {id}: {anime}")
+        content += f"Finished Anime test for ID {id}: {anime}\n"
+
+    return content
 
 
-async def manga_test(*, log: Callable[..., Any]) -> None:
+async def manga_test() -> str:
+    content = make_title("MANGA TESTS")
     for id in MANGA_TESTS:
         manga = await mal.Manga.get(id)
-        log(f"Finished Manga test for ID {id}: {manga}")
+        content += f"Finished Manga test for ID {id}: {manga}\n"
+
+    return content
 
 
-async def image_test(*, log: Callable[..., Any]) -> None:
+async def image_test() -> str:
     await bot.image.wait_until_ready()
     checked = []
+    content = make_title("IMAGE TESTS")
     for category, sources in bot.image.sfw.items():
         for source in sources:
             if source not in checked:
                 checked.append(source)
                 url = await source.get(category)
                 if url is None:
-                    log(f"Test failed for {source.__class__.__name__}, category {category}")
+                    content += f"Test failed for {source.__class__.__name__}, category {category}\n"
                 else:
-                    log(f"Finished image test for {source.__class__.__name__} (category {category}): {url}")
+                    content += f"Finished image test for {source.__class__.__name__} (category {category}): {url}\n"
+
+    return content
 
 
 async def run_all_tests() -> None:
-    await asyncio.gather(
-        nhentai_test(log=bot.log),
-        pixiv_test(log=bot.log),
-        urban_test(log=bot.log),
-        ytdl_test(log=bot.log),
-        anime_test(log=bot.log),
-        manga_test(log=bot.log),
-        image_test(log=bot.log),
+    logs = await asyncio.gather(
+        nhentai_test(),
+        pixiv_test(),
+        urban_test(),
+        ytdl_test(),
+        anime_test(),
+        manga_test(),
+        image_test(),
     )
+    bot.log("\n".join(logs))

@@ -90,7 +90,7 @@ class Haruka(commands.Bot):
         headers = {
             "User-Agent": youtube_dl.utils.random_user_agent(),
         }
-        self.session = aiohttp.ClientSession(headers=headers)
+        self.session = aiohttp.ClientSession(headers=headers, timeout=aiohttp.ClientTimeout(connect=10.0))
         self.log("Created side session")
 
         # Load image client
@@ -113,7 +113,7 @@ class Haruka(commands.Bot):
         print(f"Started serving on port {port}")
 
         # Start the bot
-        self.loop.create_task(self.startup())
+        self.loop.create_task(self.startup(), name="Startup task")
         self.uptime = discord.utils.utcnow()
         await super().start(env.get_token())
 
@@ -158,7 +158,7 @@ class Haruka(commands.Bot):
 
     async def startup(self) -> None:
         await self.wait_until_ready()
-        self.loop.create_task(self._change_activity_after_booting())
+        self.loop.create_task(self._change_activity_after_booting(), name="Change activity")
         await self.__do_startup()
 
     async def __do_startup(self) -> None:
@@ -231,10 +231,10 @@ class Haruka(commands.Bot):
                 self.log("Fetched latest repository commits")
 
             else:
-                self.log(f"Warning: Unable to fetch repository's commits (status {response.status})")
+                self.log(f"WARNING: Unable to fetch repository's commits (status {response.status})")
                 self.latest_commits = "*No data*"
 
-        # Complete tests
+        # Complete tasks
         await test_running_task
         await image_fetching_task
 
@@ -344,7 +344,7 @@ class Haruka(commands.Bot):
         asyncio.current_task().set_name("KeepServerAlive")
         async with self.session.get(env.get_host()) as response:
             if not response.status == 200:
-                self.log(f"Warning: _keep_alive task returned response code {response.status}")
+                self.log(f"WARNING: _keep_alive task returned response code {response.status}")
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
         self.log(f"Exception in {event_method}:")

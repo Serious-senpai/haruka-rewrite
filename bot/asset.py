@@ -11,6 +11,7 @@ from yarl import URL
 from bs4 import BeautifulSoup
 
 import env
+import utils
 if TYPE_CHECKING:
     import haruka
 
@@ -34,6 +35,9 @@ class AssetClient:
         self.anime_images_fetch = False
         self.session = bot.session
 
+    def log(self, content: str) -> None:
+        self.bot.log("ASSET CLIENT: " + content)
+
     async def fetch_anime_images(self) -> None:
         """This function is a coroutine
         
@@ -43,30 +47,37 @@ class AssetClient:
         unzip_location = "./bot/assets/server/images"
         zip_location = unzip_location + "/collection.tar"
 
-        async with self.session.get("https://www.mediafire.com/file/uw42hxy45psweoa/Collection.tar/file") as response:
-            if response.status == 200:
-                html = await response.text(encoding="utf-8")
-                soup = BeautifulSoup(html, "html.parser")
-                download_button = soup.find("a", attrs={"class": "input popsok"})
-                file_url = download_button.get("href")
+        with utils.TimingContextManager() as measure:
+            async with self.session.get("https://www.mediafire.com/file/uw42hxy45psweoa/Collection.tar/file") as response:
+                if response.status == 200:
+                    html = await response.text(encoding="utf-8")
+                    soup = BeautifulSoup(html, "html.parser")
+                    download_button = soup.find("a", attrs={"class": "input popsok"})
+                    file_url = download_button.get("href")
 
-                if not file_url:
-                    return self.bot.log(f"Cannot obtain a download URL from this element:\n{download_button}")
-                    
-            else:
-                return self.bot.log(f"Cannot fetch download URL for anime images: HTTP status {response.status}")
+                    if not file_url:
+                        return self.log(f"Cannot obtain a download URL from this element:\n{download_button}")
+                        
+                else:
+                    return self.log(f"Cannot fetch download URL: HTTP status {response.status}")
 
-        async with self.session.get(file_url) as response:
-            if response.status == 200:
-                with open(zip_location, "wb", buffering=0) as f:
-                    try:
-                        while data := await response.content.read(4096):
-                            f.write(data)
-                    except aiohttp.ClientPayloadError:
-                        self.bot.log("Exception while downloading the tar file containing anime images:\n" + traceback.format_exc() + "\nIgnoring and continuing the unzipping process.")
-            else:
-                return self.bot.log(f"Cannot fetch anime images from {file_url}: HTTP status {response.status}")
+        self.log(f"Fetched TAR file URL in {utils.format(measure.result)}: {file_url}")
 
+        with utils.TimingContextManager() as measure:
+            async with self.session.get(file_url) as response:
+                if response.status == 200:
+                    with open(zip_location, "wb", buffering=0) as f:
+                        try:
+                            chunk_size = 4 * 2 ** 20  # 4 MB
+                            while data := await response.content.read(chunk_size):
+                                f.write(data)
+                        except aiohttp.ClientPayloadError:
+                            self.log("Exception while downloading the TAR file:\n" + traceback.format_exc() + "\nIgnoring and continuing the unzipping process.")
+                else:
+                    return self.log(f"Cannot fetch the TAR file from {file_url}: HTTP status {response.status}")
+
+        size = os.path.getsize(zip_location)
+        self.log(f"Downloaded TAR file in {utils.format(measure.result)}" + " (file size {:.2f} MB)".format(size / 2 ** 20))
         await self.extract_tar_file(zip_location, unzip_location)
         os.remove(zip_location)
         self.anime_images_fetch = True
@@ -91,4 +102,4 @@ class AssetClient:
         _, _stderr = await process.communicate()
         if _stderr:
             stderr = _stderr.decode("utf-8")
-            self.bot.log(f"WARNING: stderr when extracting from \"{zip_location}\" to \"{destination}\":\n" + stderr)
+            self.log(f"WARNING: stderr when extracting from \"{zip_location}\" to \"{destination}\":\n" + stderr)
