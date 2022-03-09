@@ -76,7 +76,7 @@ class AssetClient:
 
         files = os.listdir("./bot/assets/server/images")
         if files:
-            return env.get_host() + "/" + random.choice(files)
+            return env.get_host() + "/assets/images/" + random.choice(files)
 
     async def extract_tar_file(self, zip_location: str, destination: str) -> None:
         args = (
