@@ -5,11 +5,9 @@ import os
 from typing import TYPE_CHECKING
 
 import aiohttp
+from bs4 import BeautifulSoup
 if TYPE_CHECKING:
     import haruka
-
-
-ANIME_IMAGES_URL = "https://drive.google.com/uc?id=185OLsXBzJn56A2nuMxfCBTFSXXwdWUGD&export=download&confirm=t"
 
 
 if not os.path.isdir("./bot/assets/server/images"):
@@ -38,14 +36,26 @@ class AssetClient:
         unzip_location = "./bot/assets/server/images"
         zip_location = unzip_location + "/collection.tar"
 
-        async with self.session.get(ANIME_IMAGES_URL) as response:
+        async with self.session.get("https://www.mediafire.com/file/uw42hxy45psweoa/Collection.tar/file") as response:
+            if response.status == 200:
+                html = await response.text(encoding="utf-8")
+                soup = BeautifulSoup(html, "html.parser")
+                download_button = soup.find("a", attrs={"class": "input popsok"})
+                file_url = download_button.get("href")
+
+                if not file_url:
+                    return self.bot.log(f"Cannot obtain a download URL from this element:\n{download_button}")
+                    
+            else:
+                return self.bot.log(f"Cannot fetch download URL for anime images: HTTP status {response.status}")
+
+        async with self.session.get(file_url) as response:
             if response.status == 200:
                 with open(zip_location, "wb", buffering=0) as f:
                     while data := await response.content.read(4096):
                         f.write(data)
             else:
-                self.bot.log(f"Cannot fetch images from {ANIME_IMAGES_URL}: HTTP status {response.status}")
-                return
+                return self.bot.log(f"Cannot fetch anime images from {file_url}: HTTP status {response.status}")
 
         args = (
             "tar",
