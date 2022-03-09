@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import sys
 from typing import TYPE_CHECKING
 
 import aiohttp
@@ -10,7 +9,7 @@ if TYPE_CHECKING:
     import haruka
 
 
-ANIME_IMAGES_URL = "https://drive.google.com/uc?id=1J8gan17hSLrS46ILPYXggU5o-8yh-0uA&export=download&confirm=t"
+ANIME_IMAGES_URL = "https://drive.google.com/uc?id=185OLsXBzJn56A2nuMxfCBTFSXXwdWUGD&export=download&confirm=t"
 
 
 if not os.path.isdir("./bot/assets/server/images"):
@@ -37,36 +36,22 @@ class AssetClient:
         and save it to the local machine.
         """
         unzip_location = "./bot/assets/server/images"
-        zip_location = unzip_location + "/collection.zip"
+        zip_location = unzip_location + "/collection.tar"
 
         async with self.session.get(ANIME_IMAGES_URL) as response:
             if response.status == 200:
                 with open(zip_location, "wb", buffering=0) as f:
                     while data := await response.content.read(4096):
                         f.write(data)
-                        f.flush()
             else:
                 self.bot.log(f"Cannot fetch images from {ANIME_IMAGES_URL}: HTTP status {response.status}")
                 return
 
-        if sys.platform == "linux":
-            args = (
-                "unzip",
-                "-q",
-                zip_location,
-                "-d", unzip_location,
-            )
-        elif sys.platform == "win32":
-            args = (
-                "7z",
-                "e",
-                "-bd",
-                zip_location,
-                f"-o{unzip_location}"
-            )
-        else:
-            self.bot.log(f"Unsupported platform {sys.platform}")
-            return
+        args = (
+            "tar",
+            "-xf", zip_location,
+            "-C", unzip_location,
+        )
 
         process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
         _, _stderr = await process.communicate()
