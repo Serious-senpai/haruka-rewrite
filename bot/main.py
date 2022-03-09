@@ -16,6 +16,4 @@ print(f"Running on {sys.platform}\nPython {sys.version}")
 try:
     bot.loop.run_until_complete(bot.start())
 except KeyboardInterrupt:
-    pass
-finally:
     bot.loop.run_until_complete(asyncio.shield(bot.close()))

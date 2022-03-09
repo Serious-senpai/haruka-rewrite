@@ -7,6 +7,7 @@ import traceback
 from typing import Optional, TYPE_CHECKING
 
 import aiohttp
+from yarl import URL
 from bs4 import BeautifulSoup
 
 import env
@@ -76,7 +77,8 @@ class AssetClient:
 
         files = os.listdir("./bot/assets/server/images")
         if files:
-            return env.get_host() + "/assets/images/" + random.choice(files)
+            url = URL(env.get_host() + "/assets/images/" + random.choice(files))
+            return str(url)
 
     async def extract_tar_file(self, zip_location: str, destination: str) -> None:
         args = (
