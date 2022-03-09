@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import traceback
 from typing import TYPE_CHECKING
 
 import aiohttp
@@ -52,8 +53,11 @@ class AssetClient:
         async with self.session.get(file_url) as response:
             if response.status == 200:
                 with open(zip_location, "wb", buffering=0) as f:
-                    while data := await response.content.read(4096):
-                        f.write(data)
+                    try:
+                        while data := await response.content.read(4096):
+                            f.write(data)
+                    except aiohttp.ClientPayloadError:
+                        self.bot.log("Exception while downloading the tar file containing anime images:\n" + traceback.format_exc() + "\nIgnoring and continuing the unzipping process.")
             else:
                 return self.bot.log(f"Cannot fetch anime images from {file_url}: HTTP status {response.status}")
 
