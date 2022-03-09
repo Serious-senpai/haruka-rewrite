@@ -66,6 +66,7 @@ class AssetClient:
             else:
                 return self.bot.log(f"Cannot fetch anime images from {file_url}: HTTP status {response.status}")
 
+        await self.extract_tar_file(zip_location, unzip_location)
         os.remove(zip_location)
         self.anime_images_fetch = True
 
