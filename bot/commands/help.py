@@ -76,7 +76,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         embed = discord.Embed()
         embed.add_field(
             name="🖼️ Images",
-            value="```\ndanbooru, nsfw, pixiv, sfw, tenor, zerochan\n```",
+            value="```\ndanbooru, image, nsfw, pixiv, sfw, tenor, zerochan\n```",
             inline=False,
         )
         embed.add_field(

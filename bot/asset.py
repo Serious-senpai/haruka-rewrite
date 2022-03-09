@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import os
+import random
 import traceback
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 import aiohttp
 from bs4 import BeautifulSoup
+
+import env
 if TYPE_CHECKING:
     import haruka
 
@@ -22,10 +25,12 @@ class AssetClient:
 
     if TYPE_CHECKING:
         bot: haruka.Haruka
+        anime_images_fetch: bool
         session: aiohttp.ClientSession
 
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot = bot
+        self.anime_images_fetch = False
         self.session = bot.session
 
     async def fetch_anime_images(self) -> None:
@@ -61,14 +66,26 @@ class AssetClient:
             else:
                 return self.bot.log(f"Cannot fetch anime images from {file_url}: HTTP status {response.status}")
 
+        os.remove(zip_location)
+        self.anime_images_fetch = True
+
+    def get_anime_image(self) -> Optional[str]:
+        if not self.anime_images_fetch:
+            return
+
+        files = os.listdir("./bot/assets/server/images")
+        if files:
+            return env.get_host() + "/" + random.choice(files)
+
+    async def extract_tar_file(self, zip_location: str, destination: str) -> None:
         args = (
             "tar",
             "-xf", zip_location,
-            "-C", unzip_location,
+            "-C", destination,
         )
 
         process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
         _, _stderr = await process.communicate()
         if _stderr:
             stderr = _stderr.decode("utf-8")
-            self.bot.log("WARNING: Anime images fetching subprocess stderr:\n" + stderr)
+            self.bot.log(f"WARNING: stderr when extracting from \"{zip_location}\" to \"{destination}\":\n" + stderr)
