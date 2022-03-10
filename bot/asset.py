@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import functools
 import os
 import random
 import traceback
-from typing import Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 
 import aiohttp
 from yarl import URL
@@ -24,6 +26,10 @@ class AssetClient:
     """Represents a client that downloads remote resources to the
     local machine.
     """
+
+    excludes = (
+        "20210114_122632.jpg",
+    )
 
     if TYPE_CHECKING:
         bot: haruka.Haruka
@@ -82,13 +88,25 @@ class AssetClient:
         os.remove(zip_location)
         self.anime_images_fetch = True
 
+    @functools.cached_property
+    def files(self) -> List[str]:
+        if not self.anime_images_fetch:
+            raise RuntimeError("The TAR file hasn't been extracted yet.")
+
+        _files = os.listdir("./bot/assets/server/images")
+        for file in self.excludes:
+            with contextlib.suppress(ValueError):
+                _files.remove(file)
+
+        return _files
+
     def get_anime_image(self) -> Optional[str]:
         if not self.anime_images_fetch:
             return
 
-        files = os.listdir("./bot/assets/server/images")
-        if files:
-            url = URL(env.get_host() + "/assets/images/" + random.choice(files))
+        if self.files:
+            filename = random.choice(self.files)
+            url = URL(env.get_host() + "/assets/images/" + filename)
             return str(url)
 
     async def extract_tar_file(self, zip_location: str, destination: str) -> None:
