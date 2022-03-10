@@ -14,15 +14,14 @@ import discord
 import topgg
 import youtube_dl
 from aiohttp import web
-from discord import app_commands
 from discord.ext import commands, tasks
 from discord.state import ConnectionState
 from discord.utils import escape_markdown as escape
 
+import _image
 import _server
 import asset
 import env
-import image
 import task
 from _types import Context, Interaction
 
@@ -40,11 +39,11 @@ class Haruka(commands.Bot):
         _slash_command_count: Dict[str, List[Interaction]]
         _connection: _ConnectionState
         _eval_task: Optional[asyncio.Task]
-        _image: image.ImageClient[image.ImageSource]
 
         app: _server.WebApp
         asset_client: asset.AssetClient
         conn: asyncpg.Pool
+        image: _image.ImageClient[_image.ImageSource]
         logfile: io.TextIOWrapper
         owner: Optional[discord.User]
         owner_bypass: bool
@@ -86,16 +85,22 @@ class Haruka(commands.Bot):
         headers = {
             "User-Agent": youtube_dl.utils.random_user_agent(),
         }
-        self.session = aiohttp.ClientSession(headers=headers, timeout=aiohttp.ClientTimeout(connect=10.0))
+        self.session = aiohttp.ClientSession(
+            headers=headers,
+            timeout=aiohttp.ClientTimeout(
+                connect=5.0,
+                total=10.0,
+            ),
+        )
         self.log("Created side session")
 
         # Load image client
-        self._image = image.ImageClient(
+        self.image = _image.ImageClient(
             self,
-            image.WaifuPics,
-            image.WaifuIm,
-            image.NekosLife,
-            image.Asuna,
+            _image.WaifuPics,
+            _image.WaifuIm,
+            _image.NekosLife,
+            _image.Asuna,
         )
         self.log("Loaded image client")
 
@@ -330,10 +335,6 @@ class Haruka(commands.Bot):
         )
 
         return embed
-
-    @property
-    def image(self) -> image.ImageClient[image.ImageSource]:
-        return self._image
 
     @tasks.loop(minutes=5)
     async def _keep_alive(self) -> None:

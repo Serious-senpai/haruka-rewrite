@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-import image
+import _image
 from _types import Context
 from core import bot
 
@@ -16,7 +16,7 @@ async def _sfw_cmd(ctx: Context, *, category: str):
     category = category.lower()
     try:
         image_url = await bot.image.get(category.lower(), mode="sfw") or discord.Embed.Empty
-    except image.CategoryNotFound:
+    except _image.CategoryNotFound:
         return await ctx.send(f"No category named `{category}` was found.")
 
     embed = discord.Embed()

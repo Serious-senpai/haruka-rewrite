@@ -39,8 +39,9 @@ class AssetClient:
 
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot = bot
-        self.anime_images_fetch = False
         self.session = bot.session
+
+        self.anime_images_fetch = False
 
     def log(self, content: str) -> None:
         self.bot.log("ASSET CLIENT: " + content)

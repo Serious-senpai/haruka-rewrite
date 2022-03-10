@@ -488,11 +488,15 @@ class ImageClient(Generic[IT]):
         """
         await self.wait_until_ready()
         self._check_category(category, mode=mode)
+        image_url = None
+
         if mode == "sfw":
             random.shuffle(self.sfw[category])
 
             for source in self.sfw[category]:
-                image_url = await source.get(category, mode="sfw")
+                with contextlib.suppress(asyncio.TimeoutError, aiohttp.ClientError):
+                    image_url = await source.get(category, mode="sfw")
+
                 if image_url:
                     return image_url
 
@@ -500,7 +504,9 @@ class ImageClient(Generic[IT]):
             random.shuffle(self.nsfw[category])
 
             for source in self.nsfw[category]:
-                image_url = await source.get(category, mode="nsfw")
+                with contextlib.suppress(asyncio.TimeoutError, aiohttp.ClientError):
+                    image_url = await source.get(category, mode="nsfw")
+
                 if image_url:
                     return image_url
 

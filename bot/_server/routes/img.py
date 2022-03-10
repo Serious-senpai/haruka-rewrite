@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from aiohttp import web
 
-import image
+import _image
 from ..core import routes
 if TYPE_CHECKING:
     from .._types import WebRequest
@@ -17,7 +17,7 @@ async def _img_route(request: WebRequest) -> web.Response:
     try:
         host, url = await request.app.bot.image.get_url(category, mode=mode)
         data = {"host": host, "url": url}
-    except image.CategoryNotFound:
+    except _image.CategoryNotFound:
         raise web.HTTPNotFound
     else:
         return web.json_response(data)
