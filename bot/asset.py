@@ -29,6 +29,7 @@ class AssetClient:
 
     excludes = (
         "20210114_122632.jpg",
+        "FB_IMG_1584877040826.jpg",
     )
 
     if TYPE_CHECKING:
