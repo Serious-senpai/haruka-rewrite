@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from typing import Callable, Coroutine, TYPE_CHECKING
+from typing import (
+    runtime_checkable,
+    Callable,
+    Coroutine,
+    Literal,
+    Protocol,
+    TYPE_CHECKING,
+)
 
 
 if not TYPE_CHECKING:
@@ -18,4 +25,8 @@ class WebRequest(web.Request):
 
 
 Handler = Callable[[WebRequest], Coroutine[None, None, web.Response]]
-Middleware = Callable[[WebRequest, Handler], web.Response]
+
+
+@runtime_checkable
+class Middleware(Protocol, Callable[[WebRequest, Handler], web.Response]):
+    __middleware_version__: Literal[1]

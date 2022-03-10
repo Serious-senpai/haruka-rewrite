@@ -35,7 +35,7 @@ class LoggingFilter(logging.Filter):
 
 
 handler = logging.FileHandler(filename="./log.txt", encoding="utf-8", mode="a")
-handler.setFormatter(logging.Formatter("HARUKA | %(levelname)s (%(name)s):: %(message)s"))
+handler.setFormatter(logging.Formatter("%(name)s: %(levelname)s %(message)s"))
 handler.addFilter(LoggingFilter())
 
 logger = logging.getLogger("discord")

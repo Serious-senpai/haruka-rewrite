@@ -144,8 +144,8 @@ class Haruka(commands.Bot):
         self.log("Successfully initialized database.")
 
     def log(self, content: Any) -> None:
-        content = str(content).replace("\n", "\nHARUKA | ")
-        self.logfile.write(f"HARUKA | {content}\n")
+        content = str(content).replace("\n", "\nHARUKA: ")
+        self.logfile.write(f"HARUKA: {content}\n")
         self.logfile.flush()
 
     async def reset_inactivity_counter(self, guild_id: Union[int, str]) -> None:

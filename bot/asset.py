@@ -98,8 +98,12 @@ class AssetClient:
             "-C", destination,
         )
 
-        process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
-        _, _stderr = await process.communicate()
+        with utils.TimingContextManager() as measure:
+            process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
+            _, _stderr = await process.communicate()
+
         if _stderr:
             stderr = _stderr.decode("utf-8")
             self.log(f"WARNING: stderr when extracting from \"{zip_location}\" to \"{destination}\":\n" + stderr)
+
+        self.log(f"Extracted \"{zip_location}\" to \"{destination}\" in {utils.format(measure.result)}")
