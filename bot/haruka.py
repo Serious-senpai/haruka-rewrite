@@ -71,10 +71,6 @@ class Haruka(commands.Bot):
 
         super().__init__(*args, **kwargs)
 
-        # Slash commands handler
-        self.tree = app_commands.CommandTree(self)
-        self.slash = self.tree.command
-
     def _clear_counter(self) -> None:
         """Clear the text command and slash command counter"""
         self._command_count = {}
