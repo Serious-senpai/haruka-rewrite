@@ -50,7 +50,6 @@ class Haruka(commands.Bot):
         owner_bypass: bool
         runner: web.AppRunner
         session: aiohttp.ClientSession
-        tree: app_commands.CommandTree
         uptime: datetime.datetime
 
         if sys.platform == "win32":
@@ -70,6 +69,7 @@ class Haruka(commands.Bot):
         signal.signal(signal.SIGTERM, self.kill)
 
         super().__init__(*args, **kwargs)
+        self.slash = self.tree.command
 
     def _clear_counter(self) -> None:
         """Clear the text command and slash command counter"""
