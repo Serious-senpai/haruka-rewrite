@@ -87,10 +87,7 @@ class Haruka(commands.Bot):
         }
         self.session = aiohttp.ClientSession(
             headers=headers,
-            timeout=aiohttp.ClientTimeout(
-                connect=5.0,
-                total=10.0,
-            ),
+            timeout=aiohttp.ClientTimeout(connect=5.0),
         )
         self.log("Created side session")
 
