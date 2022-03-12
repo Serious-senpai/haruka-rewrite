@@ -48,7 +48,7 @@ class AssetClient:
 
     async def fetch_anime_images(self) -> None:
         """This function is a coroutine
-        
+
         Asynchronously fetch the image zip file from Google Drive
         and save it to the local machine.
         """
@@ -65,7 +65,7 @@ class AssetClient:
 
                     if not file_url:
                         return self.log(f"Cannot obtain a download URL from this element:\n{download_button}")
-                        
+
                 else:
                     return self.log(f"Cannot fetch download URL: HTTP status {response.status}")
 

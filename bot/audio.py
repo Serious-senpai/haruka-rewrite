@@ -6,9 +6,10 @@ import copy
 import json
 import os
 import random
+import select
 import shlex
 import traceback
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Any, Callable, Dict, AsyncIterator, List, Optional, Type, TypeVar, TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -854,3 +855,32 @@ class MusicClient(discord.VoiceClient):
             bot.log(f"AudioPlayer instance: {self._player} (thread name {player_name})")
             bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))
             bot.loop.create_task(bot.report("Exception while playing audio, reporting from `_set_event` method", send_state=False))
+
+
+class AudioReader(discord.VoiceClient):
+
+    if TYPE_CHECKING:
+        _listening: bool
+
+    def __init__(self, *args, **kwargs) -> None:
+        self._listening = False
+        super().__init__(*args, **kwargs)
+
+    @property
+    def listening(self) -> bool:
+        return self._listening
+
+    async def receive(self, chunk: int = 4096) -> AsyncIterator[bytes]:
+        if self._listening:
+            raise RuntimeError("This audio stream has already been listened to")
+
+        while self.is_connected():
+            data = await asyncio.to_thread(self._do_receive, chunk)
+            if data is not None:
+                yield data
+
+    def _do_receive(self, chunk: int) -> Optional[bytes]:
+        rsock, _, _ = select.select([self.socket], [], [self.socket], 0.1)
+        if rsock:
+            data = self.socket.recv(chunk)
+            return data
