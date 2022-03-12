@@ -6,7 +6,6 @@ import copy
 import json
 import os
 import random
-import select
 import shlex
 import traceback
 from typing import Any, Callable, Dict, AsyncIterator, List, Optional, Type, TypeVar, TYPE_CHECKING
@@ -875,13 +874,14 @@ class AudioReader(discord.VoiceClient):
             raise RuntimeError("This audio stream has already been listened to")
 
         self._listening = True
-        while self.is_connected():
-            data = await asyncio.to_thread(self._do_receive, chunk)
-            if data is not None:
+        while True:
+            try:
+                data = await self.loop.sock_recv(self.socket, chunk)
                 yield data
+            except OSError:
+                if not self.is_connected():
+                    break
 
-    def _do_receive(self, chunk: int) -> Optional[bytes]:
-        rsock, _, _ = select.select([self.socket], [], [self.socket], 0.1)
-        if rsock:
-            data = self.socket.recv(chunk)
-            return data
+                raise
+
+        self._listening = False
