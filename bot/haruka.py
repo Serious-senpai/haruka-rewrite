@@ -62,12 +62,12 @@ class Haruka(commands.Bot):
                 loop: uvloop.Loop
 
     def __init__(self, *args, **kwargs) -> None:
-        self.logfile = open("./log.txt", "a", encoding="utf-8")
-        self.owner = None
-        self._clear_counter()
         signal.signal(signal.SIGTERM, self.kill)
 
         super().__init__(*args, **kwargs)
+        self.logfile = open("./log.txt", "a", encoding="utf-8")
+        self.owner = None
+        self._clear_counter()
         self.slash = self.tree.command
 
     def _clear_counter(self) -> None:

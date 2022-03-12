@@ -20,6 +20,9 @@ else:
 
 
 # Setup logging
+DEBUG_MODE = False
+
+
 class LoggingFilter(logging.Filter):
 
     __slots__ = ()
@@ -39,7 +42,7 @@ handler.setFormatter(logging.Formatter("%(name)s: %(levelname)s %(message)s"))
 handler.addFilter(LoggingFilter())
 
 logger = logging.getLogger("discord")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG if DEBUG_MODE else logging.INFO)
 logger.addHandler(handler)
 
 
@@ -100,6 +103,7 @@ bot = haruka.Haruka(
     intents=intents,
     case_insensitive=True,
     strip_after_prefix=True,
+    enable_debug_events=DEBUG_MODE,
 )
 
 
