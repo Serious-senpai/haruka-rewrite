@@ -874,6 +874,7 @@ class AudioReader(discord.VoiceClient):
         if self._listening:
             raise RuntimeError("This audio stream has already been listened to")
 
+        self._listening = True
         while self.is_connected():
             data = await asyncio.to_thread(self._do_receive, chunk)
             if data is not None:
