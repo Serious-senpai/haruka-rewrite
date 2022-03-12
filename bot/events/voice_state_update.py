@@ -10,6 +10,9 @@ def _is_alone_in(guild: Guild) -> bool:
     if not guild.voice_client:
         return False
 
+    if not guild.voice_client.is_connected():
+        return False
+
     return len(guild.voice_client.channel.members) == 1
 
 
