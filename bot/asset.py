@@ -49,7 +49,7 @@ class AssetClient:
     async def fetch_anime_images(self) -> None:
         """This function is a coroutine
 
-        Asynchronously fetch the image zip file from Google Drive
+        Asynchronously fetch the image TAR file from Mediafire
         and save it to the local machine.
         """
         unzip_location = "./bot/assets/server/images"
