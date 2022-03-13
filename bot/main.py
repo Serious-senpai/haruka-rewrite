@@ -12,7 +12,7 @@ from core import bot
 
 
 print(f"Running on {sys.platform}\nPython {sys.version}")
-
+bot.loop = asyncio.get_event_loop()
 try:
     bot.loop.run_until_complete(bot.start())
 except KeyboardInterrupt:
