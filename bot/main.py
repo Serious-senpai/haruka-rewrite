@@ -3,7 +3,7 @@ import sys
 import tracemalloc
 
 tracemalloc.start()  # noqa
-with open("./log.txt", "w") as f:
+with open("./bot/assets/server/log.txt", "w") as f:
     f.write(f"HARUKA BOT\nRunning on Python {sys.version}\n" + "-" * 50 + "\n")
 
 from commands import *

@@ -37,7 +37,7 @@ class LoggingFilter(logging.Filter):
         return True
 
 
-handler = logging.FileHandler(filename="./log.txt", encoding="utf-8", mode="a")
+handler = logging.FileHandler(filename="./bot/assets/server/log.txt", encoding="utf-8", mode="a")
 handler.setFormatter(logging.Formatter("%(name)s: %(levelname)s %(message)s"))
 handler.addFilter(LoggingFilter())
 

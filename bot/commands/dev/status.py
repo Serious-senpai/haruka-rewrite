@@ -12,4 +12,4 @@ from core import bot
 )
 @commands.is_owner()
 async def _status_cmd(ctx: Context):
-    await ctx.send(embed=bot.display_status, file=discord.File("./log.txt"))
+    await ctx.send(embed=bot.display_status, file=discord.File("./bot/assets/server/log.txt"))

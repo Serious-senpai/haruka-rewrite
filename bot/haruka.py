@@ -65,7 +65,7 @@ class Haruka(commands.Bot):
         signal.signal(signal.SIGTERM, self.kill)
 
         super().__init__(*args, **kwargs)
-        self.logfile = open("./log.txt", "a", encoding="utf-8")
+        self.logfile = open("./bot/assets/server/log.txt", "a", encoding="utf-8")
         self.owner = None
         self._clear_counter()
         self.slash = self.tree.command
@@ -260,7 +260,7 @@ class Haruka(commands.Bot):
         finally:
             await super().close()
             print("Writing log file to the console:\n")
-            with open("./log.txt", "r", encoding="utf-8") as f:
+            with open("./bot/assets/server/log.txt", "r", encoding="utf-8") as f:
                 print(f.read())
 
     async def report(
@@ -274,7 +274,7 @@ class Haruka(commands.Bot):
             await self.owner.send(
                 message,
                 embed=self.display_status if send_state else None,
-                file=discord.File("./log.txt") if send_log else None,
+                file=discord.File("./bot/assets/server/log.txt") if send_log else None,
             )
 
     @property
