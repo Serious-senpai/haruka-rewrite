@@ -1,7 +1,4 @@
-from __future__ import annotations
-
 from typing import (
-    runtime_checkable,
     Callable,
     Coroutine,
     Literal,
@@ -18,9 +15,8 @@ class WebRequest(web.Request):
     def app(self) -> WebApp: ...
 
 
-Handler = Callable[[WebRequest], Coroutine[None, None, web.Response]]
-
-
-@runtime_checkable
 class Middleware(Protocol, Callable[[WebRequest, Handler], web.Response]):
     __middleware_version__: Literal[1]
+
+
+Handler = Callable[[WebRequest], Coroutine[None, None, web.Response]]

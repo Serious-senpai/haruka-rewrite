@@ -5,8 +5,8 @@
 /tasks.txt
 /threads.txt
 /bot/assets/server/eval.txt
-/bot/assets/server/ssh.txt
 /bot/assets/server/log.txt
+/bot/assets/server/ssh.txt
 
 /.idea
 /server
