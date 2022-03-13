@@ -22,15 +22,14 @@ from nacl.exceptions import CryptoError
 
 import emoji_ui
 import emojis
-import env
 import utils
 from _types import Context
 from core import bot
+from env import HOST
 
 
 T = TypeVar("T")
 TIMEOUT = aiohttp.ClientTimeout(total=15)
-HOST = env.get_host()
 
 
 fetching_in_progress: Dict[str, asyncio.Event] = {}

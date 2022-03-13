@@ -11,11 +11,10 @@ import bs4
 import discord
 from discord.utils import escape_markdown as escape
 
-import env
+from env import HOST
 
 
 PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
-HOST = env.get_host()
 ID_PATTERN = re.compile(r"(?<!\d)\d{4,8}(?!\d)")
 URL_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?artworks/\d{4,8}/?")
 

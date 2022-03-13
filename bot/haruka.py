@@ -113,11 +113,11 @@ class Haruka(commands.Bot):
         # Start the bot
         self.loop.create_task(self.startup(), name="Startup task")
         self.uptime = discord.utils.utcnow()
-        await super().start(env.get_token())
+        await super().start(env.TOKEN)
 
     async def prepare_database(self) -> None:
         self.conn = await asyncpg.create_pool(
-            env.get_database_url(),
+            env.DATABASE_URL,
             min_size=2,
             max_size=10,
             max_inactive_connection_lifetime=3.0,
@@ -203,11 +203,10 @@ class Haruka(commands.Bot):
             self.log("Started _keep_alive task")
 
         # Post server count every 15 minutes
-        topgg_token = env.get_topgg_token()
-        if topgg_token:
+        if env.TOPGG_TOKEN:
             self.topgg = topgg.DBLClient(
                 self,
-                topgg_token,
+                env.TOPGG_TOKEN,
                 autopost=True,
                 autopost_interval=900,
                 session=self.session,
@@ -336,7 +335,7 @@ class Haruka(commands.Bot):
     @tasks.loop(minutes=5)
     async def _keep_alive(self) -> None:
         asyncio.current_task().set_name("KeepServerAlive")
-        async with self.session.get(env.get_host()) as response:
+        async with self.session.get(env.HOST) as response:
             if not response.status == 200:
                 self.log(f"WARNING: _keep_alive task returned response code {response.status}")
 

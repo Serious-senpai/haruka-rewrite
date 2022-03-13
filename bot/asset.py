@@ -12,8 +12,8 @@ import aiohttp
 from yarl import URL
 from bs4 import BeautifulSoup
 
-import env
 import utils
+from env import HOST
 if TYPE_CHECKING:
     import haruka
 
@@ -111,7 +111,7 @@ class AssetClient:
 
         if self.files:
             filename = random.choice(self.files)
-            url = URL(env.get_host() + "/assets/images/" + filename)
+            url = URL(HOST + "/assets/images/" + filename)
             return str(url)
 
     async def extract_tar_file(self, zip_location: str, destination: str) -> None:
