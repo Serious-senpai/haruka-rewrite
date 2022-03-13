@@ -6,7 +6,9 @@ import copy
 import json
 import os
 import random
+import select
 import shlex
+import sys
 import traceback
 from typing import Any, Callable, Dict, AsyncIterator, List, Optional, Type, TypeVar, TYPE_CHECKING
 
@@ -14,6 +16,8 @@ import aiohttp
 import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
+from nacl import secret
+from nacl.exceptions import CryptoError
 
 import emoji_ui
 import emojis
@@ -861,6 +865,16 @@ class AudioReader(discord.VoiceClient):
     if TYPE_CHECKING:
         _listening: bool
 
+        if sys.platform == "win32":
+            loop: asyncio.ProactorEventLoop
+        else:
+            try:
+                import uvloop
+            except ImportError:
+                loop: asyncio.SelectorEventLoop
+            else:
+                loop: uvloop.Loop
+
     def __init__(self, *args, **kwargs) -> None:
         self._listening = False
         super().__init__(*args, **kwargs)
@@ -869,19 +883,56 @@ class AudioReader(discord.VoiceClient):
     def listening(self) -> bool:
         return self._listening
 
-    async def receive(self, chunk: int = 4096) -> AsyncIterator[bytes]:
+    async def receive(self) -> AsyncIterator[bytes]:
         if self._listening:
             raise RuntimeError("This audio stream has already been listened to")
 
         self._listening = True
-        while True:
-            try:
-                data = await self.loop.sock_recv(self.socket, chunk)
+        while self.is_connected():
+            data = await asyncio.to_thread(self._do_receive)
+            if data is not None:
                 yield data
-            except OSError:
-                if not self.is_connected():
-                    break
-
-                raise
 
         self._listening = False
+
+    def _do_receive(self) -> Optional[bytes]:
+        socket = self.socket
+        rsock, _, _ = select.select([socket], [], [socket], 0.1)
+        if rsock:
+            try:
+                data = socket.recv(4096)
+            except OSError:
+                return
+
+            decrypt_payload = getattr(self, "_decrypt_" + self.mode)
+            return decrypt_payload(data)
+
+    @property
+    def secret_box(self) -> secret.SecretBox:
+        return secret.SecretBox(bytes(self.secret_key))
+
+    def _decrypt_xsalsa20_poly1305(self, data: bytes) -> Optional[bytes]:
+        payload = data[12:]
+
+        nonce = bytearray(24)
+        nonce[:12] = data[:12]
+
+        with contextlib.suppress(CryptoError):
+            return self.secret_box.decrypt(payload, bytes(nonce))
+
+    def _decrypt_xsalsa20_poly1305_suffix(self, data: bytes) -> Optional[bytes]:
+        payload = data[:-24]
+
+        nonce = data[-24:]
+
+        with contextlib.suppress(CryptoError):
+            return self.secret_box.decrypt(payload, nonce)
+
+    def _decrypt_xsalsa20_poly1305_lite(self, data: bytes) -> Optional[bytes]:
+        payload = data[12:-4]
+
+        nonce = bytearray(24)
+        nonce[:4] = data[-4:]
+
+        with contextlib.suppress(CryptoError):
+            return self.secret_box.decrypt(payload, bytes(nonce))

@@ -55,6 +55,9 @@ class AssetClient:
         unzip_location = "./bot/assets/server/images"
         zip_location = unzip_location + "/collection.tar"
 
+        if os.listdir(unzip_location):
+            return
+
         with utils.TimingContextManager() as measure:
             async with self.session.get("https://www.mediafire.com/file/uw42hxy45psweoa/Collection.tar/file") as response:
                 if response.status == 200:

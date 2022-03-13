@@ -341,6 +341,10 @@ class Haruka(commands.Bot):
                 self.log(f"WARNING: _keep_alive task returned response code {response.status}")
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
+        exc_type, _, _ = sys.exc_info()
+        if issubclass(exc_type, discord.Forbidden):
+            return
+
         self.log(f"Exception in {event_method}:")
         self.log(traceback.format_exc())
         await self.report("An error has just occurred and was handled by `on_error`", send_state=False)
