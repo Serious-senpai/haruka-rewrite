@@ -8,6 +8,7 @@ import os
 import random
 import select
 import shlex
+import struct
 import sys
 import traceback
 from typing import Any, Callable, Dict, AsyncIterator, List, Optional, Type, TypeVar, TYPE_CHECKING
@@ -905,7 +906,16 @@ class AudioReader(discord.VoiceClient):
                 return
 
             decrypt_payload = getattr(self, "_decrypt_" + self.mode)
-            return decrypt_payload(data)
+            decrypted = decrypt_payload(data)
+            if decrypted is None:
+                return
+
+            if decrypted[0] == 0xBE and decrypted[1] == 0xDE and len(decrypted) > 4:
+                _, length = struct.unpack(">HH", decrypted[:4])
+                offset = 4 * length + 4
+                decrypted = decrypted[offset:]
+
+            return decrypted
 
     @property
     def secret_box(self) -> secret.SecretBox:
