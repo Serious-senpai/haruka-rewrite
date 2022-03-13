@@ -6,13 +6,7 @@ from typing import (
     Coroutine,
     Literal,
     Protocol,
-    TYPE_CHECKING,
 )
-
-
-if not TYPE_CHECKING:
-    raise ImportError("This module only exists for type checking")
-
 
 from aiohttp import web
 

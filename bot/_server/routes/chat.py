@@ -14,7 +14,7 @@ from ..chat import (
 )
 from ..core import routes
 if TYPE_CHECKING:
-    from .._types import WebRequest
+    from ..server import WebRequest
 
 
 def construct_message_json(row: asyncpg.Record) -> Dict[str, Any]:

@@ -4,7 +4,7 @@ from typing import List, TYPE_CHECKING
 
 from aiohttp import web
 if TYPE_CHECKING:
-    from ._types import Middleware, WebRequest
+    from .server import Middleware, WebRequest
 
 
 routes = web.RouteTableDef()

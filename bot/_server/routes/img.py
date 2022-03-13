@@ -7,7 +7,7 @@ from aiohttp import web
 import _image
 from ..core import routes
 if TYPE_CHECKING:
-    from .._types import WebRequest
+    from ..server import WebRequest
 
 
 @routes.get("/img")
