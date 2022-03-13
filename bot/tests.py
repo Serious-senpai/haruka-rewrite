@@ -127,3 +127,4 @@ async def run_all_tests() -> None:
         image_test(),
     )
     bot.log("\n".join(logs))
+    await bot.report("Completed all tests", send_state=False)
