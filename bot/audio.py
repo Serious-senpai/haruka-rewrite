@@ -11,11 +11,10 @@ import shlex
 import struct
 import sys
 import traceback
-from typing import Any, Callable, Dict, AsyncIterator, List, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Type, TypeVar, TYPE_CHECKING
 
 import aiohttp
 import discord
-from discord import opus
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 from nacl import secret
@@ -866,7 +865,6 @@ class AudioReader(discord.VoiceClient):
 
     if TYPE_CHECKING:
         _listening: bool
-        decoder: opus.Decoder
 
         if sys.platform == "win32":
             loop: asyncio.ProactorEventLoop
@@ -880,7 +878,6 @@ class AudioReader(discord.VoiceClient):
 
     def __init__(self, *args, **kwargs) -> None:
         self._listening = False
-        self.decoder = opus.Decoder()
         super().__init__(*args, **kwargs)
 
     @property
@@ -918,9 +915,7 @@ class AudioReader(discord.VoiceClient):
                 offset = 4 * length + 4
                 decrypted = decrypted[offset:]
 
-            with contextlib.suppress(OSError):
-                decoded = self.decoder.decode(decrypted)
-                return decoded
+            return decrypted
 
     @property
     def secret_box(self) -> secret.SecretBox:
