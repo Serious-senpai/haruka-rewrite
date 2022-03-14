@@ -1,4 +1,4 @@
-import info
+import _info
 from _types import Interaction
 from core import bot
 
@@ -11,4 +11,4 @@ async def _svinfo_slash(interaction: Interaction):
     if not interaction.guild:
         return await interaction.response.send_message("This command can only be invoked in a server channel.")
 
-    await interaction.response.send_message(embed=info.server_info(interaction.guild))
+    await interaction.response.send_message(embed=_info.server_info(interaction.guild))

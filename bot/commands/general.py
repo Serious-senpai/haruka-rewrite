@@ -6,9 +6,9 @@ import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
+import _info
 import emoji_ui
 import env
-import info
 import utils
 from core import bot, prefix
 from _types import Context
@@ -20,7 +20,7 @@ from _types import Context
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _about_cmd(ctx: Context):
-    embed = info.user_info(bot.user)
+    embed = _info.user_info(bot.user)
     embed.description += "\nIf you are too bored, [vote](https://top.gg/bot/848178172536946708/vote) for me on top.gg!"
     embed.add_field(
         name="Latest commits from the `main` branch",
@@ -52,11 +52,7 @@ async def _about_cmd(ctx: Context):
 async def _info_cmd(ctx: Context, *, user: discord.User = None):
     if user is None:
         user = ctx.author
-    info_em = info.user_info(user)
-    info_em.set_author(
-        name="Information collected",
-        icon_url=bot.user.avatar.url,
-    )
+    info_em = _info.user_info(user)
     await ctx.send(embed=info_em)
 
 
@@ -153,7 +149,7 @@ async def _avatar_cmd(ctx: Context, *, user: discord.User = None):
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _svinfo_cmd(ctx: Context):
-    sv_em = info.server_info(ctx.guild)
+    sv_em = _info.server_info(ctx.guild)
     await ctx.send(embed=sv_em)
 
 
