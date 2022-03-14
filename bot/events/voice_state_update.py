@@ -7,7 +7,6 @@ from _types import Member
 from core import bot
 
 
-
 @bot.event
 async def on_voice_state_update(member: Member, before: discord.VoiceState, after: discord.VoiceState):
     guild = member.guild

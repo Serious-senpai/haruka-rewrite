@@ -1,3 +1,3 @@
-#!/bot/_server/middlewares
+#!/bot/web/middlewares
 from .img import *
 from .pixiv import *

@@ -2,7 +2,6 @@ import asyncio
 import contextlib
 import datetime
 import io
-import os
 import signal
 import sys
 import traceback
@@ -19,10 +18,10 @@ from discord.state import ConnectionState
 from discord.utils import escape_markdown as escape
 
 import _image
-import _server
 import asset
 import env
 import task
+import web as server
 from _types import Context, Interaction
 
 
@@ -40,7 +39,7 @@ class Haruka(commands.Bot):
         _connection: _ConnectionState
         _eval_task: Optional[asyncio.Task]
 
-        app: _server.WebApp
+        app: server.WebApp
         asset_client: asset.AssetClient
         conn: asyncpg.Pool
         image: _image.ImageClient[_image.ImageSource]
@@ -102,10 +101,10 @@ class Haruka(commands.Bot):
         self.log("Loaded image client")
 
         # Start server asynchronously
-        self.app = _server.WebApp(bot=self)
+        self.app = server.WebApp(self)
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
-        port = int(os.environ.get("PORT", 8080))
+        port = int(env.PORT)
         site = web.TCPSite(self.runner, None, port)
         await site.start()
         print(f"Started serving on port {port}")

@@ -1,4 +1,4 @@
-#!/bot/_server/routes
+#!/bot/web/routes
 from .chat import *
 from .collection import *
 from .img import *

@@ -49,10 +49,6 @@ with open("./bot/assets/misc/iv_instances.txt", "r", encoding="utf-8") as f:
     INVIDIOUS_URLS = ["https://" + instance.strip("\n") for instance in f.readlines()]
 
 
-if not os.path.exists("./tracks"):
-    os.mkdir("./tracks")
-
-
 def get_from_memory(id: str) -> Optional[Dict[str, Any]]:
     """Load snippet information about a track from a
     local JSON file.

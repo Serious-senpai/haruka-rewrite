@@ -18,10 +18,6 @@ if TYPE_CHECKING:
     import haruka
 
 
-if not os.path.isdir("./bot/assets/server/images"):
-    os.mkdir("./bot/assets/server/images")
-
-
 class AssetClient:
     """Represents a client that downloads remote resources to the
     local machine.
