@@ -28,7 +28,7 @@ async def _card_cmd(ctx: Context, n: int = 1):
     embed = discord.Embed()
     embed.set_author(
         name=f"{escape(ctx.author.name)} drew {n} card(s)!",
-        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+        icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
     )
     embed.set_image(url="attachment://image.png")
     embed.set_footer(text=f"Total points: {hand.value}")

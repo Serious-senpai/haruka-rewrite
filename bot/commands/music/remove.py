@@ -35,7 +35,7 @@ async def _remove_cmd(ctx: Context, pos: Union[int, str] = 1):
         embed = track.create_embed()
         embed.set_author(
             name=f"{ctx.author.name} removed 1 song from {channel.name}",
-            icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
         )
         await ctx.send(embed=embed)
     else:

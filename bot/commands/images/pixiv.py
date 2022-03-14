@@ -34,7 +34,7 @@ async def _pixiv_cmd(ctx: Context, *, query: str = ""):
             embed.set_footer(text=f"Displaying result #{index + 1}")
             embed.set_author(
                 name=f"{ctx.author.name} searched for {query}",
-                icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+                icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
             )
             embeds.append(embed)
 

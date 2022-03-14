@@ -88,7 +88,7 @@ class ReminderTask(Task):
             name="Original message URL",
             value=row["url"],
         )
-        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+        embed.set_thumbnail(url=user.avatar.url if user.avatar else None)
 
         with contextlib.suppress(discord.Forbidden):
             await user.send(embed=embed)

@@ -97,7 +97,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
                 name=f"{bot.user} Command List",
                 icon_url=bot.user.avatar.url,
             )
-            embed.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
+            embed.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else None)
             embed.set_footer(text=f"Current prefix: {pref} | Page {index + 1}/{len(embeds)}")
 
         display = emoji_ui.Pagination(embeds)
@@ -134,7 +134,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
             title=command.qualified_name,
             description=f"```\n{pref}{usage}\n```\n**Description**\n{description}\n**Aliases**\n" + ", ".join(f"`{alias}`" for alias in command.aliases) + "\n" + cooldown_notify,
         )
-        embed.set_author(name=f"{self.context.author.name}, this is an instruction for {command.qualified_name}!", icon_url=self.context.author.avatar.url if self.context.author.avatar else discord.Embed.Empty)
+        embed.set_author(name=f"{self.context.author.name}, this is an instruction for {command.qualified_name}!", icon_url=self.context.author.avatar.url if self.context.author.avatar else None)
         await self.context.send(embed=embed)
 
     async def prepare_help_command(self, ctx: Context, command: Optional[str] = None) -> None:

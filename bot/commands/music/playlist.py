@@ -31,6 +31,6 @@ async def _playlist_cmd(ctx: Context, *, url: str):
         embed = result.create_embed()
         embed.set_author(
             name=f"{ctx.author.name} loaded a YouTube playlist into {channel.name}",
-            icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
         )
         await ctx.send(embed=embed)

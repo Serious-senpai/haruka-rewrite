@@ -151,7 +151,7 @@ class PartialInvidiousSource:
             if len(description) > 300:
                 description = description[:300] + f" [...]({url})"
         else:
-            description = discord.Embed.Empty
+            description = None
 
         embed = discord.Embed(title=title, description=description, url=url)
         embed.add_field(

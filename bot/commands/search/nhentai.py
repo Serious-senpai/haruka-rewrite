@@ -47,6 +47,6 @@ async def _nhentai_cmd(ctx: Context, *, query: str):
     embed = hentai.create_embed()
     embed.set_author(
         name=f"{ctx.author.name}'s request",
-        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+        icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
     )
     await ctx.send(embed=embed)

@@ -44,7 +44,7 @@ class YouTubePlaylist:
             if len(description) > 400:
                 description = description[:400] + f" [...]({self.url})"
         else:
-            description = discord.Embed.Empty
+            description = None
 
         embed = discord.Embed(title=title, description=description, url=self.url)
         embed.set_thumbnail(url=self.thumbnail)

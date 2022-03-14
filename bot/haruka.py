@@ -287,11 +287,12 @@ class Haruka(commands.Bot):
 
         desc = "**Commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._command_count.items())) + "\n**Slash commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._slash_command_count.items()))
 
-        embed = discord.Embed(
-            title="Internal status",
-            description=desc,
-        )
+        embed = discord.Embed(description=desc)
         embed.set_thumbnail(url=self.user.avatar.url)
+        embed.set_author(
+            name="Internal status",
+            icon_url = self.user.avatar.url
+        )
 
         embed.add_field(
             name="Cached servers",

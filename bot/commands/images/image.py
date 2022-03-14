@@ -18,7 +18,7 @@ async def _image_cmd(ctx: Context):
     embed = discord.Embed()
     embed.set_author(
         name=f"{ctx.author.name}, this is your image!",
-        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+        icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
     )
     embed.set_image(url=image_url)
 

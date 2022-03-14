@@ -111,7 +111,7 @@ class NHentai:
     def create_embed(self) -> discord.Embed:
         embed = discord.Embed(
             title=escape(self.title),
-            description=escape(self.subtitle) if self.subtitle else discord.Embed.Empty,
+            description=escape(self.subtitle) if self.subtitle else None,
             url=self.url,
         )
         for section in self.sections:
@@ -135,7 +135,7 @@ class NHentai:
             value=self.url,
             inline=False,
         )
-        embed.set_thumbnail(url=self.thumbnail or discord.Embed.Empty)
+        embed.set_thumbnail(url=self.thumbnail)
         return embed
 
     def __repr__(self) -> str:

@@ -16,14 +16,14 @@ from core import bot
 async def _nsfw_cmd(ctx: Context, *, category: str):
     category = category.lower()
     try:
-        image_url = await bot.image.get(category, mode="nsfw") or discord.Embed.Empty
+        image_url = await bot.image.get(category, mode="nsfw")
     except _image.CategoryNotFound:
         return await ctx.send(f"No category named `{category}` was found.")
 
     embed = discord.Embed()
     embed.set_author(
         name=f"{ctx.author.name}, this is your image!",
-        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+        icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
     )
     embed.set_image(url=image_url)
 

@@ -48,15 +48,15 @@ async def _kick_cmd(ctx: Context, users: commands.Greedy[discord.Object], *, rea
     if len(success) == 1:
         embed.set_author(
             name="Kicked 1 member",
-            icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
         )
     else:
         embed.set_author(
             name=f"Kicked {len(success)} members",
-            icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
         )
 
     embed.add_field(name="Reason", value=reason, inline=False)
-    embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
+    embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else None)
 
     await ctx.send(embed=embed, reference=ctx.message.reference)

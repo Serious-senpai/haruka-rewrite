@@ -26,12 +26,12 @@ async def _unmute_cmd(ctx: Context, member: discord.Member, *, reason: str = Non
     embed = discord.Embed()
     embed.set_author(
         name=f"{ctx.author.name} unmuted 1 member",
-        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+        icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
     )
     embed.add_field(
         name="Unmuted member",
         value=member,
     )
     embed.add_field(name="Reason", value=reason, inline=False)
-    embed.set_thumbnail(url=member.avatar.url if member.avatar else discord.Embed.Empty)
+    embed.set_thumbnail(url=member.avatar.url if member.avatar else None)
     await ctx.send(embed=embed, reference=ctx.message.reference)

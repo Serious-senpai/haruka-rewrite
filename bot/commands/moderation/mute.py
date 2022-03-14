@@ -35,7 +35,7 @@ async def _mute_cmd(ctx: Context, hours: int, minutes: int, member: discord.Memb
     embed = discord.Embed()
     embed.set_author(
         name="Muted 1 member",
-        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+        icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
     )
     embed.add_field(
         name="Muted member",
@@ -46,5 +46,5 @@ async def _mute_cmd(ctx: Context, hours: int, minutes: int, member: discord.Memb
         value=f"{hours}h {minutes}m",
     )
     embed.add_field(name="Reason", value=reason, inline=False)
-    embed.set_thumbnail(url=member.avatar.url if member.avatar else discord.Embed.Empty)
+    embed.set_thumbnail(url=member.avatar.url if member.avatar else None)
     await ctx.send(embed=embed, reference=ctx.message.reference)

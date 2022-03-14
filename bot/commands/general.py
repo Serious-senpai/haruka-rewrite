@@ -175,9 +175,9 @@ async def _emoji_cmd(ctx: Context):
         )
         embed.set_author(
             name="These are the server's emojis!",
-            icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
         )
-        embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else discord.Embed.Empty)
+        embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else None)
         embed.set_footer(text=f"Showing page {page + 1}/{pages}")
         embeds.append(embed)
     display = emoji_ui.NavigatorPagination(embeds)
@@ -222,7 +222,7 @@ async def _remind_cmd(ctx: Context, hours: int, minutes: int, *, content: str):
     )
     embed.set_author(
         name="Created new reminder",
-        icon_url=ctx.author.avatar.url if ctx.author.avatar else discord.Embed.Empty,
+        icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
     )
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.set_footer(text="Make sure you can receive Direct Message from me")

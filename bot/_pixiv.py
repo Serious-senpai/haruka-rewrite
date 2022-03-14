@@ -105,7 +105,7 @@ class PixivArtwork:
     async def create_embed(self, *, session: aiohttp.ClientSession) -> discord.Embed:
         embed = discord.Embed(
             title=escape(self.title),
-            description=escape(self.description) if self.description else discord.Embed.Empty,
+            description=escape(self.description) if self.description else None,
             url=self.url,
         )
 
@@ -198,7 +198,7 @@ class PixivArtwork:
                 "title": illust.get("title"),
                 "id": id,
                 "xRestrict": illust.get("xRestrict"),
-                "url": illust.get("urls", {}).get("regular", discord.Embed.Empty),
+                "url": illust.get("urls", {}).get("regular"),
                 "tags": list(tag["tag"] for tag in illust["tags"]["tags"]),
                 "width": illust.get("width"),
                 "height": illust.get("height"),
