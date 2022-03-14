@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
-import functools
+import imghdr
 import os
 import random
 import traceback
-from typing import List, Optional, TYPE_CHECKING
+from typing import ClassVar, List, Optional, Set, TYPE_CHECKING
 
 import aiohttp
 from yarl import URL
@@ -23,14 +22,15 @@ class AssetClient:
     local machine.
     """
 
-    excludes = (
+    excludes: ClassVar[Set[str]] = {
         "20210114_122632.jpg",
         "FB_IMG_1584877040826.jpg",
-    )
+    }
 
     if TYPE_CHECKING:
         bot: haruka.Haruka
         anime_images_fetch: bool
+        files: List[str]
         session: aiohttp.ClientSession
 
     def __init__(self, bot: haruka.Haruka) -> None:
@@ -52,7 +52,7 @@ class AssetClient:
         zip_location = unzip_location + "/collection.tar"
 
         if os.listdir(unzip_location):
-            return
+            return await self._finalize()
 
         with utils.TimingContextManager() as measure:
             async with self.session.get("https://www.mediafire.com/file/uw42hxy45psweoa/Collection.tar/file") as response:
@@ -87,28 +87,22 @@ class AssetClient:
         self.log(f"Downloaded TAR file in {utils.format(measure.result)}" + " (file size {:.2f} MB)".format(size / 2 ** 20))
         await self.extract_tar_file(zip_location, unzip_location)
         os.remove(zip_location)
+        await self._finalize()
+
+    async def _finalize(self) -> None:
+        self.files = await asyncio.to_thread(self._filter_image_files)
         self.anime_images_fetch = True
 
-    @functools.cached_property
-    def files(self) -> List[str]:
-        if not self.anime_images_fetch:
-            raise RuntimeError("The TAR file hasn't been extracted yet.")
+    def _filter_image_files(self) -> List[str]:
+        _files = set(os.listdir("./bot/assets/server/images"))
+        _files -= self.excludes
+        _to_remove = set()
+        for file in _files:
+            if imghdr.what(f"./bot/assets/server/images/{file}") is None:
+                _to_remove.add(file)
 
-        _files = os.listdir("./bot/assets/server/images")
-        for file in self.excludes:
-            with contextlib.suppress(ValueError):
-                _files.remove(file)
-
-        return _files
-
-    def get_anime_image(self) -> Optional[str]:
-        if not self.anime_images_fetch:
-            return
-
-        if self.files:
-            filename = random.choice(self.files)
-            url = URL(HOST + "/assets/images/" + filename)
-            return str(url)
+        _files -= _to_remove
+        return list(_files)
 
     async def extract_tar_file(self, zip_location: str, destination: str) -> None:
         args = (
@@ -126,3 +120,12 @@ class AssetClient:
             self.log(f"WARNING: stderr when extracting from \"{zip_location}\" to \"{destination}\":\n" + stderr)
 
         self.log(f"Extracted \"{zip_location}\" to \"{destination}\" in {utils.format(measure.result)}")
+
+    def get_anime_image(self) -> Optional[str]:
+        if not self.anime_images_fetch:
+            return
+
+        if self.files:
+            filename = random.choice(self.files)
+            url = URL(HOST + "/assets/images/" + filename)
+            return str(url)
