@@ -1,6 +1,6 @@
 services:
   web:
-    image: "Haruka"
+    image: "haruka"
     build: .
     ports:
       - "20001:8080"
