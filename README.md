@@ -13,15 +13,16 @@
 #### Environment variables
 - `DATABASE_URL` The Postgres URL, starting with `postgres://`
 
-- `HOST` The URL of this web application Heroku is running on, like https://my-bot-app.herokuapp.com
+- `HOST` The URL of this web application Heroku is running on, like https://my-bot-app.herokuapp.com (optional)
 
 - `TOKEN` The Discord bot's token
 
-- `TOPGG_TOKEN` Top.gg token to upload the server count, this is optional.
+- `TOPGG_TOKEN` Top.gg token to upload the server count (optional)
 #### Buildpacks
 - heroku/python
 - https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest
-#### Running
+### Running
+#### On the local machine
 - Python 3.9 is required. Install the dependencies with
 ```bash
 pip install -r requirements.txt
@@ -29,7 +30,12 @@ pip install -r requirements.txt
 - Note that since [uvloop](https://github.com/MagicStack/uvloop) does not support Windows, you will have to delete or comment out the line `uvloop==0.16.0` in the `requirements.txt` before running the above command on this platform.
 - Navigate to the git directory and run
 ```bash
-python ./bot/main.py
+python bot/main.py
+```
+#### In a Docker container
+- Use [Compose](https://docs.docker.com/compose) to run the container, make sure you have set the required environment variables.
+```bash
+docker-compose up
 ```
 # Report errors
 If you find an error, or want to request a feature, [open a GitHub issue](https://github.com/Serious-senpai/haruka-rewrite/issues/new) or send me via DM: `Serious-senpai#6929`
