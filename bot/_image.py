@@ -381,11 +381,11 @@ class ImageClient(Generic[IT]):
         _ready: asyncio.Event
         bot: haruka.Haruka
         session: aiohttp.ClientSession
-        sources: List[Type[IT]]
+        sources: Tuple[Type[IT]]
         sfw: Dict[str, List[IT]]
         nsfw: Dict[str, List[IT]]
 
-    def __init__(self, bot: haruka.Haruka, *sources) -> None:
+    def __init__(self, bot: haruka.Haruka, *sources: Tuple[Type[IT]]) -> None:
         self._ready = asyncio.Event()
         self.bot = bot
         self.session = bot.session
