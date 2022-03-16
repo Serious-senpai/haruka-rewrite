@@ -1,4 +1,6 @@
-﻿from core import bot
+from __future__ import annotations
+
+from core import bot
 from events import *
 from commands import *
 import asyncio
