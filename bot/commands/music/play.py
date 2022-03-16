@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 
 from discord.ext import commands
@@ -35,4 +36,4 @@ async def _play_cmd(ctx: Context):
         return await ctx.send("Cannot connect to voice channel.")
 
     await ctx.send(f"Connected to <#{channel.id}>")
-    bot.loop.create_task(voice_client.play(target=ctx))
+    asyncio.create_task(voice_client.play(target=ctx))

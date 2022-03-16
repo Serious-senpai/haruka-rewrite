@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 
 import discord
@@ -40,4 +41,4 @@ async def _play_slash(interaction: Interaction):
             return await interaction.followup.send("Cannot connect to voice channel.")
 
         await interaction.followup.send(f"Connected to <#{vchannel.id}>")
-        bot.loop.create_task(voice_client.play(target=interaction.channel))
+        asyncio.create_task(voice_client.play(target=interaction.channel))

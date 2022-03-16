@@ -110,7 +110,7 @@ class Haruka(commands.Bot):
         print(f"Started serving on port {port}")
 
         # Start the bot
-        self.loop.create_task(self.startup(), name="Startup task")
+        asyncio.create_task(self.startup(), name="Startup task")
         self.uptime = discord.utils.utcnow()
         await super().start(env.TOKEN)
 
@@ -155,18 +155,18 @@ class Haruka(commands.Bot):
 
     async def startup(self) -> None:
         await self.wait_until_ready()
-        self.loop.create_task(self._change_activity_after_booting(), name="Change activity")
+        asyncio.create_task(self._change_activity_after_booting(), name="Change activity")
         await self.__do_startup()
 
     async def __do_startup(self) -> None:
         import tests
 
         # Start tests
-        test_running_task = self.loop.create_task(tests.run_all_tests(), name="Startup tests")
+        test_running_task = asyncio.create_task(tests.run_all_tests(), name="Startup tests")
 
         # Fetch anime images
         self.asset_client = asset.AssetClient(self)
-        image_fetching_task = self.loop.create_task(self.asset_client.fetch_anime_images(), name="Startup image fetching")
+        image_fetching_task = asyncio.create_task(self.asset_client.fetch_anime_images(), name="Startup image fetching")
 
         # Get bot owner
         app_info = await self.application_info()
@@ -243,7 +243,7 @@ class Haruka(commands.Bot):
     def kill(self, *args) -> None:
         print("Received SIGTERM signal. Terminating bot...")
         self.log("Received SIGTERM signal. Terminating bot...")
-        self.loop.create_task(self.close())
+        asyncio.create_task(self.close())
 
     async def close(self) -> None:
         await self.runner.cleanup()

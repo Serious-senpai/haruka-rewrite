@@ -1,3 +1,5 @@
+import asyncio
+
 from _types import Interaction
 from audio import MusicClient
 from core import bot
@@ -30,7 +32,7 @@ async def _skip_slash(interaction: Interaction):
         )
         voice_client._shuffle = shuffle
 
-        bot.loop.create_task(voice_client.play(target=target))
+        asyncio.create_task(voice_client.play(target=target))
 
     else:
         await interaction.followup.send("No currently connected player.")

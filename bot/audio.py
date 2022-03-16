@@ -853,7 +853,7 @@ class MusicClient(discord.VoiceClient):
             bot.log(f"WARNING: Voice client in {self.channel_id}/{self.guild_id} raised an exception (ignored in _set_event method)")
             bot.log(f"AudioPlayer instance: {self._player} (thread name {player_name})")
             bot.log("".join(traceback.format_exception(exc.__class__, exc, exc.__traceback__)))
-            bot.loop.create_task(bot.report("Exception while playing audio, reporting from `_set_event` method", send_state=False))
+            asyncio.create_task(bot.report("Exception while playing audio, reporting from `_set_event` method", send_state=False))
 
 
 class AudioReader(discord.VoiceClient):
