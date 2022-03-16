@@ -1,5 +1,3 @@
-import asyncio
-
 from discord.ext import commands
 
 from _types import Context
@@ -33,7 +31,7 @@ async def _skip_cmd(ctx: Context):
         )
         voice_client._shuffle = shuffle
 
-        asyncio.create_task(voice_client.play(target=target))
+        bot.loop.create_task(voice_client.play(target=target))
 
     else:
         await ctx.send("No currently connected player.")

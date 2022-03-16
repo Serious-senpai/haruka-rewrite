@@ -1,4 +1,3 @@
-import asyncio
 import contextlib
 import textwrap
 import traceback
@@ -45,7 +44,7 @@ async def _eval_cmd(ctx: Context, *, code: str):
     with open("./bot/assets/server/eval.txt", "w", encoding="utf-8") as writer:
         with contextlib.redirect_stdout(writer):
             with utils.TimingContextManager() as measure:
-                bot._eval_task = asyncio.create_task(env["func"]())
+                bot._eval_task = bot.loop.create_task(env["func"]())
 
                 try:
                     await bot._eval_task
