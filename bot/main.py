@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from core import bot
-from events import *
-from commands import *
 import asyncio
 import os
 import sys
@@ -10,14 +7,18 @@ import tracemalloc
 from typing import TYPE_CHECKING
 
 
+import env
+from core import bot
+from events import *
+from commands import *
+if TYPE_CHECKING:
+    import haruka
+
+
 tracemalloc.start()  # noqa
 print(f"Running on {sys.platform}\nPython {sys.version}")
 with open("./bot/assets/server/log.txt", "w") as f:
     f.write(f"HARUKA BOT\nRunning on Python {sys.version}\n" + "-" * 50 + "\n")
-
-
-if TYPE_CHECKING:
-    import haruka
 
 
 # YouTube tracks information
@@ -41,7 +42,7 @@ if not os.path.isdir("./bot/assets/server/images"):
 
 async def runner(bot: haruka.Haruka) -> None:
     try:
-        await bot.start()
+        await bot.start(env.TOKEN)
     except KeyboardInterrupt:
         return
 

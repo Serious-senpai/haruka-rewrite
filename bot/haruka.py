@@ -64,7 +64,6 @@ class Haruka(commands.Bot):
         signal.signal(signal.SIGTERM, self.kill)
 
         super().__init__(*args, **kwargs)
-        self.loop = asyncio.get_event_loop()
         self.logfile = open("./bot/assets/server/log.txt", "a", encoding="utf-8")
         self.owner = None
         self._clear_counter()
@@ -75,9 +74,7 @@ class Haruka(commands.Bot):
         self._command_count = {}
         self._slash_command_count = {}
 
-    async def start(self) -> None:
-        asyncio.current_task().set_name("MainTask")
-
+    async def setup_hook(self) -> None:
         # Prepare database connection
         await self.prepare_database()
 
@@ -110,10 +107,8 @@ class Haruka(commands.Bot):
         await site.start()
         print(f"Started serving on port {port}")
 
-        # Start the bot
-        self.loop.create_task(self.startup(), name="Startup task")
         self.uptime = discord.utils.utcnow()
-        await super().start(env.TOKEN)
+        self.loop.create_task(self.startup())
 
     async def prepare_database(self) -> None:
         self.conn = await asyncpg.create_pool(
