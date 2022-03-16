@@ -12,11 +12,8 @@ if TYPE_CHECKING:
 @routes.get("/collection")
 async def _collection_route(request: WebRequest) -> web.Response:
     client = request.app.bot.asset_client
-    image_url = client.get_anime_image()
-    if image_url is None:
+    path = client.get_anime_image_path()
+    if path is None:
         raise web.HTTPServiceUnavailable
 
-    response = {
-        "url": image_url,
-    }
-    return web.json_response(response)
+    raise web.HTTPFound(path)

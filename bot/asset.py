@@ -28,6 +28,7 @@ class AssetClient:
     }
 
     if TYPE_CHECKING:
+        _ready: asyncio.Event
         bot: haruka.Haruka
         anime_images_fetch: bool
         files: List[str]
@@ -37,6 +38,7 @@ class AssetClient:
         self.bot = bot
         self.session = bot.session
 
+        self._ready = asyncio.Event()
         self.anime_images_fetch = False
 
     def log(self, content: str) -> None:
@@ -91,6 +93,7 @@ class AssetClient:
 
     async def _finalize(self) -> None:
         self.files = await asyncio.to_thread(self._filter_image_files)
+        self._ready.set()
         self.anime_images_fetch = True
 
     def _filter_image_files(self) -> List[str]:
@@ -121,11 +124,19 @@ class AssetClient:
 
         self.log(f"Extracted \"{zip_location}\" to \"{destination}\" in {utils.format(measure.result)}")
 
-    def get_anime_image(self) -> Optional[str]:
+    async def wait_until_ready(self) -> None:
+        await self._ready.wait()
+
+    def get_anime_image_path(self) -> Optional[str]:
         if not self.anime_images_fetch:
             return
 
         if self.files:
             filename = random.choice(self.files)
-            url = URL(HOST + "/assets/images/" + filename)
+            return "/assets/images/" + filename
+        
+    def get_anime_image(self) -> Optional[str]:
+        path = self.get_anime_image_path()
+        if path:
+            url = URL(HOST + path)
             return str(url)
