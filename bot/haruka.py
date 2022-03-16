@@ -291,7 +291,7 @@ class Haruka(commands.Bot):
         embed.set_thumbnail(url=self.user.avatar.url)
         embed.set_author(
             name="Internal status",
-            icon_url = self.user.avatar.url
+            icon_url=self.user.avatar.url,
         )
 
         embed.add_field(

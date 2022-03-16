@@ -1,17 +1,21 @@
-﻿import asyncio
+﻿from core import bot
+from events import *
+from commands import *
+import asyncio
 import os
 import sys
 import tracemalloc
+from typing import TYPE_CHECKING
 
 
 tracemalloc.start()  # noqa
+print(f"Running on {sys.platform}\nPython {sys.version}")
 with open("./bot/assets/server/log.txt", "w") as f:
     f.write(f"HARUKA BOT\nRunning on Python {sys.version}\n" + "-" * 50 + "\n")
 
 
-from commands import *
-from events import *
-from core import bot
+if TYPE_CHECKING:
+    import haruka
 
 
 # YouTube tracks information
@@ -33,9 +37,11 @@ if not os.path.isdir("./bot/assets/server/images"):
     os.mkdir("./bot/assets/server/images")
 
 
-print(f"Running on {sys.platform}\nPython {sys.version}")
-bot.loop = asyncio.get_event_loop()
-try:
-    bot.loop.run_until_complete(bot.start())
-except KeyboardInterrupt:
-    bot.loop.run_until_complete(asyncio.shield(bot.close()))
+async def runner(bot: haruka.Haruka) -> None:
+    try:
+        await bot.start()
+    except KeyboardInterrupt:
+        return
+
+
+asyncio.run(runner(bot))
