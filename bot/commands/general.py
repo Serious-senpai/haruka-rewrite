@@ -104,7 +104,10 @@ async def __repeat_message(ctx: Context, content: str) -> None:
     usage="say <anything>"
 )
 @commands.cooldown(1, 1, commands.BucketType.user)
-async def _say_cmd(ctx: Context, *, content: str):
+async def _say_cmd(ctx: Context, *, content: str = ""):
+    if not content and not ctx.message.attachments:
+        raise commands.UserInputError
+
     await __repeat_message(ctx, content)
 
 
@@ -114,7 +117,10 @@ async def _say_cmd(ctx: Context, *, content: str):
     usage="speak <something>"
 )
 @commands.cooldown(1, 1, commands.BucketType.user)
-async def _speak_cmd(ctx: Context, *, content: str):
+async def _speak_cmd(ctx: Context, *, content: str = ""):
+    if not content and not ctx.message.attachments:
+        raise commands.UserInputError
+
     with contextlib.suppress(discord.HTTPException):
         await ctx.message.delete(delay=0.1)
 
