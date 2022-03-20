@@ -54,10 +54,10 @@ class AssetClient:
         zip_location = unzip_location + "/collection.tar"
 
         if os.listdir(unzip_location):
-            return await self._finalize()
+            return self._finalize()
 
         with utils.TimingContextManager() as measure:
-            async with self.session.get("https://www.mediafire.com/file/uw42hxy45psweoa/Collection.tar/file") as response:
+            async with self.session.get("https://www.mediafire.com/file/dve27a7sqi5sj9p/Collection.tar/file") as response:
                 if response.status == 200:
                     html = await response.text(encoding="utf-8")
                     soup = BeautifulSoup(html, "html.parser")
@@ -89,23 +89,12 @@ class AssetClient:
         self.log(f"Downloaded TAR file in {utils.format(measure.result)}" + " (file size {:.2f} MB)".format(size / 2 ** 20))
         await self.extract_tar_file(zip_location, unzip_location)
         os.remove(zip_location)
-        await self._finalize()
+        self._finalize()
 
-    async def _finalize(self) -> None:
-        self.files = await asyncio.to_thread(self._filter_image_files)
+    def _finalize(self) -> None:
+        self.files = os.listdir("./bot/assets/server/images")
         self._ready.set()
         self.anime_images_fetch = True
-
-    def _filter_image_files(self) -> List[str]:
-        _files = set(os.listdir("./bot/assets/server/images"))
-        _files -= self.excludes
-        _to_remove = set()
-        for file in _files:
-            if imghdr.what(f"./bot/assets/server/images/{file}") is None:
-                _to_remove.add(file)
-
-        _files -= _to_remove
-        return list(_files)
 
     async def extract_tar_file(self, zip_location: str, destination: str) -> None:
         args = (

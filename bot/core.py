@@ -103,6 +103,7 @@ bot = haruka.Haruka(
     intents=intents,
     case_insensitive=True,
     strip_after_prefix=True,
+    max_messages=5000,
     enable_debug_events=DEBUG_MODE,
 )
 
