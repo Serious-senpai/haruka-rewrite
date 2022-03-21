@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import imghdr
 import os
 import random
 import traceback
-from typing import ClassVar, List, Optional, Set, TYPE_CHECKING
+from typing import ClassVar, List, Optional, TYPE_CHECKING
 
 import aiohttp
 from yarl import URL
@@ -22,11 +21,7 @@ class AssetClient:
     local machine.
     """
 
-    excludes: ClassVar[Set[str]] = {
-        "20210114_122632.jpg",
-        "FB_IMG_1584877040826.jpg",
-    }
-
+    directory: ClassVar[str] = "./bot/assets/server/images"
     if TYPE_CHECKING:
         _ready: asyncio.Event
         bot: haruka.Haruka
@@ -50,11 +45,10 @@ class AssetClient:
         Asynchronously fetch the image TAR file from Mediafire
         and save it to the local machine.
         """
-        unzip_location = "./bot/assets/server/images"
-        zip_location = unzip_location + "/collection.tar"
+        zip_location = self.directory + "/collection.tar"
 
-        if os.listdir(unzip_location):
-            return self._finalize()
+        if os.listdir(self.directory):
+            return await self.__finalize()
 
         with utils.TimingContextManager() as measure:
             async with self.session.get("https://www.mediafire.com/file/k8rcfrie1mgou9u/collection.tar/file") as response:
@@ -87,12 +81,19 @@ class AssetClient:
 
         size = os.path.getsize(zip_location)
         self.log(f"Downloaded TAR file in {utils.format(measure.result)}" + " (file size {:.2f} MB)".format(size / 2 ** 20))
-        await self.extract_tar_file(zip_location, unzip_location)
+        await self.extract_tar_file(zip_location, self.directory)
         os.remove(zip_location)
-        self._finalize()
+        await self.__finalize()
 
-    def _finalize(self) -> None:
-        self.files = os.listdir("./bot/assets/server/images")
+    async def __finalize(self) -> None:
+        for filename in os.listdir(self.directory):
+            path = os.path.join(self.directory, filename)
+            if filename.endswith(".jfif"):
+                os.rename(path, path.removesuffix(".jfif") + ".jpeg")
+
+            await asyncio.sleep(0)
+
+        self.files = os.listdir(self.directory)
         self._ready.set()
         self.anime_images_fetch = True
 
