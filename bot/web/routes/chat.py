@@ -61,7 +61,7 @@ async def _chat_history_endpoint(request: WebRequest) -> web.Response:
 
 
 @routes.get("/chat/messages")
-async def _chat_messages_endpoint(request: WebRequest) -> web.Response:
+async def _chat_messages_get_endpoint(request: WebRequest) -> web.Response:
     try:
         message_id = request.query.get("id")
         message_id = int(message_id)
@@ -76,8 +76,28 @@ async def _chat_messages_endpoint(request: WebRequest) -> web.Response:
     return web.json_response(construct_message_json(row))
 
 
-@routes.post("/chat/message")
-async def _chat_message_endpoint(request: WebRequest) -> web.Response:
+@routes.delete("/chat/messages")
+async def _chat_messages_delete_endpoint(request: WebRequest) -> web.Response:
+    try:
+        message_id = request.query.get("id")
+        message_id = int(message_id)
+    except ValueError:
+        raise web.HTTPBadRequest
+
+    await http_authentication(request)
+    username = request.headers["username"]
+    row = await request.app.pool.fetchrow("SELECT * FROM messages WHERE id = $1", message_id)
+    if row is None:
+        raise web.HTTPNotFound
+
+    if not row["author"] == username:
+        raise web.HTTPForbidden
+
+    return web.Response(status=203)
+
+
+@routes.post("/chat/messages")
+async def _chat_messages_post_endpoint(request: WebRequest) -> web.Response:
     await http_authentication(request)
     try:
         data = await request.json()
