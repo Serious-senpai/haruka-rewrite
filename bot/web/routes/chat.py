@@ -93,6 +93,10 @@ async def _chat_messages_delete_endpoint(request: WebRequest) -> web.Response:
     if not row["author"] == username:
         raise web.HTTPForbidden
 
+    await request.app.pool.execute("DELETE FROM messages WHERE id = $1", message_id)
+    for ws in authorized_websockets:
+        await ws.send_json(action_json("MESSAGE_DELETE", id=message_id))
+
     return web.Response(status=203)
 
 
