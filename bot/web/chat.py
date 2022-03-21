@@ -132,4 +132,7 @@ class UserSession:
             self.authorize(username)
             return await self.websocket.send_json(action_json("LOGIN_SUCCESS"))
 
+        if action == "HEARTBEAT":
+            return
+
         return await self.websocket.send_json(error_json(f"Unrecognized action {action}"))
