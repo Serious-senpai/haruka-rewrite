@@ -84,8 +84,7 @@ async def _chat_messages_delete_endpoint(request: WebRequest) -> web.Response:
     except ValueError:
         raise web.HTTPBadRequest
 
-    await http_authentication(request)
-    username = request.headers["username"]
+    username = await http_authentication(request)
     row = await request.app.pool.fetchrow("SELECT * FROM messages WHERE id = $1", message_id)
     if row is None:
         raise web.HTTPNotFound
@@ -102,10 +101,9 @@ async def _chat_messages_delete_endpoint(request: WebRequest) -> web.Response:
 
 @routes.post("/chat/messages")
 async def _chat_messages_post_endpoint(request: WebRequest) -> web.Response:
-    await http_authentication(request)
+    author = await http_authentication(request)
     try:
         data = await request.json()
-        author = request.headers["username"]
         content = data["content"]
     except BaseException:
         raise web.HTTPBadRequest
