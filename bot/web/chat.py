@@ -27,15 +27,19 @@ def json_missing_field(field: str) -> Dict[str, str]:
     return error_json(f"Missing required field \"{field}\" in JSON data")
 
 
-async def http_authentication(request: WebRequest) -> None:
+async def http_authentication(request: WebRequest) -> str:
     username = request.headers.get("username")
     password = request.headers.get("password")
     if not username or not password:
         raise web.HTTPForbidden
 
+    username = username.strip()
+    password = password.strip()
     row = await request.app.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1 AND password = $2;", username, password)
     if row is None:
         raise web.HTTPForbidden
+
+    return username
 
 
 class UserSession:
@@ -100,6 +104,9 @@ class UserSession:
             if not isinstance(username, str) or not isinstance(password, str):
                 return await self.websocket.send_json(error_json("Invalid data type"))
 
+            username = username.strip()
+            password = password.strip()
+
             if len(username) < 3:
                 return await self.websocket.send_json(error_json("Username must have at least 3 characters!"))
 
@@ -124,6 +131,9 @@ class UserSession:
 
             if not isinstance(username, str) or not isinstance(password, str):
                 return await self.websocket.send_json(error_json("Invalid credentials"))
+
+            username = username.strip()
+            password = password.strip()
 
             match = await self.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1 AND password = $2;", username, password)
             if match is None:
