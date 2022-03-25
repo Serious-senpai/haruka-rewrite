@@ -7,7 +7,7 @@ from _types import Interaction
 from core import bot
 
 
-class _RandomGeneratorSlash(app_commands.Group):
+class _RandomSlashCommand(app_commands.Group):
     @app_commands.command(name="user-agent", description="Generate a random User-Agent header")
     async def _user_agent_slash(self, interaction: Interaction):
         await interaction.response.send_message("```\n" + utils.random_user_agent() + "\n```")
@@ -17,4 +17,4 @@ class _RandomGeneratorSlash(app_commands.Group):
         await interaction.response.send_message(random.random())
 
 
-bot.tree.add_command(_RandomGeneratorSlash(name="random", description="Random generator"))
+bot.tree.add_command(_RandomSlashCommand(name="random", description="Random generator"))
