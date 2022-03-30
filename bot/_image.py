@@ -158,7 +158,6 @@ class WaifuIm(ImageSource):
 
     __slots__ = ("session", "client")
     endpoints_url: ClassVar[str] = "https://api.waifu.im/endpoints"
-    sleeping_duration: ClassVar[float] = 0.2
 
     async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
         sfw = set()
