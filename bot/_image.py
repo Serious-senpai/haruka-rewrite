@@ -11,9 +11,11 @@ from typing import (
     List,
     Literal,
     Optional,
+    Set,
     Tuple,
     Type,
     TypeVar,
+    Union,
     TYPE_CHECKING,
 )
 
@@ -28,6 +30,9 @@ IT = TypeVar("IT", bound="ImageSource")
 
 
 class CategoryNotFound(Exception):
+
+    __slots__ = ("category",)
+
     def __init__(self, category: str) -> None:
         self.category = category
 
@@ -56,7 +61,7 @@ class ImageSource:
         self.session = session
         self.client = client
 
-    async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
+    async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
         """This function is a coroutine
 
         Get all endpoints that this image source can provide.
@@ -65,7 +70,7 @@ class ImageSource:
 
         Returns
         -----
-        Tuple[List[``str``], List[``str``]]
+        Tuple[Set[``str``], Set[``str``]]
             A 2-tuple containing the sfw and nsfw categories that the
             image source can provide. These categories will be passed
             to ``get`` to get the image URL.
@@ -94,7 +99,7 @@ class ImageSource:
         """
         raise NotImplementedError
 
-    def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
+    def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Union[str, yarl.URL]:
         """Get the API URL for the specified category and mode.
 
         Subclasses must implement this.
@@ -109,34 +114,31 @@ class ImageSource:
 
         Returns
         -----
-        ``str``
+        Union[``str``, ``yarl.URL``]
             The API URL
         """
         raise NotImplementedError
 
-    @property
-    def bot(self) -> haruka.Haruka:
-        return self.client.bot
-
 
 class WaifuPics(ImageSource):
 
-    __slots__ = (
-        "session",
-        "client",
-    )
+    __slots__ = ("session", "client")
     endpoints_url: ClassVar[str] = "https://api.waifu.pics/endpoints"
 
-    async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
-        data = {
-            "sfw": [],
-            "nsfw": [],
-        }
-        async with self.session.get(self.endpoints_url) as response:
-            if response.status == 200:
-                data = await response.json(encoding="utf-8")
+    async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
+        sfw = set()
+        nsfw = set()
 
-        return data["sfw"], data["nsfw"]
+        try:
+            async with self.session.get(self.endpoints_url) as response:
+                if response.status == 200:
+                    data = await response.json(encoding="utf-8")
+                    sfw |= set(data["sfw"])
+                    nsfw |= set(data["nsfw"])
+        except aiohttp.ClientError:
+            pass
+
+        return sfw, nsfw
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         url = self.get_url(category, mode=mode)
@@ -154,42 +156,25 @@ class WaifuPics(ImageSource):
 
 class WaifuIm(ImageSource):
 
-    __slots__ = (
-        "session",
-        "client",
-    )
+    __slots__ = ("session", "client")
     endpoints_url: ClassVar[str] = "https://api.waifu.im/endpoints"
     sleeping_duration: ClassVar[float] = 0.2
 
-    async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
-        async with self.session.get(self.endpoints_url) as response:
-            if response.status == 200:
-                data = await response.json(encoding="utf-8")
+    async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
+        sfw = set()
+        nsfw = set()
 
-                sfw = set(data["versatile"])
-                nsfw = sfw | set(data["nsfw"])
+        try:
+            async with self.session.get(self.endpoints_url) as response:
+                if response.status == 200:
+                    data = await response.json(encoding="utf-8")
+                    sfw = set(data["versatile"])
+                    nsfw = set(data["nsfw"]) | sfw
+        except aiohttp.ClientError:
+            pass
 
-                sfw_remove = set()
-                nsfw_remove = set()
+        return sfw, nsfw
 
-                for sfw_category in sfw:
-                    url_test = await self.get(sfw_category, mode="sfw")
-                    if url_test is None:
-                        sfw_remove.add(sfw_category)
-                    await asyncio.sleep(self.sleeping_duration)
-
-                for nsfw_category in nsfw:
-                    url_test = await self.get(nsfw_category, mode="nsfw")
-                    if url_test is None:
-                        nsfw_remove.add(nsfw_category)
-                    await asyncio.sleep(self.sleeping_duration)
-
-                sfw -= sfw_remove
-                nsfw -= nsfw_remove
-
-                return list(sfw), list(nsfw)
-
-        return [], []
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         url = self.get_url(category, mode=mode)
@@ -198,8 +183,8 @@ class WaifuIm(ImageSource):
                 json = await response.json(encoding="utf-8")
                 return json["images"][0]["url"]
 
-    def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
-        url = yarl.URL.build(
+    def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> yarl.URL:
+        return yarl.URL.build(
             scheme="https",
             host="api.waifu.im",
             path="/random",
@@ -208,7 +193,6 @@ class WaifuIm(ImageSource):
                 "is_nsfw": str(mode == "nsfw"),
             },
         )
-        return str(url)
 
     def __str__(self) -> str:
         return "waifu.im"
@@ -216,10 +200,7 @@ class WaifuIm(ImageSource):
 
 class NekosLife(ImageSource):
 
-    __slots__ = (
-        "session",
-        "client",
-    )
+    __slots__ = ("session", "client")
     endpoints_url: ClassVar[str] = "https://nekos.life/api/v2/endpoints"
     sfw_converter: ClassVar[Dict[str, str]] = {
         "neko gif": "ngif",
@@ -245,42 +226,35 @@ class NekosLife(ImageSource):
         "pussy lick gif": "kuni",
     }
 
-    async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
-        data = {
-            "sfw": ["neko", "neko gif", "kitsune", "holo", "pat", "poke", "hug", "cuddle", "kiss", "feed", "tickle", "smug", "baka", "slap"],
-            "nsfw": ["lewd", "ero neko", "neko gif", "lewd kitsune", "ero kitsune", "lewd holo", "ero holo", "ero", "feet", "ero feet", "gasm", "solo", "tits", "yuri", "ero yuri", "hentai", "cum", "blowjob", "femdom", "trap", "pussy", "futanari", "cum gif", "solo gif", "spank", "les", "bj", "pussy wank gif", "pussy gif", "random", "feet gif", "pussy lick gif", "classic", "boobs", "anal"],
-        }
+    async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
+        sfw = set(["neko", "neko gif", "kitsune", "holo", "pat", "poke", "hug", "cuddle", "kiss", "feed", "tickle", "smug", "baka", "slap"])
+        nsfw = set(["lewd", "ero neko", "neko gif", "lewd kitsune", "ero kitsune", "lewd holo", "ero holo", "ero", "feet", "ero feet", "gasm", "solo", "tits", "yuri", "ero yuri", "hentai", "cum", "blowjob", "femdom", "trap", "pussy", "futanari", "cum gif", "solo gif", "spank", "les", "bj", "pussy wank gif", "pussy gif", "random", "feet gif", "pussy lick gif", "classic", "boobs", "anal"])
 
-        async with self.session.get(self.endpoints_url) as response:
-            if response.ok:
-                js = await response.json(encoding="utf-8")
-                for endpoint in js:
-                    if "/api/v2/img/" in endpoint:
-                        endpoints = [match.group(1) for match in re.finditer(r"'(\w+)'", endpoint)]
-                        remove = {
-                            "sfw": [],
-                            "nsfw": [],
-                        }
+        try:
+            async with self.session.get(self.endpoints_url) as response:
+                if response.ok:
+                    data = await response.text(encoding="utf-8")
+                    matches = re.finditer(r"'(.+?)'", data)
+                    categories = set(match.group(1) for match in matches)
 
-                        for name in data["sfw"]:
-                            value = self.sfw_converter.get(name, name)
-                            if value not in endpoints:
-                                remove["sfw"].append(value)
-                                self.bot.log(f"Warning in NekosLife: no SFW endpoint called \"{value}\" (corresponding name \"{name}\")")
+                    to_remove = set()
+                    for sfw_category in sfw:
+                        if self.sfw_converter.get(sfw_category, sfw_category) not in categories:
+                            to_remove.add(sfw_category)
 
-                        for name in data["nsfw"]:
-                            value = self.nsfw_converter.get(name, name)
-                            if value not in endpoints:
-                                remove["nsfw"].append(value)
-                                self.bot.log(f"Warning in NekosLife: no NSFW endpoint called \"{value}\" (corresponding name \"{name}\")")
+                    sfw -= to_remove
 
-                        for mode, categories in remove.items():
-                            for category in categories:
-                                data[mode].remove(category)
+                    to_remove = set()
+                    for nsfw_category in nsfw:
+                        if self.nsfw_converter.get(nsfw_category, nsfw_category) not in categories:
+                            to_remove.add(nsfw_category)
 
-                        return data["sfw"], data["nsfw"]
+                    nsfw -= to_remove
 
-            return [], []
+        except aiohttp.ClientError:
+            return set(), set()
+        else:
+            return sfw, nsfw
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         url = self.get_url(category, mode=mode)
@@ -303,36 +277,34 @@ class NekosLife(ImageSource):
 
 class Asuna(ImageSource):
 
-    __slots__ = (
-        "session",
-        "client",
-    )
+    __slots__ = ("session", "client")
     endpoints_url: ClassVar[str] = "https://asuna.ga/api"
     converter: ClassVar[Dict[str, str]] = {
         "fox": "wholesome_foxes",
     }
 
-    async def _get_all_endpoints(self) -> Tuple[List[str], List[str]]:
-        sfw_endpoints = ["hug", "kiss", "neko", "pat", "slap", "fox"]
+    async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
+        sfw = set(["hug", "kiss", "neko", "pat", "slap", "fox"])
+        nsfw = set()
 
-        async with self.session.get(self.endpoints_url) as response:
-            if response.ok:
-                json = await response.json(encoding="utf-8")
-                endpoints = json["allEndpoints"]
-                remove = []
+        try:
+            async with self.session.get(self.endpoints_url) as response:
+                if response.ok:
+                    json = await response.json(encoding="utf-8")
+                    categories = json["allEndpoints"]
 
-                for name in sfw_endpoints:
-                    value = self.converter.get(name, name)
-                    if value not in endpoints:
-                        remove.append(value)
-                        self.bot.log(f"Warning in Asuna: no SFW endpoint called \"{value}\" (corresponding name \"{name}\")")
+                    to_remove = set()
+                    for name in sfw:
+                        value = self.converter.get(name, name)
+                        if value not in categories:
+                            to_remove.add(value)
 
-                for r in remove:
-                    sfw_endpoints.remove(r)
+                    sfw -= to_remove
 
-                return sfw_endpoints, []
-
-            return [], []
+        except aiohttp.ClientError:
+            return set(), set()
+        else:
+            return sfw, nsfw
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         url = self.get_url(category, mode=mode)
@@ -355,8 +327,6 @@ class ImageClient(Generic[IT]):
 
     Attributes
     -----
-    bot: ``haruka.Haruka``
-        The bot associated with this image client.
     session: ``aiohttp.ClientSession``
         The ``aiohttp.ClientSession`` used to interact with
         the ``ImageSource`` that this client contains.
@@ -369,9 +339,10 @@ class ImageClient(Generic[IT]):
     sources: List[Type[``ImageSource``]]
         All the ``ImageSource`` that this client contains.
     """
+
     __slots__ = (
         "_ready",
-        "bot",
+        "log",
         "sfw",
         "nsfw",
         "session",
@@ -379,7 +350,6 @@ class ImageClient(Generic[IT]):
     )
     if TYPE_CHECKING:
         _ready: asyncio.Event
-        bot: haruka.Haruka
         session: aiohttp.ClientSession
         sources: Tuple[Type[IT]]
         sfw: Dict[str, List[IT]]
@@ -387,7 +357,7 @@ class ImageClient(Generic[IT]):
 
     def __init__(self, bot: haruka.Haruka, *sources: Tuple[Type[IT]]) -> None:
         self._ready = asyncio.Event()
-        self.bot = bot
+        self.log = bot.log
         self.session = bot.session
         self.sources = sources
         asyncio.create_task(self._load())
@@ -404,7 +374,7 @@ class ImageClient(Generic[IT]):
         with contextlib.suppress(BaseException):
             await asyncio.gather(*[self._register(source(self.session, self)) for source in self.sources])
 
-        self.bot.log(f"Loaded {len(self.sources)} ImageSource objects.")
+        self.log(f"Loaded {len(self.sources)} ImageSource objects.")
         self._ready.set()
 
     async def _register(self, source: IT) -> None:
@@ -435,7 +405,7 @@ class ImageClient(Generic[IT]):
 
             self.nsfw[endpoint].append(source)
 
-        self.bot.log(f"Loaded {len(sfw)} SFW endpoints and {len(nsfw)} NSFW endpoints from {source.__class__.__name__}")
+        self.log(f"Loaded {len(sfw)} SFW endpoints and {len(nsfw)} NSFW endpoints from {source.__class__.__name__}")
 
     async def wait_until_ready(self) -> None:
         """This function is a coroutine
