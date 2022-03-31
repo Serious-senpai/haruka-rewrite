@@ -174,7 +174,6 @@ class WaifuIm(ImageSource):
 
         return sfw, nsfw
 
-
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         url = self.get_url(category, mode=mode)
         async with self.session.get(url) as response:

@@ -124,7 +124,7 @@ class AssetClient:
         if self.files:
             filename = random.choice(self.files)
             return "/assets/images/" + filename
-        
+
     def get_anime_image(self) -> Optional[str]:
         path = self.get_anime_image_path()
         if path:
