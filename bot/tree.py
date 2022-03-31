@@ -29,7 +29,7 @@ class SlashCommandTree(app_commands.CommandTree):
 
         row = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{interaction.user.id}';")
         if row is not None:
-            await interaction.response.send_message("You are currently in the blacklist!")
+            await interaction.response.send_message("You are currently in the blacklist!", ephemeral=True)
             return False
 
         return True
