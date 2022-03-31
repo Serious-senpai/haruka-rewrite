@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands
 
 import haruka
+import tree
 from _types import Context
 
 
@@ -105,6 +106,7 @@ bot = haruka.Haruka(
     strip_after_prefix=True,
     max_messages=5000,
     enable_debug_events=DEBUG_MODE,
+    tree_cls=tree.SlashCommandTree
 )
 
 

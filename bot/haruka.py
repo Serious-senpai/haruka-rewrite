@@ -342,4 +342,4 @@ class Haruka(commands.Bot):
 
         self.log(f"Exception in {event_method}:")
         self.log(traceback.format_exc())
-        await self.report("An error has just occurred and was handled by `on_error`", send_state=False)
+        await self.report("An error has just occurred and was handled by `Haruka.on_error`", send_state=False)
