@@ -208,7 +208,7 @@ async def _remind_cmd(ctx: Context, hours: int, minutes: int, *, content: str):
         f"INSERT INTO remind VALUES ('{ctx.author.id}', $1, $2, $3, $4);",
         time, content, ctx.message.jump_url, now,
     )
-    bot.task.remind.restart()
+    bot.reminder.restart()
 
     embed = discord.Embed()
     embed.add_field(

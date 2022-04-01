@@ -29,16 +29,20 @@ if TYPE_CHECKING:
 
 class AudioClient:
 
-    __slots__ = ("bot", "pool", "session")
+    __slots__ = ("bot")
     if TYPE_CHECKING:
         bot: haruka.Haruka
-        pool: asyncpg.Pool
-        session: aiohttp.ClientSession
 
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot = bot
-        self.pool = bot.conn
-        self.session = bot.session
+
+    @property
+    def pool(self) -> asyncpg.Pool:
+        return self.bot.conn
+
+    @property
+    def session(self) -> aiohttp.ClientSession:
+        return self.bot.session
 
     def in_voice(self) -> Callable[[T], T]:
         """A text command check that returns ``True`` if the invoker is

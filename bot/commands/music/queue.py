@@ -13,7 +13,7 @@ SONGS_PER_PAGE = 8
     name="queue",
     description="View the music queue of a voice channel"
 )
-@audio.in_voice()
+@bot.audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _queue_cmd(ctx: Context):
     if not ctx.author.voice:

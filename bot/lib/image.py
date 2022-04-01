@@ -339,12 +339,10 @@ class ImageClient:
         "log",
         "sfw",
         "nsfw",
-        "session",
         "sources",
     )
     if TYPE_CHECKING:
         _ready: asyncio.Event
-        session: aiohttp.ClientSession
         sources: Tuple[Type[ImageSource]]
         sfw: Dict[str, List[ImageSource]]
         nsfw: Dict[str, List[ImageSource]]
@@ -352,8 +350,11 @@ class ImageClient:
     def __init__(self, bot: haruka.Haruka) -> None:
         self._ready = asyncio.Event()
         self.log = bot.log
-        self.session = bot.session
         self.sources = (WaifuPics, WaifuIm, NekosLife, Asuna)  # type: ignore
+
+    @property
+    def session(self) -> aiohttp.ClientSession:
+        return self.bot.session
 
     async def prepare(self) -> None:
         """This function is a coroutine
