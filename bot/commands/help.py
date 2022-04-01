@@ -94,7 +94,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
             embed.set_thumbnail(url=self.context.author.avatar.url if self.context.author.avatar else None)
             embed.set_footer(text=f"Current prefix: {pref} | Page {index + 1}/{len(embeds)}")
 
-        display = emoji_ui.Pagination(embeds)
+        display = emoji_ui.Pagination(bot, embeds)
         await display.send(self.context)
 
     async def send_command_help(self, command: commands.Command) -> None:
@@ -132,18 +132,19 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         await self.context.send(embed=embed)
 
     async def prepare_help_command(self, ctx: Context, command: Optional[str] = None) -> None:
-        await ctx.bot.image.wait_until_ready()
-        self.sfw_keys = list(ctx.bot.image.sfw.keys())
+        await bot.image.wait_until_ready()
+        self.sfw_keys = list(bot.image.sfw.keys())
         self.sfw_keys.sort()
 
-        self.nsfw_keys = list(ctx.bot.image.nsfw.keys())
+        self.nsfw_keys = list(bot.image.nsfw.keys())
         self.nsfw_keys.sort()
 
     async def command_not_found(self, string: str) -> str:
         if len(string) > 20:
             return "There is no such long command."
 
-        word = await utils.fuzzy_match(string, [k for k in bot.all_commands.keys() if k not in IGNORE])
+        command_names = [k for k in bot.all_commands.keys() if k not in IGNORE]
+        word = await utils.fuzzy_match(string, command_names)
         return f"No command called `{string}` was found. Did you mean `{word}`?"
 
 

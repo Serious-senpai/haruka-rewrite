@@ -108,7 +108,7 @@ class AudioClient:
         )
         return embed
 
-    async def fetch(self, track: InvidiousSource) -> str:
+    async def fetch(self, track: InvidiousSource) -> Optional[str]:
         """This function is a coroutine
 
         Download a video audio to the local machine and return its URL.
@@ -120,22 +120,19 @@ class AudioClient:
 
         Returns
         -----
-        ``str``
-            The URL to the audio, remember that we are hosting
-            on Heroku.
-
-        Raises
-        -----
-        ``AudioNotFound``
-            The downloading process failed somehow
+        Optional[``str``]
+            The URL to the audio file, exposed via the server side
         """
         try:
             await fetching_in_progress[track.id].wait()
-            return self.create_audio_url(track.id)
+            try:
+                return self.create_audio_url(track.id)
+            except AudioNotFound:
+                return
         except KeyError:
             fetching_in_progress[track.id] = asyncio.Event()
 
-        url = await track.ensure_source()
+        url = await track.ensure_source(client=self)
         if not url:
             return
 
@@ -155,7 +152,11 @@ class AudioClient:
         )
         await process.communicate()
         fetching_in_progress[track.id].set()
-        return self.create_audio_url(track.id)
+
+        try:
+            return self.create_audio_url(track.id)
+        except AudioNotFound:
+            return
 
     async def queue(self, channel_id: int) -> List[str]:
         """This function is a coroutine
@@ -245,4 +246,20 @@ class AudioClient:
         return await PartialInvidiousSource.search(query, max_results=max_results, client=self)
 
     async def build(self, cls: Type[SourceT], track_id: str) -> Optional[SourceT]:
+        """This function is a coroutine
+
+        Build a ``PartialInvidiousSource`` or a ``InvidiousSource`` from a track ID.
+
+        Parameters
+        -----
+        cls: Union[Type[``PartialInvidiousSource``], Type[``InvidiousSource``]]
+            The object class to obtain.
+        track_id: ``str``
+            The track ID.
+
+        Returns
+        -----
+        Optional[Union[``PartialInvidiousSource``, ``InvidiousSource``]]
+            The track with the given ID, or ``None`` if not found.
+        """
         return await cls.build(track_id, client=self)

@@ -3,14 +3,13 @@ from typing import Optional
 import discord
 from discord.ext import commands
 
-import emoji_ui
-import saucenao
 from _types import Context
 from core import bot
+from lib import emoji_ui, saucenao
 
 
 async def _send_single_sauce(target: discord.abc.Messageable, image_url: str) -> None:
-    results = await saucenao.SauceResult.get_sauce(image_url)
+    results = await saucenao.SauceResult.get_sauce(image_url, session=bot.session)
     if not results:
         return await target.send("Cannot find the image sauce!")
 
@@ -48,7 +47,7 @@ async def _sauce_cmd(ctx: Context, image_url: Optional[str] = None):
         return await _send_single_sauce(ctx.channel, ctx.message.attachments[0].url)
 
     for image_index, attachment in enumerate(ctx.message.attachments):
-        results = await saucenao.SauceResult.get_sauce(attachment.url)
+        results = await saucenao.SauceResult.get_sauce(attachment.url, session=bot.session)
         result_total = len(results)
         for result_index, result in enumerate(results):
             embed = result.create_embed()

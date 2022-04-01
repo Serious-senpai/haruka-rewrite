@@ -1,5 +1,6 @@
 import asyncio
 import traceback
+from typing import Dict
 
 import discord
 from discord.ext import commands
@@ -10,7 +11,7 @@ from lib import utils
 
 
 bot.owner_bypass = True
-COOLDOWN_NOTIFY = {}
+COOLDOWN_NOTIFY: Dict[int, Dict[str, bool]] = {}
 
 
 @bot.event

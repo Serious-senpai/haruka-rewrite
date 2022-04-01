@@ -324,7 +324,7 @@ class InvidiousSource(PartialInvidiousSource):
                     if response.ok:
                         return self.source
 
-        self.source = await self.get_source()
+        self.source = await self.get_source(client=client)
         return self.source
 
     async def get_source(self, *, client: AudioClient, ignore_error: bool = False) -> Optional[str]:

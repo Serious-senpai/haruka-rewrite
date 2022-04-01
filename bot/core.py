@@ -57,14 +57,14 @@ class Embed(discord.Embed):
         self.timestamp = discord.utils.utcnow()
         super().__init__(*args, **kwargs)
         if not self.colour:
-            self.colour = 0x2ECC71
+            self.colour = discord.Colour(0x2ECC71)
 
 
-discord.Embed = Embed
+discord.Embed = Embed  # type: ignore
 
 
 async def prefix(bot: haruka.Haruka, message: discord.Message) -> str:
-    if isinstance(message.channel, discord.TextChannel):
+    if message.guild:
         id = message.guild.id
         row = await bot.conn.fetchrow(f"SELECT * FROM prefix WHERE id = '{id}';")
 

@@ -1,10 +1,10 @@
 import discord
 from discord.ext import commands
+from discord.utils import escape_markdown as escape
 
-import audio
-import utils
 from _types import Context
 from core import bot
+from lib import audio, emoji_ui, emojis, utils
 
 
 @bot.command(
@@ -18,24 +18,35 @@ async def _youtube_cmd(ctx: Context, *, query: str):
     if len(query) < 3:
         return await ctx.send("Search query must have at least 3 characters")
 
-    async with ctx.typing():
-        source = await audio.embed_search(query, ctx.channel, ctx.author.id)
-        if not source:
-            return
+    results = await bot.audio.search(query)
+    if not results:
+        return await ctx.send("No matching result was found.")
 
-        embed = audio.create_audio_embed(source)
-        with utils.TimingContextManager() as measure:
-            url = await audio.fetch(source)
+    embed = discord.Embed()
+    embed.set_author(name=f"Search results for {query[:50]}", icon_url=bot.user.avatar.url)
+    for index, result in enumerate(results):
+        embed.add_field(
+            name=f"{emoji_ui.CHOICES[index]} {escape(result.title)}",
+            value=escape(result.channel),
+            inline=False,
+        )
 
-        if url is not None:
-            embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
-            button = discord.ui.Button(style=discord.ButtonStyle.link, url=url, label="Audio URL")
-            view = discord.ui.View()
-            view.add_item(button)
+    message = await ctx.send(embed=embed)
+    display = emoji_ui.SelectMenu(bot, message, len(results))
+    index = await display.listen(ctx.author.id)
 
-            await ctx.send(embed=embed, view=view)
+    if index is not None:
+        track = await bot.audio.build(audio.InvidiousSource, results[index].id)
+        if track is None:
+            return await ctx.send(f"{emojis.MIKUCRY} Cannot gather information about this video!")
 
-        else:
-            embed.set_footer(text="Cannot fetch this track")
-            embed.remove_field(-1)
-            await ctx.send(embed=embed)
+        async with ctx.typing():
+            with utils.TimingContextManager() as measure:
+                url = await bot.audio.fetch(track)
+
+        if not url:
+            return await ctx.send(f"{emojis.MIKUCRY} Cannot fetch audio for this video!")
+
+        embed = bot.audio.create_audio_embed(track)
+        embed.set_footer(text=f"Fetched audio in {utils.format(measure.result)}")
+        await ctx.send(embed=embed)

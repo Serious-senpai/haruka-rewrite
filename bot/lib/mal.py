@@ -53,7 +53,7 @@ class MALObject(MAL, Generic[T]):
         synopsis: Optional[str]
         genres: List[str]
 
-    def __init__(self, id: int, soup: bs4.BeautifulSoup) -> None:
+    def __init__(self, id: Union[int, str], soup: bs4.BeautifulSoup) -> None:
         super().__init__(soup)
         self.id = id
         self.url = f"https://myanimelist.net/{self.__class__.__name__.lower()}/{self.id}"

@@ -1,10 +1,9 @@
 import discord
 from discord.ext import commands
 
-import _danbooru
-import emoji_ui
 from _types import Context
 from core import bot
+from lib import danbooru, emoji_ui
 
 
 @bot.command(
@@ -17,7 +16,7 @@ from core import bot
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _danbooru_cmd(ctx: Context, *, query: str):
     async with ctx.typing():
-        urls = await _danbooru.search(query)
+        urls = await danbooru.search(query)
 
         if not urls:
             return await ctx.send("No matching result was found.")
@@ -34,5 +33,5 @@ async def _danbooru_cmd(ctx: Context, *, query: str):
             embed.set_footer(text=f"Result {index + 1}/{no_results}")
             embeds.append(embed)
 
-    display = emoji_ui.NavigatorPagination(embeds)
+    display = emoji_ui.NavigatorPagination(bot, embeds)
     await display.send(ctx.channel)

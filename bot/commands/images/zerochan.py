@@ -1,10 +1,9 @@
 import discord
 from discord.ext import commands
 
-import _zerochan
-import emoji_ui
 from _types import Context
 from core import bot
+from lib import emoji_ui, zerochan
 
 
 @bot.command(
@@ -16,7 +15,7 @@ from core import bot
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _zerochan_cmd(ctx: Context, *, query: str):
     async with ctx.typing():
-        urls = await _zerochan.search(query)
+        urls = await zerochan.search(query, session=bot.session)
 
         if not urls:
             return await ctx.send("No matching result was found.")

@@ -2,11 +2,10 @@ import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
-import mal
-import emoji_ui
 from _types import Context
 from core import bot
-from emoji_ui import CHOICES
+from lib import emoji_ui, mal
+from lib.emoji_ui import CHOICES
 
 
 @bot.command(

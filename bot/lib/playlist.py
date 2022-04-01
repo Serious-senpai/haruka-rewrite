@@ -10,7 +10,7 @@ import discord
 from discord.utils import escape_markdown as escape
 
 import haruka
-from lib import audio
+from lib.audio import constants, sources
 
 
 class YouTubePlaylist:
@@ -103,15 +103,15 @@ class YouTubePlaylist:
             The playlist with the given ID, or ``None``
             if not found.
         """
-        for url in audio.INVIDIOUS_URLS:
+        for url in constants.INVIDIOUS_URLS:
             with contextlib.suppress(aiohttp.ClientError):
-                async with bot.session.get(f"{url}/api/v1/playlists/{id}", timeout=audio.TIMEOUT) as response:
+                async with bot.session.get(f"{url}/api/v1/playlists/{id}", timeout=constants.TIMEOUT) as response:
                     if response.ok:
                         data = await response.json(encoding="utf-8")
 
                         # Cache all tracks, though their descriptions are unavailable
                         for video in data["videos"]:
                             video["api_url"] = url
-                            await asyncio.to_thread(audio.save_to_memory, video)
+                            await asyncio.to_thread(sources.save_to_memory, video)
 
                         return cls(data)
