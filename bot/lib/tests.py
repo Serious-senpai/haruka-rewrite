@@ -1,11 +1,11 @@
 import asyncio
 from typing import TYPE_CHECKING
 
-from audio import InvidiousSource
-from mal import Anime, Manga
-from nhentai import NHentai
-from pixiv import PixivArtwork
-from urban import UrbanSearch
+from .audio import InvidiousSource
+from .mal import Anime, Manga
+from .nhentai import NHentai
+from .pixiv import PixivArtwork
+from .urban import UrbanSearch
 if TYPE_CHECKING:
     import haruka
 
@@ -48,7 +48,7 @@ class MiniInvidiousObject:
 async def nhentai_test(bot: haruka.Haruka) -> str:
     content = make_title("NHENTAI TESTS")
     for id in NHENTAI_TESTS:
-        doujin = await NHentai.get(id)
+        doujin = await NHentai.get(id, session=bot.session)
         content += f"Finished NHentai test for ID {id}: {doujin}\n"
 
     return content
@@ -66,7 +66,7 @@ async def pixiv_test(bot: haruka.Haruka) -> str:
 async def urban_test(bot: haruka.Haruka) -> str:
     content = make_title("URBAN TESTS")
     for term in URBAN_TESTS:
-        result = await UrbanSearch.search(term)
+        result = await UrbanSearch.search(term, session=bot.session)
         content += f"Finished Urban test for term \"{term}\": {result}\n"
 
     return content
@@ -76,7 +76,7 @@ async def ytdl_test(bot: haruka.Haruka) -> str:
     content = make_title("YOUTUBEDL TESTS")
     for id in YTDL_TESTS:
         track = MiniInvidiousObject(id)
-        ytdl_result = await InvidiousSource.get_source(track, ignore_error=True)
+        ytdl_result = await InvidiousSource.get_source(track, client=bot.audio, ignore_error=True)  # type: ignore
         content += f"Finished youtube-dl test for ID {id}: {ytdl_result}\n"
 
     return content
@@ -85,7 +85,7 @@ async def ytdl_test(bot: haruka.Haruka) -> str:
 async def anime_test(bot: haruka.Haruka) -> str:
     content = make_title("ANIME TESTS")
     for id in ANIME_TESTS:
-        anime = await Anime.get(id)
+        anime = await Anime.get(id, session=bot.session)
         content += f"Finished Anime test for ID {id}: {anime}\n"
 
     return content
@@ -94,7 +94,7 @@ async def anime_test(bot: haruka.Haruka) -> str:
 async def manga_test(bot: haruka.Haruka) -> str:
     content = make_title("MANGA TESTS")
     for id in MANGA_TESTS:
-        manga = await Manga.get(id)
+        manga = await Manga.get(id, session=bot.session)
         content += f"Finished Manga test for ID {id}: {manga}\n"
 
     return content

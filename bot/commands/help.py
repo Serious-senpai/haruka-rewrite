@@ -5,11 +5,10 @@ from typing import List, Mapping, Optional, TYPE_CHECKING
 import discord
 from discord.ext import commands
 
-import utils
-import emoji_ui
 from core import bot, prefix
+from lib import emoji_ui, utils
 if TYPE_CHECKING:
-    import haruka
+    from _types import Context
 
 
 IGNORE = (
@@ -31,11 +30,6 @@ IGNORE = (
     "threads",
     "trace",
 )
-
-
-if TYPE_CHECKING:
-    class Context(commands.Context):
-        bot: haruka.Haruka
 
 
 class CustomHelpCommand(commands.MinimalHelpCommand):

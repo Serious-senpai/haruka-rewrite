@@ -15,7 +15,7 @@ class WebRequest(web.Request):
     def app(self) -> WebApp: ...
 
 
-class Middleware(Protocol, Callable[[WebRequest, Handler], web.Response]):
+class Middleware(Protocol):
     __middleware_version__: Literal[1]
 
 

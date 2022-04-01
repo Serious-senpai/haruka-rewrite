@@ -5,7 +5,7 @@ from typing import Optional
 import discord
 from discord.utils import escape_markdown as escape
 
-import utils
+from .utils import fuzzy_match
 
 
 with open("./bot/assets/misc/fact.txt", "r", encoding="utf-8") as f:
@@ -34,7 +34,7 @@ async def get_quote(anime: Optional[str] = None, *, icon_url: Optional[str] = No
         anime = anime.casefold()
         original_name = quotes_k.get(anime)
         if original_name is None:
-            anime = await utils.fuzzy_match(anime, quotes_k.keys())
+            anime = await fuzzy_match(anime, quotes_k.keys())
             original_name = quotes_k[anime]
     else:
         original_name = random.choice(list(quotes_k.values()))

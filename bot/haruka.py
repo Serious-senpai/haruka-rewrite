@@ -5,7 +5,7 @@ import io
 import signal
 import sys
 import traceback
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Deque, Dict, List, Optional, Union, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     class _ConnectionState(ConnectionState):
         conn: asyncpg.Pool
         task: task.TaskManager
+        _messages: Deque[discord.Message]
 
 
 class Haruka(commands.Bot):
@@ -263,8 +264,8 @@ class Haruka(commands.Bot):
         if self.owner is not None:
             await self.owner.send(
                 message,
-                embed=self.display_status if send_state else None,
-                file=discord.File("./bot/assets/server/log.txt") if send_log else None,
+                embed=self.display_status if send_state else None,  # type: ignore
+                file=discord.File("./bot/assets/server/log.txt") if send_log else None,  # type: ignore
             )
 
     @property
@@ -326,14 +327,14 @@ class Haruka(commands.Bot):
 
     @tasks.loop(minutes=5)
     async def _keep_alive(self) -> None:
-        asyncio.current_task().set_name("KeepServerAlive")
+        asyncio.current_task().set_name("KeepServerAlive")  # type: ignore
         async with self.session.get(env.HOST) as response:
             if not response.status == 200:
                 self.log(f"WARNING: _keep_alive task returned response code {response.status}")
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
         exc_type, _, _ = sys.exc_info()
-        if issubclass(exc_type, discord.Forbidden):
+        if issubclass(exc_type, discord.Forbidden):  # type: ignore
             return
 
         self.log(f"Exception in {event_method}:")

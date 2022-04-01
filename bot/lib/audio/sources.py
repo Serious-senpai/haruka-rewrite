@@ -166,12 +166,8 @@ class PartialInvidiousSource:
         List[``PartialInvidiousSource``]
             The list of searching results
         """
-        params = {
-            "q": query,
-            "page": 0,
-            "type": "video",
-        }
-        items = []
+        params = {"q": query, "page": 0, "type": "video"}
+        items: List[PartialInvidiousSource] = []
 
         for url in INVIDIOUS_URLS:
             with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
@@ -287,13 +283,16 @@ class InvidiousSource(PartialInvidiousSource):
         )
 
         before_options = shlex.join(before)
-        options = "-vn",
+        options = "-vn"
 
         # This may result in race conditions
         # so there must be only one thread
         # fetching at a time.
         self.part += 1
         self.left -= 30
+
+        if self.source is None:
+            raise RuntimeError(f"No audio source for track ID {self.id}")
 
         return discord.FFmpegOpusAudio(
             self.source,

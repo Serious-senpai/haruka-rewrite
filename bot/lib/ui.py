@@ -23,7 +23,7 @@ class SelectMenu(discord.ui.Select):
         _future: asyncio.Future
 
     def __init__(self, *, placeholder: str, options: List[discord.SelectOption]) -> None:
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.get_event_loop()  # type: ignore
         self._future = self._loop.create_future()
         super().__init__(placeholder=placeholder, options=options, min_values=1, max_values=1)
 

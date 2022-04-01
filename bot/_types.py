@@ -6,29 +6,25 @@ import discord
 from discord.ext import commands
 
 if TYPE_CHECKING:
+    import haruka
     from lib import audio
 
 
 class Context(commands.Context):
-    @property
-    def guild(self) -> Optional[Guild]:
-        return super().guild
-
-    @property
-    def voice_client(self) -> Optional[audio.MusicClient]:
-        return super().voice_client
+    if TYPE_CHECKING:
+        bot: haruka.Haruka
+        guild: Optional[Guild]
+        voice_client: Optional[audio.MusicClient]
 
 
 class Guild(discord.Guild):
-    @property
-    def voice_client(self) -> Optional[audio.MusicClient]:
-        return super().voice_client
+    if TYPE_CHECKING:
+        voice_client: Optional[audio.MusicClient]
 
 
 class Interaction(discord.Interaction):
-    @property
-    def guild(self) -> Optional[Guild]:
-        return super().guild
+    if TYPE_CHECKING:
+        guild: Optional[Guild]
 
 
 class Member(discord.Member):

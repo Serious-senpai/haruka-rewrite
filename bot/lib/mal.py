@@ -1,7 +1,17 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Generic, Literal, List, Optional, Type, TypeVar, Union, TYPE_CHECKING
+from typing import (
+    overload,
+    Generic,
+    Literal,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+    TYPE_CHECKING,
+)
 
 import aiohttp
 import bs4
@@ -80,7 +90,15 @@ class MALObject(MAL, Generic[T]):
         __genres = self.soup.find_all(name="span", attrs={"itemprop": "genre"})
         self.genres = [genre.get_text() for genre in __genres]
 
-    def data(self, category: str, cls: Type[T] = str) -> Optional[T]:
+    @overload
+    def data(self, category: str, cls: Type[T]) -> Optional[T]:
+        ...
+
+    @overload
+    def data(self, category: str) -> Optional[str]:
+        ...
+
+    def data(self, category, cls=str):
         with contextlib.suppress(AttributeError, ValueError):
             obj = self.soup.find(
                 name="span",

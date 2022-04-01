@@ -9,8 +9,8 @@ import asyncpg
 import discord
 from discord.utils import escape_markdown as escape
 
-import audio
 import haruka
+from lib import audio
 
 
 class YouTubePlaylist:

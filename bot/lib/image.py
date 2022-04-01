@@ -279,7 +279,7 @@ class Asuna(ImageSource):
 
     async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
         sfw = set(["hug", "kiss", "neko", "pat", "slap", "fox"])
-        nsfw = set()
+        nsfw = set()  # type: ignore
 
         try:
             async with self.session.get(self.endpoints_url) as response:
@@ -353,18 +353,13 @@ class ImageClient:
         self._ready = asyncio.Event()
         self.log = bot.log
         self.session = bot.session
-        self.sources = (
-            WaifuPics,
-            WaifuIm,
-            NekosLife,
-            Asuna,
-        )
+        self.sources = (WaifuPics, WaifuIm, NekosLife, Asuna)  # type: ignore
 
     async def prepare(self) -> None:
         """This function is a coroutine
 
         Register all image categories that this client can listen to.
-        
+
         This method must be called before any other operations.
         """
         self.sfw = {}
@@ -487,4 +482,4 @@ class ImageClient:
         else:
             source = random.choice(self.nsfw[category])
 
-        return str(source), source.get_url(category, mode=mode)
+        return str(source), str(source.get_url(category, mode=mode))

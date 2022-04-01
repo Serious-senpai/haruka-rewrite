@@ -68,7 +68,7 @@ class MusicClient(discord.VoiceClient):
         return self.client.audio
 
     # A good video for debugging: https://www.youtube.com/watch?v=U03lLvhBzOw
-    async def play(self, *, target: discord.abc.Messageable) -> None:
+    async def play(self, *, target: discord.abc.Messageable) -> None:  # type: ignore
         """This function is a coroutine
 
         Start playing in the connected voice channel
@@ -96,7 +96,7 @@ class MusicClient(discord.VoiceClient):
             if not track_id:
                 return await self.disconnect(force=True)
 
-            track = await InvidiousSource.build(track_id)
+            track = await self.audio_client.build(InvidiousSource, track_id)
 
             if track is None:
                 embed = discord.Embed(description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.")
@@ -129,7 +129,7 @@ class MusicClient(discord.VoiceClient):
 
             # Check if the URL that Invidious provided
             # us is usable
-            url = await track.ensure_source()
+            url = await track.ensure_source(client=self.audio_client)
 
             if not url:
                 with contextlib.suppress(discord.HTTPException):
@@ -157,7 +157,7 @@ class MusicClient(discord.VoiceClient):
             # only 1 to prevent race conditions as mentioned
             # above (as well as to save memory for storing
             # buffer)
-            audios = asyncio.Queue(maxsize=1)
+            audios: asyncio.Queue[Optional[discord.FFmpegOpusAudio]] = asyncio.Queue(maxsize=1)
 
             # Load the first audio portion asynchronously
             audio = await asyncio.to_thread(track.fetch)
@@ -173,8 +173,9 @@ class MusicClient(discord.VoiceClient):
 
             # Play the audio while loading asynchronously
             async def load() -> None:
-                audio = await asyncio.to_thread(track.fetch)
-                await audios.put(audio)
+                if track is not None:
+                    audio = await asyncio.to_thread(track.fetch)
+                    await audios.put(audio)
 
             seq = 1
 
@@ -193,7 +194,8 @@ class MusicClient(discord.VoiceClient):
                 self.operable.set()  # Enable pause/resume/toggle repeat
 
                 super().play(audio, after=self._set_event)
-                self._player.name = f"Channel {self.channel_id}/{self.guild_id}/seq {seq}"
+                if self._player:
+                    self._player.name = f"Channel {self.channel_id}/{self.guild_id}/seq {seq}"
 
                 await self._event.wait()
                 self.operable.clear()  # Disable pause/resume/toggle repeat

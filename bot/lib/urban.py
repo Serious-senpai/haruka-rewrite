@@ -76,7 +76,7 @@ class UrbanSearch:
                             obj = soup.find(name="div", attrs={"class": "example"})
                             example = "\n".join(i for i in obj.get_text().split("\n") if len(i) > 0)
 
-                        return cls(title, meaning, example, response.url)
+                        return cls(title, meaning, example, str(response.url))
                     else:
                         return
 

@@ -91,7 +91,7 @@ class TimingContextManager(contextlib.AbstractContextManager):
     def __enter__(self) -> TimingContextManager:
         return self
 
-    def __exit__(self, exc_type: Type[Exception], exc_value: Exception, traceback: TracebackType) -> None:
+    def __exit__(self, exc_type: Optional[Type[Exception]], exc_value: Optional[Exception], traceback: Optional[TracebackType]) -> None:
         self._result = time.perf_counter() - self._start
 
     @property
@@ -132,9 +132,13 @@ async def fuzzy_match(string: str, against: Iterator[str], *, pattern: str = r"\
     args.extend(against)
 
     process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.PIPE)
-    stdout, _ = await process.communicate()
-    match = re.search(pattern, stdout.decode("utf-8"))
-    return match.group()
+    _stdout, _ = await process.communicate()
+    stdout = _stdout.decode("utf-8")
+    match = re.search(pattern, stdout)
+    if match is not None:
+        return match.group()
+
+    raise RuntimeError(f"Cannot match regex pattern {repr(pattern)} with stdout {stdout}")
 
 
 async def coro_func(value: T) -> T:

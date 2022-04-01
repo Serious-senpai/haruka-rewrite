@@ -211,14 +211,14 @@ class PixivArtwork:
             raise RuntimeError("Cannot parse HTML to obtain a PixivArtwork object") from exc
 
     @classmethod
-    async def from_id(cls: Type[PixivArtwork], id: int, *, session: aiohttp.ClientSession) -> Optional[PixivArtwork]:
+    async def from_id(cls: Type[PixivArtwork], id: Union[int, str], *, session: aiohttp.ClientSession) -> Optional[PixivArtwork]:
         """This function is a coroutine
 
         Gets a Pixiv artwork from an ID
 
         Parameters
         -----
-        id: ``int``
+        id: Union[``int``, ``str``]
             The artwork ID
         session: ``aiohttp.ClientSession``
             The session to perform the request

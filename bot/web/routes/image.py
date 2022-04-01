@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from aiohttp import web
 
-import _image
+from lib import image
 from ..core import routes
 if TYPE_CHECKING:
     from ..server import WebRequest
@@ -12,12 +12,19 @@ if TYPE_CHECKING:
 
 @routes.get("/image")
 async def _image_route(request: WebRequest) -> web.Response:
-    mode = request.query.get("mode")
-    category = request.query.get("category")
+    try:
+        mode = request.query["mode"]
+        category = request.query["category"]
+        if mode not in ("sfw", "nsfw"):
+            raise KeyError
+
+    except KeyError:
+        raise web.HTTPBadRequest
+
     try:
         host, url = await request.app.bot.image.get_url(category, mode=mode)
         data = {"host": host, "url": url}
-    except _image.CategoryNotFound:
+    except image.CategoryNotFound:
         raise web.HTTPNotFound
     else:
         return web.json_response(data)

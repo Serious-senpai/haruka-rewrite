@@ -38,7 +38,7 @@ class AudioClient:
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot = bot
         self.pool = bot.conn
-        self.session = aiohttp.ClientSession
+        self.session = bot.session
 
     def in_voice(self) -> Callable[[T], T]:
         """A text command check that returns ``True`` if the invoker is
@@ -193,7 +193,7 @@ class AudioClient:
         id: ``str``
             The ID of the track to add, in this case, a YouTube video
         """
-        await self.execute(f"UPDATE youtube SET queue = array_append(queue, '{id}') WHERE id = '{channel_id}';")
+        await self.pool.execute(f"UPDATE youtube SET queue = array_append(queue, '{id}') WHERE id = '{channel_id}';")
 
     async def remove(self, channel_id: int, *, pos: Optional[int] = None) -> Optional[str]:
         """This function is a coroutine
