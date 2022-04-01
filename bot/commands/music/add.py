@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
+from discord.utils import escape_markdown as escape
 
-import audio
 from _types import Context
 from core import bot
+from lib import emoji_ui
 
 
 QUEUE_MAX_SIZE = 100
@@ -14,23 +15,35 @@ QUEUE_MAX_SIZE = 100
     description="Search for a YouTube track and add to queue.",
     usage="add <query>",
 )
+@bot.audio.in_voice()
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _add_cmd(ctx: Context, *, query: str):
-    if not ctx.author.voice:
-        return await ctx.send("Please join a voice channel first.")
+    if len(query) < 3:
+        return await ctx.send("Search query must have at least 3 characters")
 
-    channel = ctx.author.voice.channel
+    results = await bot.audio.search(query)
+    if not results:
+        return await ctx.send("No matching result was found.")
 
-    track_ids = await audio.MusicClient.queue(channel.id)
-    if len(track_ids) >= QUEUE_MAX_SIZE:
-        return await ctx.send(f"The music queue for this channel has reached its maximum size ({QUEUE_MAX_SIZE} limit).")
+    embed = discord.Embed()
+    embed.set_author(name=f"Search results for {query[:50]}", icon_url=bot.user.avatar.url)
+    for index, result in enumerate(results):
+        embed.add_field(
+            name=f"{emoji_ui.CHOICES[index]} {escape(result.title)}",
+            value=escape(result.channel),
+            inline=False,
+        )
 
-    track = await audio.embed_search(query, ctx.channel, ctx.author.id)
-    if not track:
+    message = await ctx.send(embed=embed)
+    display = emoji_ui.SelectMenu(bot, message, len(results))
+    index = await display.listen(ctx.author.id)
+    if index is None:
         return
 
-    await audio.MusicClient.add(channel.id, track.id)
+    track = results[index]
+    channel = ctx.author.voice.channel
+    await bot.audio.add(channel.id, track.id)
 
     embed = track.create_embed()
     embed.set_author(

@@ -3,9 +3,9 @@ from typing import Union
 import discord
 from discord.ext import commands
 
-import audio
 from _types import Context
 from core import bot
+from lib import audio
 
 
 @bot.command(
@@ -13,7 +13,7 @@ from core import bot
     description="Remove a track from the current queue. Use `remove all` to remove all tracks.",
     usage="remove <track position | all | default: 1>"
 )
-@audio.in_voice()
+@bot.audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _remove_cmd(ctx: Context, pos: Union[int, str] = 1):
     if not ctx.author.voice:
@@ -28,12 +28,12 @@ async def _remove_cmd(ctx: Context, pos: Union[int, str] = 1):
     if not isinstance(pos, int):
         raise commands.UserInputError
 
-    id = await audio.MusicClient.remove(channel.id, pos=pos)
+    track_id = await bot.audio.remove(channel.id, pos=pos)
 
-    if id is not None:
-        track = await audio.InvidiousSource.build(id)
+    if track_id is not None:
+        track = await bot.audio.build(audio.PartialInvidiousSource, track_id)
         if track is None:
-            embed = discord.Embed(description=f"Track ID `{id}`\nURL: https://www.youtube.com/watch?v={id}")
+            embed = discord.Embed(description=f"Track ID `{track_id}`\nURL: https://www.youtube.com/watch?v={track_id}")
         else:
             embed = track.create_embed()
 
