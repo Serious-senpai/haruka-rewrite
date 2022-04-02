@@ -22,7 +22,7 @@ async def _play_slash(interaction: Interaction):
     else:
         vchannel = interaction.user.voice.channel
 
-        queue = await MusicClient.queue(vchannel.id)
+        queue = await bot.audio.queue(vchannel.id)
         if len(queue) == 0:
             return await interaction.followup.send("Please add a song to the queue with `add` or `playlist`")
 
