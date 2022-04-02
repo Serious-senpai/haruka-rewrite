@@ -34,8 +34,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip setuptools wheel
-        pip install -r requirements.txt
+        python3.9 -m pip install --upgrade pip setuptools wheel
+        pip3.9 install -r requirements.txt
 
     - name: Run the bot
-      run: python bot/main.py
+      run: python3.9 bot/main.py
