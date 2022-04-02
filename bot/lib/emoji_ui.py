@@ -54,11 +54,11 @@ class EmojiUI:
         except ValueError as exc:
             raise ValueError(f"Cannot cannot convert {repr(value)} to int") from exc
 
-    def check(self, reaction: discord.Reaction, user: discord.User) -> bool:
+    def check(self, payload: discord.RawReactionActionEvent) -> bool:
         if self.user_id is not None:
-            return reaction.message.id == self.message.id and str(reaction) in self.allowed_emojis and user.id == self.user_id
+            return payload.message_id == self.message.id and str(payload.emoji) in self.allowed_emojis and payload.user_id == self.user_id
         else:
-            return reaction.message.id == self.message.id and str(reaction) in self.allowed_emojis and not user.bot
+            return payload.message_id == self.message.id and str(payload.emoji) in self.allowed_emojis and not payload.user_id == self.bot.user.id
 
     async def timeout(self) -> None:
         with contextlib.suppress(discord.HTTPException):
@@ -116,16 +116,16 @@ class Pagination(EmojiUI):
 
         while True:
             done, pending = await asyncio.wait([
-                self.bot.wait_for("reaction_add", check=self.check),
-                self.bot.wait_for("reaction_remove", check=self.check),
+                self.bot.wait_for("raw_reaction_add", check=self.check),
+                self.bot.wait_for("raw_reaction_remove", check=self.check),
             ],
                 timeout=300.0,
                 return_when=asyncio.FIRST_COMPLETED,
             )
 
             if done:
-                reaction, _ = done.pop().result()
-                page = self.allowed_emojis.index(str(reaction))
+                payload: discord.RawReactionActionEvent = done.pop().result()
+                page = self.allowed_emojis.index(str(payload.emoji))
                 await self.message.edit(embed=self.pages[page])
                 await asyncio.sleep(1.0)
             else:
@@ -185,8 +185,8 @@ class RandomPagination(EmojiUI):
                 await self.message.add_reaction("🔄")
 
             done, pending = await asyncio.wait([
-                self.bot.wait_for("reaction_add", check=self.check),
-                self.bot.wait_for("reaction_remove", check=self.check),
+                self.bot.wait_for("raw_reaction_add", check=self.check),
+                self.bot.wait_for("raw_reaction_remove", check=self.check),
             ],
                 timeout=300.0,
                 return_when=asyncio.FIRST_COMPLETED,
@@ -245,16 +245,16 @@ class NavigatorPagination(EmojiUI):
 
         while True:
             done, pending = await asyncio.wait([
-                self.bot.wait_for("reaction_add", check=self.check),
-                self.bot.wait_for("reaction_remove", check=self.check),
+                self.bot.wait_for("raw_reaction_add", check=self.check),
+                self.bot.wait_for("raw_reaction_remove", check=self.check),
             ],
                 timeout=300.0,
                 return_when=asyncio.FIRST_COMPLETED,
             )
 
             if done:
-                reaction, _ = done.pop().result()
-                action = self.allowed_emojis.index(str(reaction))
+                payload: discord.RawReactionActionEvent= done.pop().result()
+                action = self.allowed_emojis.index(str(payload.emoji))
 
                 if action == 0:
                     if page > 0:
@@ -325,14 +325,14 @@ class SelectMenu(EmojiUI):
             await self.message.add_reaction(emoji)
 
         try:
-            reaction, _ = await self.bot.wait_for("reaction_add", check=self.check, timeout=300.0)
+            payload: discord.RawReactionActionEvent = await self.bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
             return await self.timeout()
         else:
             with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()
 
-            choice = self.allowed_emojis.index(str(reaction))
+            choice = self.allowed_emojis.index(str(payload.emoji))
             return choice
 
 
@@ -350,12 +350,12 @@ class YesNoSelection(EmojiUI):
             await self.message.add_reaction(emoji)
 
         try:
-            reaction, _ = await self.bot.wait_for("reaction_add", check=self.check, timeout=300.0)
+            payload: discord.RawReactionActionEvent = await self.bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
             return await self.timeout()
         else:
             with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()
 
-            choice = self.allowed_emojis.index(str(reaction))
+            choice = self.allowed_emojis.index(str(payload.emoji))
             return choice == 1
