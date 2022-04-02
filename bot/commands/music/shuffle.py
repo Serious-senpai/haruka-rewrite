@@ -10,12 +10,11 @@ from core import bot
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _pause_cmd(ctx: Context):
+async def _shuffle_cmd(ctx: Context):
     player = ctx.voice_client
 
     if player:
-        player._shuffle = not player._shuffle
-        if player._shuffle:
+        if await player.switch_shuffle():
             await ctx.send("Shuffle has been turned on. Songs will be played randomly.")
         else:
             await ctx.send("Shuffle has been turned off. Songs will be played with the queue order.")

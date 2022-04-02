@@ -16,8 +16,7 @@ async def _stopafter_slash(interaction: Interaction):
     if not player:
         return await interaction.followup.send("No currently connected player.")
 
-    player._stopafter = not player._stopafter
-    if player._stopafter:
+    if await player.switch_stopafter():
         await interaction.followup.send("Enabled `stopafter`. This will be the last song to be played.")
     else:
         await interaction.followup.send("Disabled `stopafter`. Other songs will be played normally after this one ends.")

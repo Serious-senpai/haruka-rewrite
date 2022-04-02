@@ -65,6 +65,36 @@ class MusicClient(discord.VoiceClient):
     def operable(self) -> asyncio.Event:
         return self._operable
 
+    @property
+    def repeat(self) -> bool:
+        """Whether this player is set to REPEAT_ONE mode"""
+        return self._repeat
+
+    @property
+    def shuffle(self) -> bool:
+        """Whether this player's SHUFFLE mode is turned on"""
+        return self._shuffle
+
+    @property
+    def stopafter(self) -> bool:
+        """Whether this player's STOPAFTER mode is turned on"""
+        return self._stopafter
+
+    async def switch_repeat(self) -> bool:
+        await self.operable.wait()
+        self._repeat = not self.repeat
+        return self.repeat
+
+    async def switch_shuffle(self) -> bool:
+        await self.operable.wait()
+        self._shuffle = not self.shuffle
+        return self.shuffle
+
+    async def switch_stopafter(self) -> bool:
+        await self.operable.wait()
+        self._stopafter = not self.stopafter
+        return self._topafter
+
     @functools.cached_property
     def audio_client(self) -> AudioClient:
         return self.client.audio
@@ -88,9 +118,9 @@ class MusicClient(discord.VoiceClient):
             if not self.is_connected():
                 return
 
-            if self._repeat and repeat_id is not None:
+            if self.repeat and repeat_id is not None:
                 track_id = repeat_id  # Warning: not popping from the queue
-            elif self._shuffle:
+            elif self.shuffle:
                 track_id = await self.audio_client.remove(self.channel.id)
             else:
                 track_id = await self.audio_client.remove(self.channel.id, pos=1)
@@ -121,7 +151,7 @@ class MusicClient(discord.VoiceClient):
                         name=f"Playing in {self.channel}",
                         icon_url=self.client.user.avatar.url,
                     )
-                    embed.set_footer(text=f"Shuffle: {self._shuffle} | Repeat one: {self._repeat}")
+                    embed.set_footer(text=f"Shuffle: {self.shuffle} | Repeat one: {self.repeat}")
 
                     if playing_info:
                         with contextlib.suppress(discord.HTTPException):
@@ -147,7 +177,7 @@ class MusicClient(discord.VoiceClient):
                 continue
 
             repeat_id = track_id
-            if not self._repeat:
+            if not self.repeat:
                 await self.audio_client.add(self.channel.id, track_id)
 
             # The playing loop for a song: divide each track
@@ -212,7 +242,7 @@ class MusicClient(discord.VoiceClient):
             if not self.is_connected():
                 return
 
-            if self._stopafter:
+            if self.stopafter:
                 await self.disconnect(force=True)
                 with contextlib.suppress(discord.HTTPException):
                     await self.target.send("Done playing song, disconnected due to `stopafter` request.")

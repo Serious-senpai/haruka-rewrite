@@ -16,8 +16,7 @@ async def _stopafter_cmd(ctx: Context):
     if not player:
         return await ctx.send("No currently connected player.")
 
-    player._stopafter = not player._stopafter
-    if player._stopafter:
+    if await player.switch_stopafter():
         await ctx.send("Enabled `stopafter`. This will be the last song to be played.")
     else:
         await ctx.send("Disabled `stopafter`. Other songs will be played normally after this one ends.")

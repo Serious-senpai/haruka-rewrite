@@ -14,10 +14,7 @@ async def _repeat_slash(interaction: Interaction):
     player = interaction.guild.voice_client
 
     if player:
-        await player.operable.wait()
-        player._repeat = not player._repeat
-
-        if player._repeat:
+        if await player.switch_repeat():
             await interaction.followup.send("Switched to `REPEAT ONE` mode. The current song will be played repeatedly.")
         else:
             await interaction.followup.send("Switched to `REPEAT ALL` mode. All songs will be played as normal.")

@@ -12,8 +12,7 @@ async def _shuffle_slash(interaction: Interaction):
 
     player = interaction.guild.voice_client
     if player:
-        player._shuffle = not player._shuffle
-        if player._shuffle:
+        if await player.switch_shuffle():
             await interaction.response.send_message("Shuffle has been turned on. Songs will be played randomly.")
         else:
             await interaction.response.send_message("Shuffle has been turned off. Songs will be played with the queue order.")

@@ -17,7 +17,7 @@ async def _skip_cmd(ctx: Context):
 
     if player:
         # Get current state
-        shuffle = player._shuffle
+        shuffle = player.shuffle
         target = player.target
         channel = player.channel
 
