@@ -1,4 +1,4 @@
-name: Check code with autopep8
+name: autopep8 Analysis
 
 on: push
 
@@ -16,16 +16,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Check repository directory
-      run: ls -l
-
     - name: Install autopep8
       run: pip install autopep8
 
     - name: Check code format
       id: analyze
       run: autopep8 --exit-code -a -a -a -i -r .
-
-    - name: Complete job
-      if: steps.analyze.outputs.exit-code == 2
-      run: exit 1
