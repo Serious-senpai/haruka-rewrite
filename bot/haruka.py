@@ -77,15 +77,6 @@ class Haruka(commands.Bot):
         self.image = ImageClient(self)
         self.audio = AudioClient(self)
 
-        if env.TOPGG_TOKEN:
-            self.topgg = topgg.DBLClient(
-                self,
-                env.TOPGG_TOKEN,
-                autopost=True,
-                autopost_interval=900,
-                session=self.session,
-            )
-
     def _clear_counter(self) -> None:
         """Clear the text command and slash command counter"""
         self._command_count = {}
@@ -104,6 +95,16 @@ class Haruka(commands.Bot):
             timeout=aiohttp.ClientTimeout(connect=5.0),
         )
         self.log("Created side session")
+
+        # Initialize Top.gg token
+        if env.TOPGG_TOKEN:
+            self.topgg = topgg.DBLClient(
+                self,
+                env.TOPGG_TOKEN,
+                autopost=True,
+                autopost_interval=900,
+                session=self.session,
+            )
 
         # Prepare image client
         await self.image.prepare()
