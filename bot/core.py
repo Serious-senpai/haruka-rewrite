@@ -28,9 +28,6 @@ class LoggingFilter(logging.Filter):
 
     __slots__ = ()
 
-    def __init__(self) -> None:
-        return
-
     def filter(self, record: logging.LogRecord) -> bool:
         if record.name == "discord.player" and record.levelname == "INFO":
             return False
@@ -77,7 +74,7 @@ async def prefix(bot: haruka.Haruka, message: discord.Message) -> str:
         return "$"
 
 
-async def get_prefix(bot, message) -> List[str]:
+async def get_prefix(bot: haruka.Haruka, message: discord.Message) -> List[str]:
     prefixes = await prefix(bot, message)
     return commands.when_mentioned_or(*prefixes)(bot, message)
 
@@ -111,19 +108,19 @@ bot = haruka.Haruka(
 
 
 @bot.check
-async def _blacklist_check(ctx: Context):
+async def _blacklist_check(ctx: Context) -> bool:
     row = await bot.conn.fetchrow(f"SELECT * FROM blacklist WHERE id = '{ctx.author.id}';")
     return row is None
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
     bot.log(f"Logged in as {bot.user}")
     print(f"Logged in as {bot.user}")
 
 
 @bot.before_invoke
-async def _before_invoke(ctx: Context):
+async def _before_invoke(ctx: Context) -> None:
     # Count text commands
     if ctx.command.root_parent:
         return

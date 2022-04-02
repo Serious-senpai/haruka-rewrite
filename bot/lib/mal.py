@@ -146,7 +146,7 @@ class MALSearchResult(MAL):
         cls: Type[MALSearchResult],
         query: str,
         *,
-        criteria: Literal["manga, anime"],
+        criteria: Literal["manga", "anime"],
         session: aiohttp.ClientSession
     ) -> List[MALSearchResult]:
         rslt = []
@@ -239,7 +239,7 @@ class Manga(MALObject):
     __slots__ = ()
 
     @classmethod
-    async def get(cls: Type[Manga], id: int, *, session: aiohttp.ClientSession) -> Manga:
+    async def get(cls: Type[Manga], id: Union[int, str], *, session: aiohttp.ClientSession) -> Manga:
         url = f"https://myanimelist.net/manga/{id}"
         async with session.get(url) as response:
             if response.status == 200:

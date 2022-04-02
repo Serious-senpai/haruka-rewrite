@@ -16,7 +16,7 @@ from lib import danbooru, emoji_ui
 @commands.cooldown(1, 5, commands.BucketType.user)
 async def _danbooru_cmd(ctx: Context, *, query: str):
     async with ctx.typing():
-        urls = await danbooru.search(query)
+        urls = await danbooru.search(query, session=bot.session)
 
         if not urls:
             return await ctx.send("No matching result was found.")

@@ -37,5 +37,5 @@ async def _pixiv_cmd(ctx: Context, *, query: str = ""):
             )
             embeds.append(embed)
 
-    display = emoji_ui.Pagination(embeds)
+    display = emoji_ui.Pagination(bot, embeds)
     await display.send(ctx.channel)

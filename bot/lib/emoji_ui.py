@@ -48,7 +48,7 @@ class EmojiUI:
         return self.__user_id
 
     @user_id.setter
-    def __user_id_setter(self, value: int) -> None:
+    def user_id(self, value: int) -> None:
         try:
             self.__user_id = int(value)
         except ValueError as exc:
@@ -56,9 +56,9 @@ class EmojiUI:
 
     def check(self, reaction: discord.Reaction, user: discord.User) -> bool:
         if self.user_id is not None:
-            return reaction.message == self.message and str(reaction) in self.allowed_emojis and user.id == self.user_id
+            return reaction.message.id == self.message.id and str(reaction) in self.allowed_emojis and user.id == self.user_id
         else:
-            return reaction.message == self.message and str(reaction) in self.allowed_emojis and not user.bot
+            return reaction.message.id == self.message.id and str(reaction) in self.allowed_emojis and not user.bot
 
     async def timeout(self) -> None:
         with contextlib.suppress(discord.HTTPException):
@@ -292,16 +292,15 @@ class SelectMenu(EmojiUI):
     __slots__ = ("args_count",)
     if TYPE_CHECKING:
         args_count: int
-        message: discord.Message
 
     def __init__(self, bot: haruka.Haruka, message: discord.Message, args_count: int) -> None:
-        super().__init__(bot, CHOICES[:self.args_count])
-        self.message = message
-
         self.args_count = args_count
 
         if self.args_count > 6:
             raise ValueError("Number of options exceeded the limit of 6")
+
+        super().__init__(bot, CHOICES[:self.args_count])
+        self.message = message
 
     async def listen(self, user_id: int) -> Optional[int]:
         """This function is a coroutine
@@ -326,7 +325,7 @@ class SelectMenu(EmojiUI):
             await self.message.add_reaction(emoji)
 
         try:
-            reaction, _ = await self.bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
+            reaction, _ = await self.bot.wait_for("reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
             return await self.timeout()
         else:

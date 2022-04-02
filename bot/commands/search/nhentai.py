@@ -36,12 +36,12 @@ async def _nhentai_cmd(ctx: Context, *, query: str):
             description=desc,
         )
         msg = await ctx.send(embed=embed)
-        display = emoji_ui.SelectMenu(msg, len(results))
+        display = emoji_ui.SelectMenu(bot, msg, len(results))
         choice = await display.listen(ctx.author.id)
 
         if choice is None:
             return
-        hentai = await nhentai.NHentai.get(results[choice].id)
+        hentai = await nhentai.NHentai.get(results[choice].id, session=bot.session)
 
     embed = hentai.create_embed()
     embed.set_author(

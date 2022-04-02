@@ -24,7 +24,7 @@ async def _send_single_sauce(target: discord.abc.Messageable, image_url: str) ->
         embed.set_footer(text=f"Displaying result {index + 1}/{total}")
         embeds.append(embed)
 
-    display = emoji_ui.NavigatorPagination(embeds)
+    display = emoji_ui.NavigatorPagination(bot, embeds)
     await display.send(target)
 
 
@@ -59,7 +59,7 @@ async def _sauce_cmd(ctx: Context, image_url: Optional[str] = None):
             embeds.append(embed)
 
     if embeds:
-        display = emoji_ui.NavigatorPagination(embeds)
+        display = emoji_ui.NavigatorPagination(bot, embeds)
         await display.send(ctx.channel)
     else:
         await ctx.send("Cannot find the sauce for any of the images provided!")

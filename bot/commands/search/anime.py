@@ -31,11 +31,11 @@ async def _anime_cmd(ctx: Context, *, query):
     )
     message = await ctx.send(embed=embed)
 
-    display = emoji_ui.SelectMenu(message, len(results))
+    display = emoji_ui.SelectMenu(bot, message, len(results))
     choice = await display.listen(ctx.author.id)
 
     if choice is not None:
-        anime = await mal.Anime.get(results[choice].id)
+        anime = await mal.Anime.get(results[choice].id, session=bot.session)
         if anime:
             embed = anime.create_embed()
             embed.set_author(

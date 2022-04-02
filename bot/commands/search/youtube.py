@@ -33,20 +33,22 @@ async def _youtube_cmd(ctx: Context, *, query: str):
 
     message = await ctx.send(embed=embed)
     display = emoji_ui.SelectMenu(bot, message, len(results))
-    index = await display.listen(ctx.author.id)
+    track_index = await display.listen(ctx.author.id)
 
-    if index is not None:
-        track = await bot.audio.build(audio.InvidiousSource, results[index].id)
-        if track is None:
-            return await ctx.send(f"{emojis.MIKUCRY} Cannot gather information about this video!")
+    if track_index is None:
+        return
 
-        async with ctx.typing():
-            with utils.TimingContextManager() as measure:
-                url = await bot.audio.fetch(track)
+    track = await bot.audio.build(audio.InvidiousSource, results[track_index].id)
+    if track is None:
+        return await ctx.send(f"{emojis.MIKUCRY} Cannot gather information about this video!")
 
-        if not url:
-            return await ctx.send(f"{emojis.MIKUCRY} Cannot fetch audio for this video!")
+    async with ctx.typing():
+        with utils.TimingContextManager() as measure:
+            url = await bot.audio.fetch(track)
 
-        embed = bot.audio.create_audio_embed(track)
-        embed.set_footer(text=f"Fetched audio in {utils.format(measure.result)}")
-        await ctx.send(embed=embed)
+    if not url:
+        return await ctx.send(f"{emojis.MIKUCRY} Cannot fetch audio for this video!")
+
+    embed = bot.audio.create_audio_embed(track)
+    embed.set_footer(text=f"Fetched audio in {utils.format(measure.result)}")
+    await ctx.send(embed=embed)

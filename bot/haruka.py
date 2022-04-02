@@ -364,7 +364,6 @@ class Haruka(commands.Bot):
         with contextlib.suppress(discord.Forbidden):
             await user.send(embed=embed)
 
-
     @tasks.loop()
     async def guild_leaver(self) -> None:
         row = await self.conn.fetchrow("SELECT * FROM inactivity ORDER BY time;")

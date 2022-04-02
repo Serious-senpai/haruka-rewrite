@@ -32,5 +32,5 @@ async def _zerochan_cmd(ctx: Context, *, query: str):
             embed.set_footer(text=f"Result {index + 1}/{no_results}")
             embeds.append(embed)
 
-    display = emoji_ui.NavigatorPagination(embeds)
+    display = emoji_ui.NavigatorPagination(bot, embeds)
     await display.send(ctx.channel)

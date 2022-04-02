@@ -18,7 +18,7 @@ async def _manga_slash(interaction: Interaction, query: str):
     if len(query) < 3:
         return await interaction.followup.send("Please provide at least 3 characters in the searching query.")
 
-    results = await mal.MALSearchResult.search(query, criteria="manga")
+    results = await mal.MALSearchResult.search(query, criteria="manga", session=bot.session)
     if not results:
         return await interaction.followup.send("No matching result was found.")
 

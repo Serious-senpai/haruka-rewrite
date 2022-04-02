@@ -19,7 +19,7 @@ async def _manga_cmd(ctx: Context, *, query):
         await ctx.send(f"Search query must have at least 3 characters")
         return
 
-    rslt = await mal.MALSearchResult.search(query, criteria="manga")
+    rslt = await mal.MALSearchResult.search(query, criteria="manga", session=bot.session)
 
     if not rslt:
         return await ctx.send("No matching result was found.")
@@ -31,11 +31,11 @@ async def _manga_cmd(ctx: Context, *, query):
     )
     message = await ctx.send(embed=embed)
 
-    display = emoji_ui.SelectMenu(message, len(rslt))
+    display = emoji_ui.SelectMenu(bot, message, len(rslt))
     choice = await display.listen(ctx.author.id)
 
     if choice is not None:
-        manga = await mal.Manga.get(rslt[choice].id)
+        manga = await mal.Manga.get(rslt[choice].id, session=bot.session)
         if manga:
             embed = manga.create_embed()
             embed.set_author(
