@@ -47,7 +47,7 @@ class AssetClient:
         Asynchronously fetch the image TAR file from Mediafire
         and save it to the local machine.
         """
-        zip_location = self.directory + "/collection.tar"
+        tar_location = self.directory + "/collection.tar"
 
         if os.listdir(self.directory):
             return await self.__finalize()
@@ -71,20 +71,20 @@ class AssetClient:
         with utils.TimingContextManager() as measure:
             async with self.session.get(file_url) as response:
                 if response.status == 200:
-                    with open(zip_location, "wb", buffering=0) as f:
+                    with open(tar_location, "wb", buffering=0) as f:
                         try:
                             chunk_size = 4 * 2 ** 10  # 4 KB
                             while data := await response.content.read(chunk_size):
                                 f.write(data)
                         except aiohttp.ClientPayloadError:
-                            self.log("Exception while downloading the TAR file:\n" + traceback.format_exc() + "\nIgnoring and continuing the unzipping process.")
+                            self.log("Exception while downloading the TAR file:\n" + traceback.format_exc() + "\nIgnoring and continuing the untarping process.")
                 else:
                     return self.log(f"Cannot fetch the TAR file from {file_url}: HTTP status {response.status}")
 
-        size = os.path.getsize(zip_location)
+        size = os.path.getsize(tar_location)
         self.log(f"Downloaded TAR file in {utils.format(measure.result)}" + " (file size {:.2f} MB)".format(size / 2 ** 20))
-        await self.extract_tar_file(zip_location, self.directory)
-        os.remove(zip_location)
+        await self.extract_tar_file(tar_location, self.directory)
+        os.remove(tar_location)
         await self.__finalize()
 
     async def __finalize(self) -> None:
@@ -99,10 +99,10 @@ class AssetClient:
         self._ready.set()
         self.anime_images_fetch = True
 
-    async def extract_tar_file(self, zip_location: str, destination: str) -> None:
+    async def extract_tar_file(self, tar_location: str, destination: str) -> None:
         args = (
             "tar",
-            "-xf", zip_location,
+            "-xf", tar_location,
             "-C", destination,
         )
 
@@ -112,9 +112,9 @@ class AssetClient:
 
         if _stderr:
             stderr = _stderr.decode("utf-8")
-            self.log(f"WARNING: stderr when extracting from \"{zip_location}\" to \"{destination}\":\n" + stderr)
+            self.log(f"WARNING: stderr when extracting from \"{tar_location}\" to \"{destination}\":\n" + stderr)
 
-        self.log(f"Extracted \"{zip_location}\" to \"{destination}\" in {utils.format(measure.result)}")
+        self.log(f"Extracted \"{tar_location}\" to \"{destination}\" in {utils.format(measure.result)}")
 
     async def wait_until_ready(self) -> None:
         await self._ready.wait()
