@@ -1,12 +1,11 @@
 import io
 import os
 import random
-from typing import ClassVar, Generic, Optional, List, Type, TypeVar, TYPE_CHECKING
+from typing import ClassVar, Optional, List, Type, TYPE_CHECKING
 
 from PIL import Image
 
 
-CT = TypeVar("CT", bound="BaseCard")
 SUITS = ("a", "b", "c", "d")
 cardlist = [f for f in os.listdir(f"./bot/assets/cards")]
 
@@ -29,14 +28,14 @@ class BaseCard:
         return Image.open(f"./bot/assets/cards/{self.id}.png")
 
 
-class BaseHand(Generic[CT]):
+class BaseHand:
 
     __slots__ = ("cards",)
-    cardtype: ClassVar[Type[CT]] = BaseCard
+    cardtype: ClassVar[Type[BaseCard]] = BaseCard
     if TYPE_CHECKING:
-        cards: List[CT]
+        cards: List[BaseCard]
 
-    def __init__(self, cards: Optional[List[CT]] = None) -> None:
+    def __init__(self, cards: Optional[List[BaseCard]] = None) -> None:
         if cards is not None:
             self.cards = cards
         else:

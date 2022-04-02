@@ -1,11 +1,9 @@
-import discord
 import yarl
 from discord.ext import commands
 
-import audio
-import _playlist
 from _types import Context
 from core import bot
+from lib import playlist
 
 
 @bot.command(
@@ -13,7 +11,7 @@ from core import bot
     description="Load a public playlist from YouTube into the voice channel.",
     usage="playlist <playlist ID>\nplaylist <youtube URL>",
 )
-@audio.in_voice()
+@bot.audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _playlist_cmd(ctx: Context, *, url: str):
     channel = ctx.author.voice.channel
@@ -23,7 +21,7 @@ async def _playlist_cmd(ctx: Context, *, url: str):
     except BaseException:
         raise commands.UserInputError
     else:
-        result = await _playlist.YouTubePlaylist.get(bot, playlist_id)
+        result = await playlist.YouTubePlaylist.get(bot, playlist_id)
         if not result:
             return await ctx.send("Cannot find this playlist. Make sure that this playlist isn't private.")
 

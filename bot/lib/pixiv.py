@@ -174,7 +174,7 @@ class PixivArtwork:
         return []
 
     @classmethod
-    def parse_html(cls: Type[PixivArtwork], html: str) -> Optional[PixivArtwork]:
+    def parse_html(cls: Type[PixivArtwork], html: str) -> PixivArtwork:
         """Parse the HTML string of the artwork site into a ``PixivArtwork`` object.
 
         Parameters
@@ -184,12 +184,12 @@ class PixivArtwork:
 
         Returns
         -----
-        Optional[``PixivArtwork``]
+        ``PixivArtwork``
             The created ``PixivArtwork`` object
         """
         soup = bs4.BeautifulSoup(html, "html.parser")
-        content = soup.find("meta", attrs={"name": "preload-data"}).get("content")
-        if content:
+        try:
+            content = soup.find("meta", attrs={"name": "preload-data"}).get("content")
             data = json.loads(content)
             id = int(list(data["illust"].keys())[0])
             illust = data["illust"][str(id)]
@@ -207,16 +207,18 @@ class PixivArtwork:
                 "profileImageUrl": data["user"][str(user_id)]["image"],
             }
             return cls(ret)
+        except BaseException as exc:
+            raise RuntimeError("Cannot parse HTML to obtain a PixivArtwork object") from exc
 
     @classmethod
-    async def from_id(cls: Type[PixivArtwork], id: int, *, session: aiohttp.ClientSession) -> Optional[PixivArtwork]:
+    async def from_id(cls: Type[PixivArtwork], id: Union[int, str], *, session: aiohttp.ClientSession) -> Optional[PixivArtwork]:
         """This function is a coroutine
 
         Gets a Pixiv artwork from an ID
 
         Parameters
         -----
-        id: ``int``
+        id: Union[``int``, ``str``]
             The artwork ID
         session: ``aiohttp.ClientSession``
             The session to perform the request

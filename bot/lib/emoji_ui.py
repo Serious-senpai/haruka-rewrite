@@ -3,11 +3,12 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import random
-from typing import Optional, List, Set, Tuple, Type, TypeVar, Union, TYPE_CHECKING
+from typing import Optional, List, Set, Tuple, TypeVar, Union, TYPE_CHECKING
 
 import discord
 
-from core import bot
+if TYPE_CHECKING:
+    import haruka
 
 
 ET = TypeVar("ET", bound="EmojiUI")
@@ -19,32 +20,47 @@ CHOICES = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣")
 NAVIGATOR = ("⬅️", "➡️")
 
 
+def cancel_tasks(tasks: Set[Union[asyncio.Future, asyncio.Task]]) -> None:
+    for task in tasks:
+        if not task.done():
+            task.cancel()
+
+
 class EmojiUI:
     """Base class for emoji-based UIs."""
 
-    __slots__ = ("message", "user_id", "allowed_emojis")
+    __slots__ = ("bot", "message", "allowed_emojis", "__user_id")
     if TYPE_CHECKING:
+        bot: haruka.Haruka
         message: Optional[discord.Message]
-        user_id: Optional[int]
         allowed_emojis: Tuple[str, ...]
+        __user_id: Optional[int]
 
-    def check(self, payload: discord.RawReactionActionEvent) -> bool:
+    def __init__(self, bot: haruka.Haruka, allowed_emojis: Tuple[str, ...]) -> None:
+        self.bot = bot
+        self.allowed_emojis = allowed_emojis
+
+        self.message = None
+        self.__user_id = None
+
+    @property
+    def user_id(self) -> Optional[int]:
+        return self.__user_id
+
+    @user_id.setter
+    def user_id(self, value: int) -> None:
+        try:
+            self.__user_id = int(value)
+        except ValueError as exc:
+            raise ValueError(f"Cannot cannot convert {repr(value)} to int") from exc
+
+    def check(self, reaction: discord.Reaction, user: discord.User) -> bool:
         if self.user_id is not None:
-            return self.message.id == payload.message_id and payload.user_id == self.user_id and str(payload.emoji) in self.allowed_emojis
+            return reaction.message.id == self.message.id and str(reaction) in self.allowed_emojis and user.id == self.user_id
         else:
-            return self.message.id == payload.message_id and not payload.user_id == bot.user.id and str(payload.emoji) in self.allowed_emojis
+            return reaction.message.id == self.message.id and str(reaction) in self.allowed_emojis and not user.bot
 
-    async def timeout(self, pending: Optional[Set[Union[asyncio.Future, asyncio.Task]]] = None) -> None:
-        """This function is a coroutine
-
-        This is called when the interaction times out to ensure
-        proper cleanup.
-        """
-        if pending:
-            for task in pending:
-                if not task.done():
-                    task.cancel()
-
+    async def timeout(self) -> None:
         with contextlib.suppress(discord.HTTPException):
             await self.message.edit("This message has timed out.")
             await self.message.clear_reactions()
@@ -69,14 +85,12 @@ class Pagination(EmojiUI):
     if TYPE_CHECKING:
         pages: List[discord.Embed]
 
-    def __init__(self, pages: List[discord.Embed]) -> None:
+    def __init__(self, bot: haruka.Haruka, pages: List[discord.Embed]) -> None:
+        super().__init__(bot, CHOICES[:len(self.pages)])
         self.pages = pages
 
         if len(self.pages) > 6:
             raise ValueError("Number of pages exceeded the limit of 6.")
-
-        self.message = None
-        self.allowed_emojis = CHOICES[:len(self.pages)]
 
     async def send(self, target: discord.abc.Messageable, *, user_id: Optional[int] = None) -> None:
         """This function is a coroutine
@@ -92,7 +106,7 @@ class Pagination(EmojiUI):
         user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
-            this bot itself.
+            bot users.
         """
         self.message = await target.send(embed=self.pages[0])
         self.user_id = user_id
@@ -102,20 +116,21 @@ class Pagination(EmojiUI):
 
         while True:
             done, pending = await asyncio.wait([
-                bot.wait_for("raw_reaction_add", check=self.check),
-                bot.wait_for("raw_reaction_remove", check=self.check),
+                self.bot.wait_for("reaction_add", check=self.check),
+                self.bot.wait_for("reaction_remove", check=self.check),
             ],
                 timeout=300.0,
                 return_when=asyncio.FIRST_COMPLETED,
             )
 
             if done:
-                payload = done.pop().result()
-                page = self.allowed_emojis.index(str(payload.emoji))
+                reaction, _ = done.pop().result()
+                page = self.allowed_emojis.index(str(reaction))
                 await self.message.edit(embed=self.pages[page])
                 await asyncio.sleep(1.0)
             else:
-                return await self.timeout(pending)
+                cancel_tasks(pending)
+                return await self.timeout()
 
 
 class RandomPagination(EmojiUI):
@@ -135,10 +150,9 @@ class RandomPagination(EmojiUI):
     if TYPE_CHECKING:
         pages: List[discord.Embed]
 
-    def __init__(self, pages: List[discord.Embed]) -> None:
+    def __init__(self, bot: haruka.Haruka, pages: List[discord.Embed]) -> None:
+        super().__init__(bot, ("🔄",))
         self.pages = pages
-        self.message = None
-        self.allowed_emojis = ("🔄",)
 
     async def send(self, target: discord.abc.Messageable, *, user_id: Optional[int] = None) -> None:
         """This function is a coroutine
@@ -154,7 +168,7 @@ class RandomPagination(EmojiUI):
         user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
-            this bot itself.
+            bot users.
         """
         self.user_id = user_id
 
@@ -171,15 +185,16 @@ class RandomPagination(EmojiUI):
                 await self.message.add_reaction("🔄")
 
             done, pending = await asyncio.wait([
-                bot.wait_for("raw_reaction_add", check=self.check),
-                bot.wait_for("raw_reaction_remove", check=self.check),
+                self.bot.wait_for("reaction_add", check=self.check),
+                self.bot.wait_for("reaction_remove", check=self.check),
             ],
                 timeout=300.0,
                 return_when=asyncio.FIRST_COMPLETED,
             )
 
             if not done:
-                return await self.timeout(pending)
+                cancel_tasks(pending)
+                return await self.timeout()
 
 
 class NavigatorPagination(EmojiUI):
@@ -201,10 +216,9 @@ class NavigatorPagination(EmojiUI):
     if TYPE_CHECKING:
         pages: List[discord.Embed]
 
-    def __init__(self, pages: List[discord.Embed]) -> None:
+    def __init__(self, bot: haruka.Haruka, pages: List[discord.Embed]) -> None:
+        super().__init__(bot, NAVIGATOR[:])
         self.pages = pages
-        self.message = None
-        self.allowed_emojis = NAVIGATOR[:]
 
     async def send(self, target: discord.abc.Messageable, *, user_id: Optional[int] = None) -> None:
         """This function is a coroutine
@@ -220,7 +234,7 @@ class NavigatorPagination(EmojiUI):
         user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
-            this bot itself.
+            bot users.
         """
         self.message = await target.send(embed=self.pages[0])
         self.user_id = user_id
@@ -231,16 +245,16 @@ class NavigatorPagination(EmojiUI):
 
         while True:
             done, pending = await asyncio.wait([
-                bot.wait_for("raw_reaction_add", check=self.check),
-                bot.wait_for("raw_reaction_remove", check=self.check),
+                self.bot.wait_for("reaction_add", check=self.check),
+                self.bot.wait_for("reaction_remove", check=self.check),
             ],
                 timeout=300.0,
                 return_when=asyncio.FIRST_COMPLETED,
             )
 
             if done:
-                payload = done.pop().result()
-                action = self.allowed_emojis.index(str(payload.emoji))
+                reaction, _ = done.pop().result()
+                action = self.allowed_emojis.index(str(reaction))
 
                 if action == 0:
                     if page > 0:
@@ -257,7 +271,8 @@ class NavigatorPagination(EmojiUI):
                 await self.message.edit(embed=self.pages[page])
                 await asyncio.sleep(1.0)
             else:
-                return await self.timeout(pending)
+                cancel_tasks(pending)
+                return await self.timeout()
 
 
 class SelectMenu(EmojiUI):
@@ -270,23 +285,22 @@ class SelectMenu(EmojiUI):
     message: ``discord.Message``
         The message used to interact.
 
-    nargs: ``int``
+    args_count: ``int``
         The number of options.
     """
 
-    __slots__ = ("nargs",)
+    __slots__ = ("args_count",)
     if TYPE_CHECKING:
-        nargs: int
-        message: discord.Message
+        args_count: int
 
-    def __init__(self, message: discord.Message, nargs: int) -> None:
-        self.nargs = nargs
+    def __init__(self, bot: haruka.Haruka, message: discord.Message, args_count: int) -> None:
+        self.args_count = args_count
 
-        if self.nargs > 6:
+        if self.args_count > 6:
             raise ValueError("Number of options exceeded the limit of 6")
 
+        super().__init__(bot, CHOICES[:self.args_count])
         self.message = message
-        self.allowed_emojis = CHOICES[:self.nargs]
 
     async def listen(self, user_id: int) -> Optional[int]:
         """This function is a coroutine
@@ -311,15 +325,14 @@ class SelectMenu(EmojiUI):
             await self.message.add_reaction(emoji)
 
         try:
-            payload = await bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
+            reaction, _ = await self.bot.wait_for("reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
-            await self.timeout()
-            return
+            return await self.timeout()
         else:
             with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()
 
-            choice = self.allowed_emojis.index(str(payload.emoji))
+            choice = self.allowed_emojis.index(str(reaction))
             return choice
 
 
@@ -327,9 +340,9 @@ class YesNoSelection(EmojiUI):
 
     __slots__ = ()
 
-    def __init__(self, message: discord.Message) -> None:
+    def __init__(self, bot: haruka.Haruka, message: discord.Message) -> None:
+        super().__init__(bot, CHECKER[:])
         self.message = message
-        self.allowed_emojis = CHECKER
 
     async def listen(self, user_id: Optional[int] = None) -> Optional[bool]:
         self.user_id = user_id
@@ -337,13 +350,12 @@ class YesNoSelection(EmojiUI):
             await self.message.add_reaction(emoji)
 
         try:
-            payload = await bot.wait_for("raw_reaction_add", check=self.check, timeout=300.0)
+            reaction, _ = await self.bot.wait_for("reaction_add", check=self.check, timeout=300.0)
         except asyncio.TimeoutError:
-            await self.timeout()
-            return
+            return await self.timeout()
         else:
             with contextlib.suppress(discord.HTTPException):
                 await self.message.delete()
 
-            choice = self.allowed_emojis.index(str(payload.emoji))
+            choice = self.allowed_emojis.index(str(reaction))
             return choice == 1

@@ -40,7 +40,7 @@ class WebApp(web.Application):
         self.logfile.write(f"SERVER: {content}\n")
         self.logfile.flush()
 
-    async def report_error(self, error: Exception) -> None:
+    async def report_error(self, error: BaseException) -> None:
         self.log("An exception occured while running server.")
         self.log("".join(traceback.format_exception(error.__class__, error, error.__traceback__)))
         await self.bot.report("An exception has just occured in the `server` module", send_state=False)

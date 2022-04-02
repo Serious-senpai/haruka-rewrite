@@ -1,0 +1,6 @@
+import aiohttp
+
+
+TIMEOUT = aiohttp.ClientTimeout(total=15)
+with open("./bot/assets/misc/iv_instances.txt", "r", encoding="utf-8") as f:
+    INVIDIOUS_URLS = ["https://" + instance.strip("\n") for instance in f.readlines()]

@@ -4,10 +4,8 @@ from typing import List
 import aiohttp
 from bs4 import BeautifulSoup
 
-from core import bot
 
-
-async def search(query: str, *, max_results: int = 200) -> List[str]:
+async def search(query: str, *, max_results: int = 200, session: aiohttp.ClientSession) -> List[str]:
     """This function is a coroutine
 
     Search danbooru for a list of image URLs.
@@ -18,6 +16,8 @@ async def search(query: str, *, max_results: int = 200) -> List[str]:
         The searching query
     max_results: ``int``
         The maximum number of results to return
+    session: ``aiohttp.ClientSession``
+        The session to perform the request
 
     Returns
     List[``str``]
@@ -28,14 +28,15 @@ async def search(query: str, *, max_results: int = 200) -> List[str]:
     page = 0
 
     with contextlib.suppress(aiohttp.ClientError):
-        while page := page + 1:
+        while True:
+            page += 1
             ext = []
             params = {
                 "page": page,
                 "tags": query,
             }
 
-            async with bot.session.get(url, params=params) as response:
+            async with session.get(url, params=params) as response:
                 if response.ok:
                     html = await response.text(encoding="utf-8")
                     soup = BeautifulSoup(html, "html.parser")

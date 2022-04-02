@@ -3,9 +3,9 @@ import random
 import discord
 from discord import app_commands
 
-import _zerochan
 from _types import Interaction
 from core import bot
+from lib import zerochan
 
 
 @bot.slash(
@@ -15,7 +15,7 @@ from core import bot
 @app_commands.describe(query="The searching query")
 async def _zerochan_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
-    urls = await _zerochan.search(query, max_results=20)
+    urls = await zerochan.search(query, max_results=20, session=bot.session)
     if not urls:
         return await interaction.followup.send("No matching result was found.")
 

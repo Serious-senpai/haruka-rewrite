@@ -2,9 +2,9 @@ import random
 
 from discord.ext import commands
 
-import utils
 from _types import Context
 from core import bot
+from lib import utils
 
 
 exceptions = tuple(utils.get_all_subclasses(Exception))

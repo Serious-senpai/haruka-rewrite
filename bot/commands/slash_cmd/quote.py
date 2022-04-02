@@ -2,9 +2,9 @@ from typing import Optional
 
 from discord import app_commands
 
-import leech
 from _types import Interaction
 from core import bot
+from lib import leech
 
 
 @bot.slash(

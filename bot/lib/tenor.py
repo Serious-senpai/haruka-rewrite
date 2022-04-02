@@ -1,12 +1,11 @@
 from typing import List
 
+import aiohttp
 import yarl
 from bs4 import BeautifulSoup
 
-from core import bot
 
-
-async def search(query: str) -> List[str]:
+async def search(query: str, *, session: aiohttp.ClientSession) -> List[str]:
     """This function is a coroutine
 
     Search for image URLs from tenor
@@ -23,7 +22,7 @@ async def search(query: str) -> List[str]:
     """
     url = yarl.URL.build(scheme="https", host="tenor.com", path=f"/search/{query}")
     ret = []
-    async with bot.session.get(url) as response:
+    async with session.get(url) as response:
         if response.ok:
             html = await response.text(encoding="utf-8")
             soup = BeautifulSoup(html, "html.parser")

@@ -1,6 +1,5 @@
 from discord.ext import commands
 
-import audio
 from _types import Context
 from core import bot
 
@@ -10,11 +9,11 @@ from core import bot
     description="Rotate the music queue so that the song at the specified index becomes the first.\nExample: `rotate 3`: `1 2 3 4 5 6` -> `3 4 5 6 1 2`",
     usage="rotate <index>",
 )
-@audio.in_voice()
+@bot.audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _rotate_cmd(ctx: Context, index: int):
     channel_id = ctx.author.voice.channel.id
-    queue = await audio.MusicClient.queue(channel_id)
+    queue = await bot.audio.queue(channel_id)
     length = len(queue)
 
     if length == 0:

@@ -9,6 +9,7 @@
 /bot/assets/server/ssh.txt
 
 /.idea
+/.mypy_cache
 /server
 /tracks
 /venv

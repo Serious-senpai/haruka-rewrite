@@ -1,14 +1,23 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Dict, Generic, Literal, List, Optional, Type, TypeVar, Union, TYPE_CHECKING
+from typing import (
+    overload,
+    Generic,
+    Literal,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+    TYPE_CHECKING,
+)
 
+import aiohttp
 import bs4
 import discord
 from bs4 import BeautifulSoup as bs
 from discord.utils import escape_markdown as escape
-
-from core import bot
 
 
 T = TypeVar("T")
@@ -44,9 +53,9 @@ class MALObject(MAL, Generic[T]):
         synopsis: Optional[str]
         genres: List[str]
 
-    def __init__(self, id: int, soup: bs4.BeautifulSoup) -> None:
+    def __init__(self, id: Union[int, str], soup: bs4.BeautifulSoup) -> None:
         super().__init__(soup)
-        self.id = id
+        self.id = int(id)
         self.url = f"https://myanimelist.net/{self.__class__.__name__.lower()}/{self.id}"
         self.title = self.soup.find(name="meta", attrs={"property": "og:title"}).get("content")
 
@@ -81,13 +90,21 @@ class MALObject(MAL, Generic[T]):
         __genres = self.soup.find_all(name="span", attrs={"itemprop": "genre"})
         self.genres = [genre.get_text() for genre in __genres]
 
-    def data(self, category: str, cls: Type[T] = str) -> Optional[T]:
+    @overload
+    def data(self, category: str, cls: Type[T]) -> Optional[T]:
+        ...
+
+    @overload
+    def data(self, category: str) -> Optional[str]:
+        ...
+
+    def data(self, category, cls=str):
         with contextlib.suppress(AttributeError, ValueError):
             obj = self.soup.find(
                 name="span",
                 string=category,
             ).parent
-            _ = obj.span.extract()
+            obj.span.extract()
             return cls(obj.get_text(strip=True))
 
     def __repr__(self) -> str:
@@ -129,12 +146,13 @@ class MALSearchResult(MAL):
         cls: Type[MALSearchResult],
         query: str,
         *,
-        criteria: Literal["manga, anime"],
+        criteria: Literal["manga", "anime"],
+        session: aiohttp.ClientSession
     ) -> List[MALSearchResult]:
         rslt = []
         url = f"https://myanimelist.net/{criteria}.php"
 
-        async with bot.session.get(url, params={"q": query}) as response:
+        async with session.get(url, params={"q": query}) as response:
             if response.status == 200:
                 html = await response.text(encoding="utf-8")
                 soup = bs(html, "html.parser")
@@ -156,9 +174,9 @@ class Anime(MALObject):
     __slots__ = ()
 
     @classmethod
-    async def get(cls: Type[Anime], id: Union[int, str]) -> Anime:
+    async def get(cls: Type[Anime], id: Union[int, str], *, session: aiohttp.ClientSession) -> Anime:
         url = f"https://myanimelist.net/anime/{id}"
-        async with bot.session.get(url) as response:
+        async with session.get(url) as response:
             if response.ok:
                 html = await response.text(encoding="utf-8")
                 soup = bs(html, "html.parser")
@@ -221,9 +239,9 @@ class Manga(MALObject):
     __slots__ = ()
 
     @classmethod
-    async def get(cls: Type[Manga], id: int) -> Manga:
+    async def get(cls: Type[Manga], id: Union[int, str], *, session: aiohttp.ClientSession) -> Manga:
         url = f"https://myanimelist.net/manga/{id}"
-        async with bot.session.get(url) as response:
+        async with session.get(url) as response:
             if response.status == 200:
                 html = await response.text(encoding="utf-8")
                 soup = bs(html, "html.parser")

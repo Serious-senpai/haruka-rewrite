@@ -1,10 +1,9 @@
 import discord
 from discord.ext import commands
 
-import _tenor
-import emoji_ui
 from _types import Context
 from core import bot
+from lib import emoji_ui, tenor
 
 
 @bot.command(
@@ -14,7 +13,7 @@ from core import bot
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def _tenor_cmd(ctx: Context, *, query: str):
-    urls = await _tenor.search(query)
+    urls = await tenor.search(query, session=bot.session)
 
     if not urls:
         return await ctx.send("No matching result was found.")
@@ -31,5 +30,5 @@ async def _tenor_cmd(ctx: Context, *, query: str):
         embed.set_footer(text=f"Result {index + 1}/{no_results}")
         embeds.append(embed)
 
-    display = emoji_ui.NavigatorPagination(embeds)
+    display = emoji_ui.NavigatorPagination(bot, embeds)
     await display.send(ctx.channel)

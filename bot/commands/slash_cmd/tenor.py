@@ -3,9 +3,9 @@ import random
 import discord
 from discord import app_commands
 
-import _tenor
 from _types import Interaction
 from core import bot
+from lib import tenor
 
 
 @bot.slash(
@@ -15,7 +15,7 @@ from core import bot
 @app_commands.describe(query="The searching query")
 async def _tenor_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
-    urls = await _tenor.search(query)
+    urls = await tenor.search(query, session=bot.session)
     if not urls:
         return await interaction.followup.send("No matching result was found.")
 

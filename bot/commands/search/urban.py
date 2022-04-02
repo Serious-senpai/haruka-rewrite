@@ -1,9 +1,8 @@
-import discord
 from discord.ext import commands
 
-import _urban
 from _types import Context
 from core import bot
+from lib import urban
 
 
 @bot.command(
@@ -13,7 +12,7 @@ from core import bot
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _urban_cmd(ctx: Context, *, query: str):
-    result = await _urban.UrbanSearch.search(query)
+    result = await urban.UrbanSearch.search(query, session=bot.session)
     if result:
         embed = result.create_embed()
         embed.set_author(

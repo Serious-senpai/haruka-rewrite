@@ -10,8 +10,8 @@ import aiohttp
 from yarl import URL
 from bs4 import BeautifulSoup
 
-import utils
 from env import HOST
+from lib import utils
 if TYPE_CHECKING:
     import haruka
 
@@ -21,20 +21,22 @@ class AssetClient:
     local machine.
     """
 
+    __slots__ = ("_ready", "bot", "anime_images_fetch", "files")
     directory: ClassVar[str] = "./bot/assets/server/images"
     if TYPE_CHECKING:
         _ready: asyncio.Event
         bot: haruka.Haruka
         anime_images_fetch: bool
         files: List[str]
-        session: aiohttp.ClientSession
 
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot = bot
-        self.session = bot.session
-
         self._ready = asyncio.Event()
         self.anime_images_fetch = False
+
+    @property
+    def session(self) -> aiohttp.ClientSession:
+        return self.bot.session
 
     def log(self, content: str) -> None:
         self.bot.log("ASSET CLIENT: " + content)

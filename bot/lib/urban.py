@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 import contextlib
-import traceback
 from typing import Optional, Type, TYPE_CHECKING
 
 import aiohttp
 import bs4
 import discord
 from discord.utils import escape_markdown as escape
-
-from core import bot
 
 
 class UrbanSearch:
@@ -56,11 +53,11 @@ class UrbanSearch:
         return f"<UrbanSearch title={self.title} meaning={self.meaning[:50]}>"
 
     @classmethod
-    async def search(cls: Type[UrbanSearch], word: str) -> Optional[UrbanSearch]:
+    async def search(cls: Type[UrbanSearch], word: str, *, session: aiohttp.ClientSession) -> Optional[UrbanSearch]:
         url = "https://www.urbandictionary.com/define.php"
         for _ in range(10):
             try:
-                async with bot.session.get(url, params={"term": word}) as response:
+                async with session.get(url, params={"term": word}) as response:
                     if response.status == 200:
                         html = await response.text(encoding="utf-8")
                         html = html.replace("<br/>", "\n").replace("\r", "\n")
@@ -79,11 +76,9 @@ class UrbanSearch:
                             obj = soup.find(name="div", attrs={"class": "example"})
                             example = "\n".join(i for i in obj.get_text().split("\n") if len(i) > 0)
 
-                        return cls(title, meaning, example, response.url)
+                        return cls(title, meaning, example, str(response.url))
                     else:
                         return
 
             except aiohttp.ClientError:
-                bot.log(traceback.format_exc())
-                await bot.report("An `aiohttp.ClientError` exception has just occurred from `urban` module.", send_state=False)
-                continue
+                pass

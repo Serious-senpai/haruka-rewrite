@@ -6,9 +6,9 @@ from os import path
 import discord
 from discord.ext import commands
 
-import utils
 from _types import Context
 from core import bot
+from lib import utils
 
 
 INDENT = " " * 4

@@ -63,9 +63,8 @@ async def _chat_history_endpoint(request: WebRequest) -> web.Response:
 @routes.get("/chat/messages")
 async def _chat_messages_get_endpoint(request: WebRequest) -> web.Response:
     try:
-        message_id = request.query.get("id")
-        message_id = int(message_id)
-    except ValueError:
+        message_id = int(request.query["id"])
+    except (KeyError, ValueError):
         raise web.HTTPBadRequest
 
     await http_authentication(request)
@@ -79,9 +78,8 @@ async def _chat_messages_get_endpoint(request: WebRequest) -> web.Response:
 @routes.delete("/chat/messages")
 async def _chat_messages_delete_endpoint(request: WebRequest) -> web.Response:
     try:
-        message_id = request.query.get("id")
-        message_id = int(message_id)
-    except ValueError:
+        message_id = int(request.query["id"])
+    except (KeyError, ValueError):
         raise web.HTTPBadRequest
 
     username = await http_authentication(request)

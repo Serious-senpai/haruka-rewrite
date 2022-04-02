@@ -3,11 +3,10 @@ from __future__ import annotations
 import contextlib
 from typing import List, Optional, Type, TYPE_CHECKING
 
+import aiohttp
 import bs4
 import discord
 from discord.utils import escape_markdown as escape
-
-from core import bot
 
 
 class SauceResult:
@@ -67,7 +66,7 @@ class SauceResult:
         return embed
 
     @classmethod
-    async def get_sauce(cls: Type[SauceResult], url: str) -> List[SauceResult]:
+    async def get_sauce(cls: Type[SauceResult], url: str, *, session: aiohttp.ClientSession) -> List[SauceResult]:
         """This function is a coroutine
 
         Get the sauce for an image from its URL
@@ -83,7 +82,7 @@ class SauceResult:
             A list of searched results from saucenao, sorted by similarity
         """
         ret = []
-        async with bot.session.post("https://saucenao.com/search.php", data={"url": url}) as response:
+        async with session.post("https://saucenao.com/search.php", data={"url": url}) as response:
             if response.ok:
                 html = await response.text(encoding="utf-8")
                 soup = bs4.BeautifulSoup(html, "html.parser")

@@ -14,7 +14,6 @@ from typing import (
     Set,
     Tuple,
     Type,
-    TypeVar,
     Union,
     TYPE_CHECKING,
 )
@@ -24,9 +23,6 @@ import yarl
 
 if TYPE_CHECKING:
     import haruka
-
-
-IT = TypeVar("IT", bound="ImageSource")
 
 
 class CategoryNotFound(Exception):
@@ -283,7 +279,7 @@ class Asuna(ImageSource):
 
     async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
         sfw = set(["hug", "kiss", "neko", "pat", "slap", "fox"])
-        nsfw = set()
+        nsfw = set()  # type: ignore
 
         try:
             async with self.session.get(self.endpoints_url) as response:
@@ -319,7 +315,7 @@ class Asuna(ImageSource):
         return "asuna.ga"
 
 
-class ImageClient(Generic[IT]):
+class ImageClient:
     """Represents a client that is used to interact with all
     ImageSource objects.
 
@@ -343,28 +339,29 @@ class ImageClient(Generic[IT]):
         "log",
         "sfw",
         "nsfw",
-        "session",
         "sources",
     )
     if TYPE_CHECKING:
         _ready: asyncio.Event
-        session: aiohttp.ClientSession
-        sources: Tuple[Type[IT]]
-        sfw: Dict[str, List[IT]]
-        nsfw: Dict[str, List[IT]]
+        sources: Tuple[Type[ImageSource]]
+        sfw: Dict[str, List[ImageSource]]
+        nsfw: Dict[str, List[ImageSource]]
 
-    def __init__(self, bot: haruka.Haruka, *sources: Tuple[Type[IT]]) -> None:
+    def __init__(self, bot: haruka.Haruka) -> None:
         self._ready = asyncio.Event()
         self.log = bot.log
-        self.session = bot.session
-        self.sources = sources
-        asyncio.create_task(self._load())
+        self.sources = (WaifuPics, WaifuIm, NekosLife, Asuna)  # type: ignore
 
-    async def _load(self) -> None:
+    @property
+    def session(self) -> aiohttp.ClientSession:
+        return self.bot.session
+
+    async def prepare(self) -> None:
         """This function is a coroutine
 
         Register all image categories that this client can listen to.
-        This method is scheduled right when this class is initialized.
+
+        This method must be called before any other operations.
         """
         self.sfw = {}
         self.nsfw = {}
@@ -375,7 +372,7 @@ class ImageClient(Generic[IT]):
         self.log(f"Loaded {len(self.sources)} ImageSource objects.")
         self._ready.set()
 
-    async def _register(self, source: IT) -> None:
+    async def _register(self, source: ImageSource) -> None:
         """This function is a coroutine
 
         Register all endpoints that a ``ImageSource`` can listen
@@ -486,4 +483,4 @@ class ImageClient(Generic[IT]):
         else:
             source = random.choice(self.nsfw[category])
 
-        return str(source), source.get_url(category, mode=mode)
+        return str(source), str(source.get_url(category, mode=mode))

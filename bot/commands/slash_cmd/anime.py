@@ -3,10 +3,9 @@ import asyncio
 import discord
 from discord import app_commands
 
-import mal
-import ui
 from _types import Interaction
 from core import bot
+from lib import mal, ui
 
 
 @bot.slash(
@@ -19,7 +18,7 @@ async def _anime_slash(interaction: Interaction, query: str):
     if len(query) < 3:
         return await interaction.followup.send("Please provide at least 3 characters in the searching query.")
 
-    results = await mal.MALSearchResult.search(query, criteria="anime")
+    results = await mal.MALSearchResult.search(query, criteria="anime", session=bot.session)
     if not results:
         return await interaction.followup.send("No matching result was found.")
 
@@ -35,7 +34,7 @@ async def _anime_slash(interaction: Interaction, query: str):
     except asyncio.TimeoutError:
         return
     else:
-        anime = await mal.Anime.get(id)
+        anime = await mal.Anime.get(id, session=bot.session)
 
     embed = anime.create_embed()
     embed.set_author(

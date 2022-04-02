@@ -1,7 +1,6 @@
 import discord
 from discord.utils import escape_markdown as escape
 
-
 from _types import Guild
 
 

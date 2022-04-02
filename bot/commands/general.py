@@ -6,12 +6,10 @@ import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
-import _info
-import emoji_ui
 import env
-import utils
-from core import bot, prefix
 from _types import Context
+from core import bot, prefix
+from lib import emoji_ui, info, utils
 
 
 @bot.command(
@@ -20,7 +18,7 @@ from _types import Context
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _about_cmd(ctx: Context):
-    embed = _info.user_info(bot.user)
+    embed = info.user_info(bot.user)
     embed.description += "\nIf you are too bored, [vote](https://top.gg/bot/848178172536946708/vote) for me on top.gg!"
     embed.add_field(
         name="Latest commits from the `main` branch",
@@ -52,7 +50,7 @@ async def _about_cmd(ctx: Context):
 async def _info_cmd(ctx: Context, *, user: discord.User = None):
     if user is None:
         user = ctx.author
-    info_em = _info.user_info(user)
+    info_em = info.user_info(user)
     await ctx.send(embed=info_em)
 
 
@@ -155,7 +153,7 @@ async def _avatar_cmd(ctx: Context, *, user: discord.User = None):
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _svinfo_cmd(ctx: Context):
-    sv_em = _info.server_info(ctx.guild)
+    sv_em = info.server_info(ctx.guild)
     await ctx.send(embed=sv_em)
 
 
@@ -182,7 +180,8 @@ async def _emoji_cmd(ctx: Context):
         embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else None)
         embed.set_footer(text=f"Showing page {page + 1}/{pages}")
         embeds.append(embed)
-    display = emoji_ui.NavigatorPagination(embeds)
+
+    display = emoji_ui.NavigatorPagination(bot, embeds)
     await display.send(ctx.channel)
 
 
@@ -209,7 +208,7 @@ async def _remind_cmd(ctx: Context, hours: int, minutes: int, *, content: str):
         f"INSERT INTO remind VALUES ('{ctx.author.id}', $1, $2, $3, $4);",
         time, content, ctx.message.jump_url, now,
     )
-    bot.task.remind.restart()
+    bot.reminder.restart()
 
     embed = discord.Embed()
     embed.add_field(

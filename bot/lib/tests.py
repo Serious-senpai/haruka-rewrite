@@ -1,12 +1,15 @@
+from __future__ import annotations
+
 import asyncio
 from typing import TYPE_CHECKING
 
-import _nhentai
-import _pixiv
-import _urban
-import audio
-import mal
-from core import bot
+from .audio import InvidiousSource
+from .mal import Anime, Manga
+from .nhentai import NHentai
+from .pixiv import PixivArtwork
+from .urban import UrbanSearch
+if TYPE_CHECKING:
+    import haruka
 
 
 NHENTAI_TESTS = (177013,)
@@ -44,62 +47,62 @@ class MiniInvidiousObject:
         self.id = id
 
 
-async def nhentai_test() -> str:
+async def nhentai_test(bot: haruka.Haruka) -> str:
     content = make_title("NHENTAI TESTS")
     for id in NHENTAI_TESTS:
-        doujin = await _nhentai.NHentai.get(id)
+        doujin = await NHentai.get(id, session=bot.session)
         content += f"Finished NHentai test for ID {id}: {doujin}\n"
 
     return content
 
 
-async def pixiv_test() -> str:
+async def pixiv_test(bot: haruka.Haruka) -> str:
     content = make_title("PIXIV TESTS")
     for id in PIXIV_TESTS:
-        artwork = await _pixiv.PixivArtwork.from_id(id, session=bot.session)
+        artwork = await PixivArtwork.from_id(id, session=bot.session)
         content += f"Finished Pixiv test for ID {id}: {artwork}\n"
 
     return content
 
 
-async def urban_test() -> str:
+async def urban_test(bot: haruka.Haruka) -> str:
     content = make_title("URBAN TESTS")
     for term in URBAN_TESTS:
-        result = await _urban.UrbanSearch.search(term)
+        result = await UrbanSearch.search(term, session=bot.session)
         content += f"Finished Urban test for term \"{term}\": {result}\n"
 
     return content
 
 
-async def ytdl_test() -> str:
+async def ytdl_test(bot: haruka.Haruka) -> str:
     content = make_title("YOUTUBEDL TESTS")
     for id in YTDL_TESTS:
         track = MiniInvidiousObject(id)
-        ytdl_result = await audio.InvidiousSource.get_source(track, ignore_error=True)
+        ytdl_result = await InvidiousSource.get_source(track, client=bot.audio, ignore_error=True)  # type: ignore
         content += f"Finished youtube-dl test for ID {id}: {ytdl_result}\n"
 
     return content
 
 
-async def anime_test() -> str:
+async def anime_test(bot: haruka.Haruka) -> str:
     content = make_title("ANIME TESTS")
     for id in ANIME_TESTS:
-        anime = await mal.Anime.get(id)
+        anime = await Anime.get(id, session=bot.session)
         content += f"Finished Anime test for ID {id}: {anime}\n"
 
     return content
 
 
-async def manga_test() -> str:
+async def manga_test(bot: haruka.Haruka) -> str:
     content = make_title("MANGA TESTS")
     for id in MANGA_TESTS:
-        manga = await mal.Manga.get(id)
+        manga = await Manga.get(id, session=bot.session)
         content += f"Finished Manga test for ID {id}: {manga}\n"
 
     return content
 
 
-async def image_test() -> str:
+async def image_test(bot: haruka.Haruka) -> str:
     await bot.image.wait_until_ready()
     checked = []
     content = make_title("IMAGE TESTS")
@@ -116,15 +119,15 @@ async def image_test() -> str:
     return content
 
 
-async def run_all_tests() -> None:
+async def run_all_tests(bot: haruka.Haruka) -> None:
     logs = await asyncio.gather(
-        nhentai_test(),
-        pixiv_test(),
-        urban_test(),
-        ytdl_test(),
-        anime_test(),
-        manga_test(),
-        image_test(),
+        nhentai_test(bot),
+        pixiv_test(bot),
+        urban_test(bot),
+        ytdl_test(bot),
+        anime_test(bot),
+        manga_test(bot),
+        image_test(bot),
     )
     bot.log("\n".join(logs))
     await bot.report("Completed all tests", send_state=False)

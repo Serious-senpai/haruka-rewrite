@@ -5,7 +5,7 @@ import io
 import signal
 import sys
 import traceback
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Deque, Dict, List, Optional, Union, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -17,18 +17,18 @@ from discord.ext import commands, tasks
 from discord.state import ConnectionState
 from discord.utils import escape_markdown as escape
 
-import _image
-import asset
 import env
-import task
 import web as server
 from _types import Context, Interaction
+from lib import asset, tests
+from lib.audio import AudioClient
+from lib.image import ImageClient
 
 
 if TYPE_CHECKING:
     class _ConnectionState(ConnectionState):
         conn: asyncpg.Pool
-        task: task.TaskManager
+        _messages: Deque[discord.Message]
 
 
 class Haruka(commands.Bot):
@@ -41,8 +41,9 @@ class Haruka(commands.Bot):
 
         app: server.WebApp
         asset_client: asset.AssetClient
+        audio: AudioClient
         conn: asyncpg.Pool
-        image: _image.ImageClient[_image.ImageSource]
+        image: ImageClient
         logfile: io.TextIOWrapper
         owner: Optional[discord.User]
         owner_bypass: bool
@@ -69,6 +70,22 @@ class Haruka(commands.Bot):
         self._clear_counter()
         self.slash = self.tree.command
 
+        self.__initialize_clients()
+
+    def __initialize_clients(self) -> None:
+        self.asset_client = asset.AssetClient(self)
+        self.image = ImageClient(self)
+        self.audio = AudioClient(self)
+
+        if env.TOPGG_TOKEN:
+            self.topgg = topgg.DBLClient(
+                self,
+                env.TOPGG_TOKEN,
+                autopost=True,
+                autopost_interval=900,
+                session=self.session,
+            )
+
     def _clear_counter(self) -> None:
         """Clear the text command and slash command counter"""
         self._command_count = {}
@@ -88,14 +105,8 @@ class Haruka(commands.Bot):
         )
         self.log("Created side session")
 
-        # Load image client
-        self.image = _image.ImageClient(
-            self,
-            _image.WaifuPics,
-            _image.WaifuIm,
-            _image.NekosLife,
-            _image.Asuna,
-        )
+        # Prepare image client
+        await self.image.prepare()
         self.log("Loaded image client")
 
         # Start server asynchronously
@@ -143,7 +154,7 @@ class Haruka(commands.Bot):
 
     async def reset_inactivity_counter(self, guild_id: Union[int, str]) -> None:
         await self.conn.execute(f"UPDATE inactivity SET time = $1 WHERE id = '{guild_id}';", discord.utils.utcnow())
-        self.task.leave.restart()
+        self.guild_leaver.restart()
 
     async def _change_activity_after_booting(self) -> None:
         await asyncio.sleep(20.0)
@@ -155,13 +166,10 @@ class Haruka(commands.Bot):
         await self.__do_startup()
 
     async def __do_startup(self) -> None:
-        import tests
-
         # Start tests
-        test_running_task = self.loop.create_task(tests.run_all_tests(), name="Startup tests")
+        test_running_task = self.loop.create_task(tests.run_all_tests(self), name="Startup tests")
 
         # Fetch anime images
-        self.asset_client = asset.AssetClient(self)
         image_fetching_task = self.loop.create_task(self.asset_client.fetch_anime_images(), name="Startup image fetching")
 
         # Get bot owner
@@ -183,29 +191,15 @@ class Haruka(commands.Bot):
                 await self.conn.execute(f"INSERT INTO inactivity VALUES ('{guild.id}', $1);", now)
         self.log("Initialized all guild inactivity checks")
 
-        # Load task manager
-        self.task = task.TaskManager(self)
-        self._connection.task = self.task
-        self.log("Loaded task manager.")
-
-        # Keep the server alive
-        try:
-            self._keep_alive.start()
-        except BaseException:
-            self.log("An exception occured when starting _keep_alive:")
-            self.log(traceback.format_exc())
-        else:
-            self.log("Started _keep_alive task")
-
-        # Post server count every 15 minutes
-        if env.TOPGG_TOKEN:
-            self.topgg = topgg.DBLClient(
-                self,
-                env.TOPGG_TOKEN,
-                autopost=True,
-                autopost_interval=900,
-                session=self.session,
-            )
+        # Start all future tasks
+        for task in (self._keep_alive, self.reminder, self.guild_leaver):
+            try:
+                task.start()
+            except BaseException:
+                self.log(f"An exception occured when starting {task}:")
+                self.log(traceback.format_exc())
+            else:
+                self.log(f"Started {task}")
 
         # Fetch repository's latest commits
         async with self.session.get("https://api.github.com/repos/Serious-senpai/haruka-rewrite/commits") as response:
@@ -267,8 +261,8 @@ class Haruka(commands.Bot):
         if self.owner is not None:
             await self.owner.send(
                 message,
-                embed=self.display_status if send_state else None,
-                file=discord.File("./bot/assets/server/log.txt") if send_log else None,
+                embed=self.display_status if send_state else None,  # type: ignore
+                file=discord.File("./bot/assets/server/log.txt") if send_log else None,  # type: ignore
             )
 
     @property
@@ -330,14 +324,66 @@ class Haruka(commands.Bot):
 
     @tasks.loop(minutes=5)
     async def _keep_alive(self) -> None:
-        asyncio.current_task().set_name("KeepServerAlive")
+        asyncio.current_task().set_name("KeepServerAlive")  # type: ignore
         async with self.session.get(env.HOST) as response:
             if not response.status == 200:
                 self.log(f"WARNING: _keep_alive task returned response code {response.status}")
 
+    @tasks.loop()
+    async def reminder(self) -> None:
+        row = await self.conn.fetchrow("SELECT * FROM remind ORDER BY time;")
+        if not row:
+            await asyncio.sleep(3600)
+            return
+
+        await discord.utils.sleep_until(row["time"])
+        await self.conn.execute(
+            "DELETE FROM remind WHERE id = $1 AND time = $2 AND original = $3;",
+            row["id"], row["time"], row["original"],
+        )
+
+        try:
+            user = await self.fetch_user(row["id"])  # Union[str, int]
+        except BaseException:
+            return
+
+        embed = discord.Embed(
+            description=row["content"],
+            timestamp=row["original"],
+        )
+        embed.set_author(
+            name=f"{user.name}, this is your reminder.",
+            icon_url=self.user.avatar.url,
+        )
+        embed.add_field(
+            name="Original message URL",
+            value=row["url"],
+        )
+        embed.set_thumbnail(url=user.avatar.url if user.avatar else None)
+
+        with contextlib.suppress(discord.Forbidden):
+            await user.send(embed=embed)
+
+    @tasks.loop()
+    async def guild_leaver(self) -> None:
+        row = await self.conn.fetchrow("SELECT * FROM inactivity ORDER BY time;")
+        if not row:
+            await asyncio.sleep(3600)
+            return
+
+        await discord.utils.sleep_until(row["time"] + datetime.timedelta(days=30))
+        guild_id = row["id"]
+        await self.conn.execute("DELETE FROM inactivity WHERE id = $1", guild_id)
+
+        guild = self.get_guild(int(guild_id))
+        if guild:
+            with contextlib.suppress(discord.HTTPException):
+                await guild.leave()
+                await asyncio.sleep(3.0)
+
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
         exc_type, _, _ = sys.exc_info()
-        if issubclass(exc_type, discord.Forbidden):
+        if issubclass(exc_type, discord.Forbidden):  # type: ignore
             return
 
         self.log(f"Exception in {event_method}:")

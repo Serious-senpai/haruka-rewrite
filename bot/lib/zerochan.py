@@ -5,10 +5,8 @@ import aiohttp
 import yarl
 from bs4 import BeautifulSoup
 
-from core import bot
 
-
-async def search(query: str, *, max_results: int = 200) -> List[str]:
+async def search(query: str, *, max_results: int = 200, session: aiohttp.ClientSession) -> List[str]:
     """This function is a coroutine
 
     Search zerochan.net for a list of image URLs.
@@ -29,10 +27,11 @@ async def search(query: str, *, max_results: int = 200) -> List[str]:
     page = 0
 
     with contextlib.suppress(aiohttp.ClientError):
-        while page := page + 1:
+        while True:
+            page += 1
             ext = []
 
-            async with bot.session.get(url.with_query(p=page)) as response:
+            async with session.get(url.with_query(p=page)) as response:
                 if response.ok:
                     html = await response.text(encoding="utf-8")
                     soup = BeautifulSoup(html, "html.parser")

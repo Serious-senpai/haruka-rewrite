@@ -3,12 +3,9 @@ import asyncio
 import discord
 from discord import app_commands
 
-import audio
-import emojis
-import ui
-import utils
 from _types import Interaction
 from core import bot
+from lib import audio, emojis, ui, utils
 
 
 @bot.slash(
@@ -21,7 +18,7 @@ async def _youtube_slash(interaction: Interaction, query: str):
     if len(query) < 3:
         return await interaction.followup.send(content="Please provide at least 3 characters in the searching query.")
 
-    results = await audio.PartialInvidiousSource.search(query)
+    results = await bot.audio.search(query)
     if not results:
         return await interaction.followup.send(content=f"Cannot find any videos from the query `{query}`")
 
@@ -37,28 +34,27 @@ async def _youtube_slash(interaction: Interaction, query: str):
     await view.send(interaction.followup, "Please select a YouTube video from the list below.")
 
     try:
-        id = await menu.result()
+        track_id = await menu.result()
     except asyncio.TimeoutError:
         return
     else:
-        track = await audio.InvidiousSource.build(id)
+        track = await bot.audio.build(audio.InvidiousSource, track_id)
 
     if track is None:
-        return await interaction.followup.send(f"{emojis.MIKUCRY} Cannot fetch track ID `{id}`")
+        return await interaction.followup.send(f"{emojis.MIKUCRY} Cannot fetch track ID `{track_id}`")
 
-    embed = audio.create_audio_embed(track)
-    with utils.TimingContextManager() as measure:
-        url = await audio.fetch(track)
+    embed = bot.audio.create_audio_embed(track)
+    try:
+        with utils.TimingContextManager() as measure:
+            url = await bot.audio.fetch(track)
+    except audio.AudioNotFound:
+        embed.set_footer(text="Cannot fetch this track")
+        embed.remove_field(-1)
+        await interaction.followup.send(embed=embed)
+    else:
+        embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
+        button = discord.ui.Button(style=discord.ButtonStyle.link, url=url, label="Audio URL")
+        view = discord.ui.View()
+        view.add_item(button)
 
-        if url is not None:
-            embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
-            button = discord.ui.Button(style=discord.ButtonStyle.link, url=url, label="Audio URL")
-            view = discord.ui.View()
-            view.add_item(button)
-
-            await interaction.followup.send(embed=embed, view=view)
-
-        else:
-            embed.set_footer(text="Cannot fetch this track")
-            embed.remove_field(-1)
-            await interaction.followup.send(embed=embed)
+        await interaction.followup.send(embed=embed, view=view)

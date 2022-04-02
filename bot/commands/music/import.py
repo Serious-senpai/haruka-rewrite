@@ -2,7 +2,6 @@ import json
 
 from discord.ext import commands
 
-import audio
 from _types import Context
 from core import bot
 
@@ -11,7 +10,7 @@ from core import bot
     name="import",
     description="Import a music queue from a file. Note that the old queue of the voice channel will be overwritten.\nSee also: the `export` command.",
 )
-@audio.in_voice()
+@bot.audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _import_cmd(ctx: Context):
     channel = ctx.author.voice.channel

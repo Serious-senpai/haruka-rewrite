@@ -2,9 +2,9 @@ import contextlib
 
 import discord
 
-import audio
 from _types import Member
 from core import bot
+from lib import audio
 
 
 @bot.event

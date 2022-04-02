@@ -1,10 +1,9 @@
 import discord
 from discord.ext import commands
 
-import audio
-import emoji_ui
 from _types import Context
 from core import bot
+from lib import audio, emoji_ui
 
 
 SONGS_PER_PAGE = 8
@@ -14,14 +13,14 @@ SONGS_PER_PAGE = 8
     name="queue",
     description="View the music queue of a voice channel"
 )
-@audio.in_voice()
+@bot.audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _queue_cmd(ctx: Context):
     if not ctx.author.voice:
         return await ctx.send("Please join a voice channel first.")
 
     channel = ctx.author.voice.channel
-    track_ids = await audio.MusicClient.queue(channel.id)
+    track_ids = await bot.audio.queue(channel.id)
     pages = 1 + len(track_ids) // SONGS_PER_PAGE
 
     counter = 0
@@ -39,7 +38,7 @@ async def _queue_cmd(ctx: Context):
             for _ in range(SONGS_PER_PAGE):
                 try:
                     track_id = track_ids[counter]
-                    track = await audio.PartialInvidiousSource.build(track_id)
+                    track = await bot.audio.build(audio.PartialInvidiousSource, track_id)
                 except IndexError:
                     break
 
@@ -59,5 +58,5 @@ async def _queue_cmd(ctx: Context):
 
             embeds.append(embed)
 
-    display = emoji_ui.NavigatorPagination(embeds)
+    display = emoji_ui.NavigatorPagination(bot, embeds)
     await display.send(ctx)

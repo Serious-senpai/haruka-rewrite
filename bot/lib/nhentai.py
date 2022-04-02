@@ -4,11 +4,10 @@ import contextlib
 import re
 from typing import List, Optional, Type, Union, TYPE_CHECKING
 
+import aiohttp
 import bs4
 import discord
 from discord.utils import escape_markdown as escape
-
-from core import bot
 
 
 ID_PATTERN = re.compile(r"(?<!\d)\d{6}(?!\d)")
@@ -40,7 +39,7 @@ class NHentaiSearch:
         return f"<NHentaiSearch title={self.title} id={self.id}>"
 
     @classmethod
-    async def search(cls: Type[NHentaiSearch], query: str) -> List[NHentaiSearch]:
+    async def search(cls: Type[NHentaiSearch], query: str, *, session: aiohttp.ClientSession) -> List[NHentaiSearch]:
         """This function is a coroutine
 
         Search for a list of doujinshis from a query. The number of
@@ -59,7 +58,7 @@ class NHentaiSearch:
             The list of search results. If no result was found then an
             empty list is returned
         """
-        async with bot.session.get("https://nhentai.net/search/", params={"q": query}) as response:
+        async with session.get("https://nhentai.net/search/", params={"q": query}) as response:
             if response.ok:
                 html = await response.text(encoding="utf-8")
                 soup = bs4.BeautifulSoup(html, "html.parser")
@@ -142,7 +141,7 @@ class NHentai:
         return f"<NHentai title={self.title} id={self.id}>"
 
     @classmethod
-    async def get(cls: Type[NHentai], id: Union[int, str]) -> Optional[NHentai]:
+    async def get(cls: Type[NHentai], id: Union[int, str], *, session: aiohttp.ClientSession) -> Optional[NHentai]:
         """This function is a coroutine
 
         Get a NHentai doujinshi from an ID
@@ -159,7 +158,7 @@ class NHentai:
             ID was passed, or any HTTP errors occured (4xx or 5xx
             status)
         """
-        async with bot.session.get(f"https://nhentai.net/g/{id}") as response:
+        async with session.get(f"https://nhentai.net/g/{id}") as response:
             if response.ok:
                 html = await response.text(encoding="utf-8")
                 soup = bs4.BeautifulSoup(html, "html.parser")

@@ -3,9 +3,9 @@ from typing import Any
 import discord
 from discord import app_commands
 
-import saucenao
 from _types import Interaction
 from core import bot
+from lib import saucenao
 
 
 class _SauceSlashCommand(app_commands.Group):

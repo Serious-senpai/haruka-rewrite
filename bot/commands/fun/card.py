@@ -2,9 +2,9 @@ import discord
 from discord.ext import commands
 from discord.utils import escape_markdown as escape
 
-import cards
 from _types import Context
 from core import bot
+from lib import cards
 
 
 CARD_LIMIT = 9

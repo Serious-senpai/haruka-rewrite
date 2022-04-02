@@ -2,9 +2,9 @@ import traceback
 
 import discord
 
-from audio import MusicClient
 from _types import Interaction
 from core import bot
+from lib.audio import MusicClient
 
 
 @bot.slash(

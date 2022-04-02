@@ -2,9 +2,9 @@ import traceback
 
 from discord.ext import commands
 
-import utils
 from _types import Context
 from core import bot
+from lib import utils
 
 
 @bot.command(

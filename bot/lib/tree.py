@@ -18,6 +18,10 @@ class SlashCommandTree(app_commands.CommandTree):
     async def interaction_check(self, interaction: Interaction) -> bool:
         bot = self.client
 
+        guild_id = interaction.guild_id
+        if guild_id is not None:
+            await bot.reset_inactivity_counter(guild_id)
+
         if not await bot.is_owner(interaction.user):
             name = interaction.command.name
             if name not in bot._slash_command_count:

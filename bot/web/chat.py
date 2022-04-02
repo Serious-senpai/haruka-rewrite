@@ -73,7 +73,7 @@ class UserSession:
     async def run(self) -> None:
         with contextlib.suppress(RuntimeError):
             if self.websocket.can_prepare(self.request):
-                await self.websocket.prepare()
+                await self.websocket.prepare(self.request)
 
         async for message in self.websocket:
             try:
@@ -83,8 +83,8 @@ class UserSession:
             else:
                 await self.process_message(data)
 
-    def check_json_field(self, data: Dict[str, Any], *fields: Tuple[str]) -> Optional[str]:
-        for field in fields:
+    def check_json_field(self, data: Dict[str, Any], *required_fields: str) -> Optional[str]:
+        for field in required_fields:
             if field not in data:
                 return field
 

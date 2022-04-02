@@ -1,9 +1,9 @@
 import discord
 from discord.ext import commands
 
-import _image
 from _types import Context
 from core import bot
+from lib import image
 
 
 @bot.command(
@@ -17,7 +17,7 @@ async def _nsfw_cmd(ctx: Context, *, category: str):
     category = category.lower()
     try:
         image_url = await bot.image.get(category, mode="nsfw")
-    except _image.CategoryNotFound:
+    except image.CategoryNotFound:
         return await ctx.send(f"No category named `{category}` was found.")
 
     embed = discord.Embed()

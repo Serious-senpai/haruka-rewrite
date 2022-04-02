@@ -1,8 +1,8 @@
 from discord import app_commands
 
-import _urban
 from _types import Interaction
 from core import bot
+from lib import urban
 
 
 @bot.slash(
@@ -13,7 +13,7 @@ from core import bot
 async def _urban_slash(interaction: Interaction, word: str):
     await interaction.response.defer()
 
-    result = await _urban.UrbanSearch.search(word)
+    result = await urban.UrbanSearch.search(word, session=bot.session)
     if result:
         embed = result.create_embed()
         embed.set_author(

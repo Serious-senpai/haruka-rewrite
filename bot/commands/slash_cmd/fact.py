@@ -1,6 +1,6 @@
-import leech
 from _types import Interaction
 from core import bot
+from lib import leech
 
 
 @bot.slash(
