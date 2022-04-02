@@ -46,7 +46,7 @@ async def _youtube_cmd(ctx: Context, *, query: str):
         with utils.TimingContextManager() as measure:
             url = await bot.audio.fetch(track)
 
-    if not url:
+    if url is None:
         return await ctx.send(f"{emojis.MIKUCRY} Cannot fetch audio for this video!")
 
     embed = bot.audio.create_audio_embed(track)

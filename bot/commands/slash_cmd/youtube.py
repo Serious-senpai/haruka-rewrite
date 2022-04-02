@@ -43,15 +43,16 @@ async def _youtube_slash(interaction: Interaction, query: str):
     if track is None:
         return await interaction.followup.send(f"{emojis.MIKUCRY} Cannot fetch track ID `{track_id}`")
 
-    embed = bot.audio.create_audio_embed(track)
-    try:
-        with utils.TimingContextManager() as measure:
-            url = await bot.audio.fetch(track)
-    except audio.AudioNotFound:
+    with utils.TimingContextManager() as measure:
+        url = await bot.audio.fetch(track)
+    
+    if url is None:
+        embed = track.create_embed()
         embed.set_footer(text="Cannot fetch this track")
-        embed.remove_field(-1)
         await interaction.followup.send(embed=embed)
+
     else:
+        embed = bot.audio.create_audio_embed(track)
         embed.set_footer(text=f"Fetched data in {utils.format(measure.result)}")
         button = discord.ui.Button(style=discord.ButtonStyle.link, url=url, label="Audio URL")
         view = discord.ui.View()
