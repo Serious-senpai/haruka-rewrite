@@ -106,7 +106,7 @@ class Pagination(EmojiUI):
         user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
-            bot users.
+            the bot itself.
         """
         self.message = await target.send(embed=self.pages[0])
         self.user_id = user_id
@@ -168,7 +168,7 @@ class RandomPagination(EmojiUI):
         user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
-            bot users.
+            the bot itself.
         """
         self.user_id = user_id
 
@@ -234,7 +234,7 @@ class NavigatorPagination(EmojiUI):
         user_id: Optional[``int``]
             The user ID to interact specifically. If this is set to
             ``None``, anyone can interact with this message except
-            bot users.
+            the bot itself.
         """
         self.message = await target.send(embed=self.pages[0])
         self.user_id = user_id
