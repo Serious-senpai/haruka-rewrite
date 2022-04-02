@@ -1,0 +1,41 @@
+name: Build Test
+
+on: push
+
+permissions:
+  actions: read
+  contents: read
+
+env:
+  BUILD_CHECK: 1
+  DATABASE_URL: postgres://user:password@host:port/name
+  # Not a valid token, don't waste your time trying
+  TOKEN: MjM4NDk0NzU2NTIxMzc3Nzky.CunGFQ.wUILz7z6HoJzVeq6pyHPmVgQgV4
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: 3.9
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Setup CPython
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.txt
+
+    - name: Run the bot
+      run: python bot/main.py

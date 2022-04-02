@@ -47,4 +47,7 @@ async def runner(bot: haruka.Haruka) -> None:
         return
 
 
-asyncio.run(runner(bot))
+if env.BUILD_CHECK:
+    print("Check success")
+else:
+    asyncio.run(runner(bot))

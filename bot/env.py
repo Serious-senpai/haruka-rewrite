@@ -1,9 +1,14 @@
 import os
 
 
+# Assumed to be true when running in a workflow
+BUILD_CHECK = bool(os.environ.get("BUILD_CHECK"))
+
+
 # Required
 DATABASE_URL = os.environ["DATABASE_URL"]
 TOKEN = os.environ["TOKEN"]
+
 
 # Optional
 HOST = os.environ.get("HOST", "http://localhost").strip("/")
