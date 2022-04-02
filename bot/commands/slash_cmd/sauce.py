@@ -21,7 +21,7 @@ class _SauceSlashCommand(app_commands.Group):
 
     async def _process_request(self, interaction: Interaction, image_url: str) -> Any:
         await interaction.response.defer()
-        results = await saucenao.SauceResult.get_sauce(image_url)
+        results = await saucenao.SauceResult.get_sauce(image_url, session=bot.session)
         if not results:
             return await interaction.followup.send("Cannot find the image sauce.")
 
