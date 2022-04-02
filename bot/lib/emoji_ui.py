@@ -51,7 +51,7 @@ class EmojiUI:
     def user_id(self, value: int) -> None:
         try:
             self.__user_id = int(value)
-        except ValueError as exc:
+        except TypeError as exc:
             raise ValueError(f"Cannot cannot convert {repr(value)} to int") from exc
 
     def check(self, payload: discord.RawReactionActionEvent) -> bool:
@@ -170,7 +170,8 @@ class RandomPagination(EmojiUI):
             ``None``, anyone can interact with this message except
             the bot itself.
         """
-        self.user_id = user_id
+        if user_id is not None:
+            self.user_id = user_id
 
         while True:
             if self.message:
@@ -236,8 +237,10 @@ class NavigatorPagination(EmojiUI):
             ``None``, anyone can interact with this message except
             the bot itself.
         """
+        if user_id is not None:
+            self.user_id = user_id
+
         self.message = await target.send(embed=self.pages[0])
-        self.user_id = user_id
         page = 0
 
         for emoji in self.allowed_emojis:
@@ -345,7 +348,9 @@ class YesNoSelection(EmojiUI):
         self.message = message
 
     async def listen(self, user_id: Optional[int] = None) -> Optional[bool]:
-        self.user_id = user_id
+        if user_id is not None:
+            self.user_id = user_id
+
         for emoji in self.allowed_emojis:
             await self.message.add_reaction(emoji)
 
