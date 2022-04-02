@@ -336,6 +336,7 @@ class ImageClient:
 
     __slots__ = (
         "_ready",
+        "bot",
         "log",
         "sfw",
         "nsfw",
@@ -343,12 +344,14 @@ class ImageClient:
     )
     if TYPE_CHECKING:
         _ready: asyncio.Event
+        bot: haruka.Haruka
         sources: Tuple[Type[ImageSource]]
         sfw: Dict[str, List[ImageSource]]
         nsfw: Dict[str, List[ImageSource]]
 
     def __init__(self, bot: haruka.Haruka) -> None:
         self._ready = asyncio.Event()
+        self.bot = bot
         self.log = bot.log
         self.sources = (WaifuPics, WaifuIm, NekosLife, Asuna)  # type: ignore
 

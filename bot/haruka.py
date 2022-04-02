@@ -96,7 +96,7 @@ class Haruka(commands.Bot):
         )
         self.log("Created side session")
 
-        # Initialize Top.gg token
+        # Initialize Top.gg client
         if env.TOPGG_TOKEN:
             self.topgg = topgg.DBLClient(
                 self,
