@@ -55,7 +55,7 @@ class MALObject(MAL, Generic[T]):
 
     def __init__(self, id: Union[int, str], soup: bs4.BeautifulSoup) -> None:
         super().__init__(soup)
-        self.id = id
+        self.id = int(id)
         self.url = f"https://myanimelist.net/{self.__class__.__name__.lower()}/{self.id}"
         self.title = self.soup.find(name="meta", attrs={"property": "og:title"}).get("content")
 

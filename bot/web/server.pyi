@@ -1,11 +1,9 @@
 from typing import (
     Callable,
     Coroutine,
-    Literal,
-    Protocol,
 )
 
-from aiohttp import web
+from aiohttp import web, web_app
 
 from .app import WebApp
 
@@ -15,8 +13,5 @@ class WebRequest(web.Request):
     def app(self) -> WebApp: ...
 
 
-class Middleware(Protocol):
-    __middleware_version__: Literal[1]
-
-
+Middleware = web_app._Middleware
 Handler = Callable[[WebRequest], Coroutine[None, None, web.Response]]
