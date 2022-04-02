@@ -256,7 +256,7 @@ class NavigatorPagination(EmojiUI):
             )
 
             if done:
-                payload: discord.RawReactionActionEvent= done.pop().result()
+                payload: discord.RawReactionActionEvent = done.pop().result()
                 action = self.allowed_emojis.index(str(payload.emoji))
 
                 if action == 0:

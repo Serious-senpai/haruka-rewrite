@@ -45,7 +45,7 @@ async def _youtube_slash(interaction: Interaction, query: str):
 
     with utils.TimingContextManager() as measure:
         url = await bot.audio.fetch(track)
-    
+
     if url is None:
         embed = track.create_embed()
         embed.set_footer(text="Cannot fetch this track")
