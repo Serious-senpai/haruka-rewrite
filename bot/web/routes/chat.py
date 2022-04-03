@@ -9,7 +9,7 @@ from aiohttp import web
 from ..chat import (
     UserSession,
     action_json,
-    authorized_websockets,
+    authorized_sessions,
     http_authentication,
 )
 from ..core import routes
@@ -62,12 +62,12 @@ async def _chat_history_endpoint(request: WebRequest) -> web.Response:
 
 @routes.get("/chat/messages")
 async def _chat_messages_get_endpoint(request: WebRequest) -> web.Response:
+    await http_authentication(request)
     try:
         message_id = int(request.query["id"])
     except (KeyError, ValueError):
         raise web.HTTPBadRequest
 
-    await http_authentication(request)
     row = await request.app.pool.fetchrow("SELECT * FROM messages WHERE id = $1", message_id)
     if row is None:
         raise web.HTTPNotFound
@@ -77,12 +77,12 @@ async def _chat_messages_get_endpoint(request: WebRequest) -> web.Response:
 
 @routes.delete("/chat/messages")
 async def _chat_messages_delete_endpoint(request: WebRequest) -> web.Response:
+    username = await http_authentication(request)
     try:
         message_id = int(request.query["id"])
     except (KeyError, ValueError):
         raise web.HTTPBadRequest
 
-    username = await http_authentication(request)
     row = await request.app.pool.fetchrow("SELECT * FROM messages WHERE id = $1", message_id)
     if row is None:
         raise web.HTTPNotFound
@@ -91,8 +91,8 @@ async def _chat_messages_delete_endpoint(request: WebRequest) -> web.Response:
         raise web.HTTPForbidden
 
     await request.app.pool.execute("DELETE FROM messages WHERE id = $1", message_id)
-    for ws in authorized_websockets:
-        await ws.send_json(action_json("MESSAGE_DELETE", id=message_id))
+    for session in authorized_sessions.values():
+        await session.websocket.send_json(action_json("MESSAGE_DELETE", id=message_id))
 
     return web.Response(status=203)
 
@@ -112,7 +112,7 @@ async def _chat_messages_post_endpoint(request: WebRequest) -> web.Response:
         # Construct JSON
         to_send = construct_message_json(row)
 
-        for ws in authorized_websockets:
-            await ws.send_json(action_json("MESSAGE_CREATE", **to_send))
+        for session in authorized_sessions.values():
+            await session.websocket.send_json(action_json("MESSAGE_CREATE", message=to_send))
 
-        return web.Response(status=203)
+        return web.json_response(to_send)
