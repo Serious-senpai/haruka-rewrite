@@ -10,6 +10,7 @@ from aiohttp import web
 
 if TYPE_CHECKING:
     import haruka
+    from .app import WebApp
     from .server import WebRequest
 
 
@@ -33,7 +34,18 @@ async def http_authentication(request: WebRequest) -> str:
 
 class UserSession:
 
+    __slots__ = (
+        "app",
+        "authorized",
+        "bot",
+        "pool",
+        "request",
+        "session_token",
+        "username",
+        "websocket",
+    )
     if TYPE_CHECKING:
+        app: WebApp
         authorized: bool
         bot: haruka.Haruka
         pool: asyncpg.Pool
@@ -47,6 +59,7 @@ class UserSession:
         self.websocket = websocket
 
         self.authorized = False
+        self.app = request.app
         self.bot = request.app.bot
         self.pool = request.app.bot.conn
         self.username = None
@@ -84,7 +97,12 @@ class UserSession:
             del fields["token"]
 
         action = action.upper()
-        return await self.websocket.send_json(dict(action=action, **fields))
+        try:
+            return await self.websocket.send_json(dict(action=action, **fields))
+        except ConnectionError:
+            pass
+        except BaseException as exc:
+            await self.app.report_error(exc)
 
     async def send_error(self, message: str, **fields) -> None:
         return await self.send_action("ERROR", message=message, **fields)
