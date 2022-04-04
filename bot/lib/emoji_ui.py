@@ -109,7 +109,8 @@ class Pagination(EmojiUI):
             the bot itself.
         """
         self.message = await target.send(embed=self.pages[0])
-        self.user_id = user_id
+        if user_id is not None:
+            self.user_id = user_id
 
         for emoji in self.allowed_emojis:
             await self.message.add_reaction(emoji)
