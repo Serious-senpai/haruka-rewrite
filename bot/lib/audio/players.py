@@ -93,7 +93,7 @@ class MusicClient(discord.VoiceClient):
     async def switch_stopafter(self) -> bool:
         await self.operable.wait()
         self._stopafter = not self.stopafter
-        return self._topafter
+        return self._stopafter
 
     @functools.cached_property
     def audio_client(self) -> AudioClient:
