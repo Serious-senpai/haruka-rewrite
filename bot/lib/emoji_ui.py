@@ -86,8 +86,8 @@ class Pagination(EmojiUI):
         pages: List[discord.Embed]
 
     def __init__(self, bot: haruka.Haruka, pages: List[discord.Embed]) -> None:
-        super().__init__(bot, CHOICES[:len(self.pages)])
         self.pages = pages
+        super().__init__(bot, CHOICES[:len(self.pages)])
 
         if len(self.pages) > 6:
             raise ValueError("Number of pages exceeded the limit of 6.")
