@@ -171,9 +171,6 @@ class UserSession:
                 return await self.send_error("Invalid session token", token=token)
 
             session = authorized_sessions[session_token]
-            if not session.websocket.closed:
-                return await self.send_error("Old session is still active", token=token)
-
             self.authorize(session.username, session_token=session_token)
             return await self.send_action("RECONNECT_SUCCESS", session_token=session_token, token=token)
 
