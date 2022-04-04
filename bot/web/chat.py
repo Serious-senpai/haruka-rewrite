@@ -16,14 +16,6 @@ if TYPE_CHECKING:
 authorized_sessions: Dict[str, UserSession] = {}
 
 
-def action_json(action: str, **fields) -> Dict[str, Any]:
-    return dict(action=action, **fields)
-
-
-def error_json(message: str) -> Dict[str, str]:
-    return action_json("ERROR", message=message)
-
-
 async def http_authentication(request: WebRequest) -> str:
     username = request.headers.get("username")
     password = request.headers.get("password")
@@ -46,7 +38,7 @@ class UserSession:
         bot: haruka.Haruka
         pool: asyncpg.Pool
         request: WebRequest
-        token: Optional[str]
+        session_token: Optional[str]
         username: Optional[str]
         websocket: web.WebSocketResponse
 
@@ -58,21 +50,21 @@ class UserSession:
         self.bot = request.app.bot
         self.pool = request.app.bot.conn
         self.username = None
-        self.token = None
+        self.session_token = None
 
-    def authorize(self, username: str, *, token: Optional[str] = None) -> str:
+    def authorize(self, username: str, *, session_token: Optional[str] = None) -> str:
         self.authorized = True
         self.username = username
 
-        if not token:
-            self.token = secrets.token_hex(16)
-            while self.token in authorized_sessions:
-                self.token = secrets.token_hex(16)
+        if not session_token:
+            self.session_token = secrets.token_hex(16)
+            while self.session_token in authorized_sessions:
+                self.session_token = secrets.token_hex(16)
         else:
-            self.token = token
+            self.session_token = session_token
 
-        authorized_sessions[self.token] = self
-        return self.token
+        authorized_sessions[self.session_token] = self
+        return self.session_token
 
     async def run(self) -> None:
         with contextlib.suppress(RuntimeError):
@@ -83,9 +75,18 @@ class UserSession:
             try:
                 data = message.json()
             except json.JSONDecodeError:
-                await self.websocket.send_json(error_json("Invalid JSON data"))
+                await self.send_error("Invalid JSON data")
             else:
                 await self.process_message(data)
+
+    async def send_action(self, action: str, **fields) -> None:
+        if "token" in fields and fields["token"] is None:
+            del fields["token"]
+
+        return await self.websocket.send_json(dict(action=action, **fields))
+
+    async def send_error(self, message: str, **fields) -> None:
+        return await self.send_action("ERROR", message=message, **fields)
 
     @staticmethod
     def validate_json(data: Dict[str, Any], **required_fields: Union[Type[int], Type[str]]) -> bool:
@@ -99,62 +100,63 @@ class UserSession:
         return True
 
     async def process_message(self, data: Dict[str, Any]) -> None:
+        token = data.get("token")
         if not self.validate_json(data, action=str):
-            return await self.websocket.send_json(error_json("Invalid JSON data"))
+            return await self.send_error("Invalid JSON data", token=token)
 
         action = data["action"].upper()
         if action == "REGISTER":
             valid = self.validate_json(data, username=str, password=str)
             if not valid:
-                return await self.websocket.send_json(error_json("Invalid JSON data"))
+                return await self.send_error("Invalid JSON data", token=token)
 
             username = data["username"].strip()
             password = data["password"].strip()
 
             if len(username) < 3:
-                return await self.websocket.send_json(error_json("Username must have at least 3 characters!"))
+                return await self.send_error("Username must have at least 3 characters!", token=token)
 
             if len(password) < 5:
-                return await self.websocket.send_json(error_json("Password must have at least 5 characters!"))
+                return await self.send_error("Password must have at least 5 characters!", token=token)
 
             match = await self.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1", username)
             if match:
-                return await self.websocket.send_json(error_json(f"Username \"{username}\" has already existed!"))
+                return await self.send_error(f"Username \"{username}\" has already existed!", token=token)
             else:
                 await self.pool.execute("INSERT INTO chat_users (username, password) VALUES ($1, $2)", username, password)
-                token = self.authorize(username)
-                return await self.websocket.send_json(action_json("REGISTER_SUCCESS", session_token=token))
+                session_token = self.authorize(username)
+                return await self.send_action("REGISTER_SUCCESS", session_token=session_token, token=token)
 
         elif action == "LOGIN":
             valid = self.validate_json(data, username=str, password=str)
             if not valid:
-                return await self.websocket.send_json(error_json("Invalid JSON data"))
+                return await self.send_error("Invalid JSON data")
 
             username = data["username"].strip()
             password = data["password"].strip()
 
             match = await self.pool.fetchrow("SELECT * FROM chat_users WHERE username = $1 AND password = $2;", username, password)
             if match is None:
-                return await self.websocket.send_json(error_json("Invalid credentials"))
+                return await self.send_error("Invalid credentials", token=token)
 
-            token = self.authorize(username)
-            return await self.websocket.send_json(action_json("LOGIN_SUCCESS", session_token=token))
+            session_token = self.authorize(username)
+            return await self.send_action("LOGIN_SUCCESS", session_token=session_token, token=token)
 
         elif action == "RECONNECT":
-            valid = self.validate_json(data, token=str)
+            valid = self.validate_json(data, session_token=str)
             if not valid:
-                return await self.websocket.send_json(error_json("Invalid JSON data"))
+                return await self.send_error("Invalid JSON data", token=token)
 
-            token = data["token"]
-            if token not in authorized_sessions:
-                return await self.websocket.send_json(error_json("Invalid token"))
+            session_token = data["session_token"]
+            if session_token not in authorized_sessions:
+                return await self.send_error("Invalid session token", token=token)
 
-            session = authorized_sessions[token]
+            session = authorized_sessions[session_token]
             if not session.websocket.closed:
-                return await self.websocket.send_json(error_json("Invalid state"))
+                return await self.send_error("Old session is still active", token=token)
 
             self.authorize(session.username, token=token)
-            return await self.websocket.send_json(action_json("RECONNECT_SUCCESS", session_token=token))
+            return await self.send_action("RECONNECT_SUCCESS", session_token=session_token, token=token)
 
         else:
-            return await self.websocket.send_json(error_json(f"Unrecognized action {action}"))
+            return await self.send_error(f"Unrecognized action {action}", token=token)
