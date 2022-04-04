@@ -83,6 +83,7 @@ class UserSession:
         if "token" in fields and fields["token"] is None:
             del fields["token"]
 
+        action = action.upper()
         return await self.websocket.send_json(dict(action=action, **fields))
 
     async def send_error(self, message: str, **fields) -> None:

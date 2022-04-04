@@ -8,7 +8,6 @@ from aiohttp import web
 
 from ..chat import (
     UserSession,
-    action_json,
     authorized_sessions,
     http_authentication,
 )
@@ -92,7 +91,7 @@ async def _chat_messages_delete_endpoint(request: WebRequest) -> web.Response:
 
     await request.app.pool.execute("DELETE FROM messages WHERE id = $1", message_id)
     for session in authorized_sessions.values():
-        await session.websocket.send_json(action_json("MESSAGE_DELETE", id=message_id))
+        await session.send_action("MESSAGE_DELETE", id=message_id)
 
     return web.Response(status=203)
 
@@ -113,6 +112,6 @@ async def _chat_messages_post_endpoint(request: WebRequest) -> web.Response:
         to_send = construct_message_json(row)
 
         for session in authorized_sessions.values():
-            await session.websocket.send_json(action_json("MESSAGE_CREATE", message=to_send))
+            await session.send_action("MESSAGE_CREATE", message=to_send)
 
         return web.json_response(to_send)
