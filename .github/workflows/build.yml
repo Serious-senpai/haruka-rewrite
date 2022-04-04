@@ -32,10 +32,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Check CPython version
+      run: python3.9 --version
+
     - name: Install dependencies
-      run: |
-        python3.9 -m pip install --upgrade pip setuptools wheel
-        pip3.9 install -r requirements.txt
+      run: pip3.9 install -r requirements.txt
 
     - name: Test run
       run: python3.9 bot/main.py
