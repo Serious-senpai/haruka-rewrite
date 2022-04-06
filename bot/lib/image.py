@@ -258,11 +258,7 @@ class NekosLife(ImageSource):
                 return json["url"]
 
     def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
-        if mode == "sfw":
-            category = self.sfw_converter.get(category, category)
-        else:
-            category = self.nsfw_converter.get(category, category)
-
+        category = getattr(self, f"{mode}_converter").get(category, category)
         return f"https://nekos.life/api/v2/img/{category}"
 
     def __str__(self) -> str:
@@ -417,10 +413,7 @@ class ImageClient:
         if mode not in ("sfw", "nsfw"):
             raise CategoryNotFound(mode)
 
-        if category not in self.sfw and mode == "sfw":
-            raise CategoryNotFound(category)
-
-        if category not in self.nsfw and mode == "nsfw":
+        if category not in getattr(self, mode):
             raise CategoryNotFound(category)
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
@@ -458,32 +451,19 @@ class ImageClient:
         self._check_category(category, mode=mode)
         image_url = None
 
-        if mode == "sfw":
-            random.shuffle(self.sfw[category])
+        sources = getattr(self, mode)[category]
+        random.shuffle(sources)
 
-            for source in self.sfw[category]:
-                with contextlib.suppress(asyncio.TimeoutError, aiohttp.ClientError):
-                    image_url = await source.get(category, mode="sfw")
+        for source in sources:
+            with contextlib.suppress(asyncio.TimeoutError, aiohttp.ClientError):
+                image_url = await source.get(category, mode=mode)
 
-                if image_url:
-                    return image_url
-
-        elif mode == "nsfw":
-            random.shuffle(self.nsfw[category])
-
-            for source in self.nsfw[category]:
-                with contextlib.suppress(asyncio.TimeoutError, aiohttp.ClientError):
-                    image_url = await source.get(category, mode="nsfw")
-
-                if image_url:
-                    return image_url
+            if image_url:
+                return image_url
 
     async def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Tuple[str, str]:
         await self.wait_until_ready()
         self._check_category(category, mode=mode)
-        if mode == "sfw":
-            source = random.choice(self.sfw[category])
-        else:
-            source = random.choice(self.nsfw[category])
+        source = random.choice(getattr(self, mode)[category])
 
         return str(source), str(source.get_url(category, mode=mode))
