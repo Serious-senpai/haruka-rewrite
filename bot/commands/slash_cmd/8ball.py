@@ -2,7 +2,7 @@ from discord import app_commands
 
 from _types import Interaction
 from core import bot
-from lib import leech
+from lib import resources
 
 
 @bot.slash(
@@ -11,4 +11,4 @@ from lib import leech
 )
 @app_commands.describe(question="Concentrate on your question and press `Enter`")
 async def _8ball_slash(interaction: Interaction, question: str):
-    await interaction.response.send_message(leech.get_8ball())
+    await interaction.response.send_message(resources.get_8ball())

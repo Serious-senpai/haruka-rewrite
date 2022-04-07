@@ -2,7 +2,7 @@ from discord.ext import commands
 
 from _types import Context
 from core import bot
-from lib import leech
+from lib.quotes import Quote
 
 
 @bot.command(
@@ -12,4 +12,5 @@ from lib import leech
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _quote_cmd(ctx: Context, *, anime: str = None):
-    await ctx.send(embed=await leech.get_quote(anime))
+    quote = await Quote.get(anime)
+    await ctx.send(embed=quote.create_embed(icon_url=bot.user.avatar.url))

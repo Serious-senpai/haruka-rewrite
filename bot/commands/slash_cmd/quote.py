@@ -4,7 +4,7 @@ from discord import app_commands
 
 from _types import Interaction
 from core import bot
-from lib import leech
+from lib.quotes import Quote
 
 
 @bot.slash(
@@ -14,4 +14,5 @@ from lib import leech
 @app_commands.describe(anime="The anime name to get the quote, leave blank to get a random one.")
 async def _quote_slash(interaction: Interaction, anime: Optional[str]):
     await interaction.response.defer()
-    await interaction.followup.send(embed=await leech.get_quote(anime))
+    quote = await Quote.get(anime)
+    await interaction.followup.send(embed=quote.create_embed(icon_url=bot.user.avatar.url))

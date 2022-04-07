@@ -2,7 +2,7 @@ from discord.ext import commands
 
 from _types import Context
 from core import bot
-from lib import leech
+from lib import resources
 
 
 @bot.command(
@@ -11,4 +11,4 @@ from lib import leech
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _fact_cmd(ctx: Context):
-    await ctx.send(leech.get_fact())
+    await ctx.send(resources.get_fact())

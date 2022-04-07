@@ -2,7 +2,7 @@ from discord.ext import commands
 
 from _types import Context
 from core import bot
-from lib import leech
+from lib import resources
 
 
 @bot.command(
@@ -13,4 +13,4 @@ from lib import leech
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _8ball_cmd(ctx: Context, *, question: str):
-    await ctx.send(leech.get_8ball())
+    await ctx.send(resources.get_8ball())

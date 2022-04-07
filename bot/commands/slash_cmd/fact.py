@@ -1,6 +1,6 @@
 from _types import Interaction
 from core import bot
-from lib import leech
+from lib import resources
 
 
 @bot.slash(
@@ -8,4 +8,4 @@ from lib import leech
     description="Send you a random fact",
 )
 async def _fact_slash(interaction: Interaction):
-    await interaction.response.send_message(leech.get_fact())
+    await interaction.response.send_message(resources.get_fact())
