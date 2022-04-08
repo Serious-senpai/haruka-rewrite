@@ -43,13 +43,11 @@ async def _about_cmd(ctx: Context):
 @bot.command(
     name="info",
     description="Get information about a user or yourself",
-    usage="info\ninfo <user>",
+    usage="info\ninfo <user | default: yourself>",
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _info_cmd(ctx: Context, *, user: discord.User = None):
-    if user is None:
-        user = ctx.author
+async def _info_cmd(ctx: Context, *, user: discord.User = commands.Author):
     info_em = info.user_info(user)
     await ctx.send(embed=info_em)
 
@@ -132,9 +130,7 @@ async def _speak_cmd(ctx: Context, *, content: str = ""):
     usage="avatar <user | default: yourself>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _avatar_cmd(ctx: Context, *, user: discord.User = None):
-    if user is None:
-        user = ctx.author
+async def _avatar_cmd(ctx: Context, *, user: discord.User = commands.Author):
     if not user.avatar:
         return await ctx.send("This user hasn't uploaded an avatar yet.")
     ava_em = discord.Embed()
