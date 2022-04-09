@@ -77,7 +77,7 @@ class AssetClient:
                             while data := await response.content.read(chunk_size):
                                 f.write(data)
                         except aiohttp.ClientPayloadError:
-                            self.log("Exception while downloading the TAR file:\n" + traceback.format_exc() + "\nIgnoring and continuing the untarping process.")
+                            self.log("Exception while downloading the TAR file:\n" + traceback.format_exc() + "\nIgnoring and continuing the extracting process.")
                 else:
                     return self.log(f"Cannot fetch the TAR file from {file_url}: HTTP status {response.status}")
 
