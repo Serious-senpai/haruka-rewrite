@@ -181,9 +181,6 @@ class Haruka(commands.Bot):
             self.owner_id = app_info.owner.id
         self.owner = await self.fetch_user(self.owner_id)
 
-        # Sync slash commands
-        await self.tree.sync()
-
         # Initialize guild activity check
         now = discord.utils.utcnow()
         for guild in self.guilds:

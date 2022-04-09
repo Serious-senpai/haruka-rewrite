@@ -13,7 +13,7 @@ from core import bot
     description="View running `asyncio.Task`s",
 )
 @commands.is_owner()
-async def tasks_cmd(ctx: Context):
+async def _tasks_cmd(ctx: Context):
     with open("./tasks.txt", "w", encoding="utf-8") as f:
         f.write("\n".join(task.__repr__() for task in asyncio.all_tasks()))
     await ctx.send(file=discord.File("./tasks.txt"))
