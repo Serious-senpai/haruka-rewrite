@@ -46,8 +46,10 @@ def format(time: float) -> str:
     Returns
     -----
     ``str``
-        The formated time (e.g. ``1.5 s``)
+        The formated time (e.g. ``1.50 s``)
     """
+    time = float(time)
+
     if time < 1:
         return "{:.2f} ms".format(1000 * time)
     elif time < 60:

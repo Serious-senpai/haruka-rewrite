@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 import discord
 from discord.ext import commands
+from discord.utils import escape_markdown, utcnow
 
 from _types import Context
 from core import bot
@@ -32,6 +33,7 @@ async def _guilds_cmd(ctx: Context):
         mapping[guild.name] = row["time"]
 
     pages = 1 + len(mapping) // GUILDS_PER_PAGE
+    now = utcnow()
     embeds = []
 
     for page in range(pages):
@@ -50,8 +52,8 @@ async def _guilds_cmd(ctx: Context):
             except KeyError:
                 break
 
-            last_active = discord.utils.utcnow() - last_active
-            guild_names.append(guild_name)
+            last_active = now - last_active
+            guild_names.append(escape_markdown(guild_name))
             last_active_time.append(f"{utils.format(last_active.seconds)} ago")
 
         embed.add_field(name="Guilds", value="\n".join(guild_names))
