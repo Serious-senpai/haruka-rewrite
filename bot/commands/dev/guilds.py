@@ -27,7 +27,6 @@ async def _guilds_cmd(ctx: Context):
     for row in rows:
         guild = bot.get_guild(int(row["id"]))
         if guild is None:
-            await bot.conn.execute("DELETE FROM inactivity WHERE id = $1;", row["id"])
             continue
 
         mapping[guild.name] = row["time"]
