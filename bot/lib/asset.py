@@ -53,7 +53,7 @@ class AssetClient:
             return await self.__finalize()
 
         with utils.TimingContextManager() as measure:
-            async with self.session.get("https://www.mediafire.com/file/sqom3a6g1hrik01/collection.tar/file") as response:
+            async with self.session.get("https://www.mediafire.com/file/uk4i6ua6eek948j/collection.tar/file") as response:
                 if response.status == 200:
                     html = await response.text(encoding="utf-8")
                     soup = BeautifulSoup(html, "html.parser")
