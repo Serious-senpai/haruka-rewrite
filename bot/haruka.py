@@ -142,10 +142,6 @@ class Haruka(commands.Bot):
             CREATE TABLE IF NOT EXISTS messages (id serial primary key, author text, content text, time timestamptz);
         """)
 
-        for extension in ("pg_trgm",):
-            with contextlib.suppress(asyncpg.DuplicateObjectError):
-                await self.conn.execute(f"CREATE EXTENSION {extension};")
-
         self.log("Successfully initialized database.")
 
     def log(self, content: Any) -> None:
@@ -211,7 +207,7 @@ class Haruka(commands.Bot):
                     url = commit["html_url"]
                     desc.append(f"__[`{sha}`]({url})__ {escape(message)}")
 
-                self.latest_commits = "\n".join(desc)
+                self.latest_commits = "\n".join(desc).replace(r"\`\`", "`")
                 self.log("Fetched latest repository commits")
 
             else:

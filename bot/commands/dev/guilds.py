@@ -14,7 +14,7 @@ GUILDS_PER_PAGE = 5
 
 @bot.command(
     name="guilds",
-    description="View the guild auto-leaving scheduler",
+    description="View guilds' information",
 )
 @commands.is_owner()
 async def _guilds_cmd(ctx: Context):
@@ -35,16 +35,15 @@ async def _guilds_cmd(ctx: Context):
     now = utcnow()
     embeds = []
 
+    counter = 0
     for page in range(pages):
         embed = discord.Embed()
         embed.set_author(
-            name="This is the auto-leaving scheduler",
+            name="This is the guilds' information",
             icon_url=bot.user.avatar.url,
         )
         embed.set_footer(text=f"Page {page + 1}/{pages}")
 
-        guild_names = []
-        last_active_time = []
         for _ in range(GUILDS_PER_PAGE):
             try:
                 guild_name, last_active = mapping.popitem()
@@ -52,11 +51,14 @@ async def _guilds_cmd(ctx: Context):
                 break
 
             last_active = now - last_active
-            guild_names.append(escape_markdown(guild_name))
-            last_active_time.append(f"{utils.format(last_active.seconds)} ago")
 
-        embed.add_field(name="Guilds", value="\n".join(guild_names))
-        embed.add_field(name="Last active time", value="\n".join(last_active_time))
+            counter += 1
+            embed.add_field(
+                name=f"#{counter} {escape_markdown(guild_name)}",
+                value=f"**Last active** {utils.format(last_active.seconds)} ago",
+                inline=False,
+            )
+
         embeds.append(embed)
 
     display = emoji_ui.NavigatorPagination(bot, embeds)
