@@ -122,6 +122,9 @@ async def on_ready() -> None:
 @bot.before_invoke
 async def _before_invoke(ctx: Context) -> None:
     # Count text commands
+    if ctx.guild:
+        await bot.reset_inactivity_counter(ctx.guild.id)
+
     if ctx.command.root_parent:
         return
 
@@ -133,6 +136,3 @@ async def _before_invoke(ctx: Context) -> None:
         bot._command_count[name] = []
 
     bot._command_count[name].append(ctx)
-
-    if ctx.guild:
-        await bot.reset_inactivity_counter(ctx.guild.id)

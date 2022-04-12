@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import traceback
-from typing import Optional, Union, TYPE_CHECKING
+from typing import List, Optional, Union, TYPE_CHECKING
 
 from discord import app_commands
 
@@ -38,10 +38,11 @@ class SlashCommandTree(app_commands.CommandTree):
 
         return True
 
-    async def sync(self, *, guild: Optional[Guild] = None) -> None:
+    async def sync(self, *, guild: Optional[Guild] = None) -> List[app_commands.AppCommand]:
         self.client.log("Syncing slash commands...")
         commands = await super().sync(guild=guild)
         self.client.log(f"Synced {len(commands)} commands")
+        return commands
 
     async def on_error(self, interaction: Interaction, command: Optional[Union[app_commands.Command, app_commands.ContextMenu]], error: app_commands.AppCommandError) -> None:
         bot = self.client
