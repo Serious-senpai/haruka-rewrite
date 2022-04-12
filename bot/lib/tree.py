@@ -7,7 +7,7 @@ from discord import app_commands
 
 if TYPE_CHECKING:
     import haruka
-    from _types import Interaction
+    from _types import Guild, Interaction
 
 
 class SlashCommandTree(app_commands.CommandTree):
@@ -37,6 +37,11 @@ class SlashCommandTree(app_commands.CommandTree):
             return False
 
         return True
+
+    async def sync(self, *, guild: Optional[Guild] = None) -> None:
+        self.client.log("Syncing slash commands...")
+        commands = await super().sync(guild=guild)
+        self.client.log(f"Synced {len(commands)} commands")
 
     async def on_error(self, interaction: Interaction, command: Optional[Union[app_commands.Command, app_commands.ContextMenu]], error: app_commands.AppCommandError) -> None:
         bot = self.client

@@ -5,7 +5,7 @@ import io
 import signal
 import sys
 import traceback
-from typing import Any, Deque, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Coroutine, Deque, Dict, List, Optional, Union, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -38,6 +38,7 @@ class Haruka(commands.Bot):
         _slash_command_count: Dict[str, List[Interaction]]
         _connection: _ConnectionState
         _eval_task: Optional[asyncio.Task]
+        _create_image_slash_command: Coroutine[Any, Any, None]
 
         app: server.WebApp
         asset_client: asset.AssetClient
@@ -169,6 +170,10 @@ class Haruka(commands.Bot):
         # Fetch anime images
         image_fetching_task = self.loop.create_task(self.asset_client.fetch_anime_images(), name="Startup image fetching")
 
+        # Create the /image command
+        create_image_slash_command = self.loop.create_task(self._create_image_slash_command)
+        create_image_slash_command.add_done_callback(lambda _: self.loop.create_task(self.tree.sync()))
+
         # Get bot owner
         app_info = await self.application_info()
         if app_info.team:
@@ -216,6 +221,7 @@ class Haruka(commands.Bot):
 
         # Complete tasks
         await test_running_task
+        await create_image_slash_command
         await image_fetching_task
 
         try:
