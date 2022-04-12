@@ -10,10 +10,8 @@ from core import bot
 async def create_image_slash_command() -> None:
     await bot.image.wait_until_ready()
 
-    sfw_keys = list(bot.image.sfw.keys())
-    sfw_keys.sort()
-    nsfw_keys = list(bot.image.nsfw.keys())
-    nsfw_keys.sort()
+    sfw_keys = sorted(bot.image.sfw.keys())
+    nsfw_keys = sorted(bot.image.nsfw.keys())
 
     sfw_choices = [app_commands.Choice(name=sfw_keys[i], value=i) for i in range(len(sfw_keys))]
     nsfw_choices = [app_commands.Choice(name=nsfw_keys[i], value=i) for i in range(len(nsfw_keys))]
