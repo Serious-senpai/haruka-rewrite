@@ -5,7 +5,7 @@ from discord import app_commands
 
 from _types import Interaction
 from core import bot
-from lib import image
+from lib import image, utils
 
 
 async def create_image_slash_command() -> None:
@@ -50,19 +50,26 @@ async def create_image_slash_command() -> None:
             )
             await interaction.followup.send(embed=embed)
 
+    async def _autocomplete(current: str, keys: List[str]) -> List[app_commands.Choice[str]]:
+        results = [app_commands.Choice(name=key, value=key) for key in keys if current in key]
+        if not results:
+            key = await utils.fuzzy_match(current, keys)
+            results = [app_commands.Choice(name=key, value=key)]
+
+        return results[:25]
+
     @_ImageSlashCommand._sfw_slash.autocomplete("category")
     async def _sfw_autocomplete(interaction: Interaction, current: str) -> List[app_commands.Choice[str]]:
         await interaction.response.defer()
-        result = [app_commands.Choice(name=sfw_key, value=sfw_key) for sfw_key in sfw_keys if current in sfw_key]
-        return result[:25]
+        return await _autocomplete(current, sfw_keys)
 
     @_ImageSlashCommand._nsfw_slash.autocomplete("category")
     async def _nsfw_autocomplete(interaction: Interaction, current: str) -> List[app_commands.Choice[str]]:
         await interaction.response.defer()
-        result = [app_commands.Choice(name=nsfw_key, value=nsfw_key) for nsfw_key in nsfw_keys if current in nsfw_key]
-        return result[:25]
+        return await _autocomplete(current, nsfw_keys)
 
     bot.tree.add_command(_ImageSlashCommand(name="image", description="Get a random anime image"))
+    bot.log("Initialized /image command")
 
 
 bot._create_image_slash_command = create_image_slash_command()

@@ -132,7 +132,7 @@ def get_reply(message: discord.Message) -> Optional[discord.Message]:
 
 
 async def fuzzy_match(string: str, against: Iterator[str], *, pattern: str = r"\w+") -> str:
-    args = ["python", "bot/lib/levenshtein.py"]
+    args = ["python", "bot/lib/fuzzy.py"]
     args.append(string)
     args.extend(against)
 

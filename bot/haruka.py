@@ -172,7 +172,6 @@ class Haruka(commands.Bot):
 
         # Create the /image command
         create_image_slash_command = self.loop.create_task(self._create_image_slash_command)
-        create_image_slash_command.add_done_callback(lambda _: self.loop.create_task(self.tree.sync()))
 
         # Get bot owner
         app_info = await self.application_info()
