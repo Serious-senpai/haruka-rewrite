@@ -70,8 +70,10 @@ def format(time: float) -> str:
         if minutes > 0:
             ret.append(f"{minutes}m")
         if time > 0:
-            representation = "{0}s" if time.is_integer() else "{:.2f}s"
-            ret.append(representation.format(time))
+            if time.is_integer():
+                ret.append(f"{int(time)}s")
+            else:
+                ret.append("{:.2f}s".format(time))
 
         return " ".join(ret)
 
