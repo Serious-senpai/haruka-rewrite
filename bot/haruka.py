@@ -138,7 +138,7 @@ class Haruka(commands.Bot):
             CREATE TABLE IF NOT EXISTS youtube (id text, queue text[]);
             CREATE TABLE IF NOT EXISTS blacklist (id text);
             CREATE TABLE IF NOT EXISTS remind (id text, time timestamptz, content text, url text, original timestamptz);
-            CREATE TABLE IF NOT EXISTS inactivity (id text, time timestamptz);
+            CREATE TABLE IF NOT EXISTS inactivity (id text primary key, time timestamptz);
             CREATE TABLE IF NOT EXISTS chat_users (username text, password text);
             CREATE TABLE IF NOT EXISTS messages (id serial primary key, author text, content text, time timestamptz);
         """)
@@ -151,7 +151,19 @@ class Haruka(commands.Bot):
         self.logfile.flush()
 
     async def reset_inactivity_counter(self, guild_id: Union[int, str]) -> None:
-        await self.conn.execute(f"UPDATE inactivity SET time = $1 WHERE id = '{guild_id}';", discord.utils.utcnow())
+        now = discord.utils.utcnow()
+        guild_id = str(guild_id)
+        await self.conn.execute(
+            """
+            INSERT INTO inactivity
+            VALUES ($1, $2)
+            ON CONFLICT (id) DO UPDATE
+                SET time = excluded.time;
+            """,
+            guild_id,
+            now,
+        )
+        self.log(f"Reset inactivity counter for guild ID {guild_id} to {now}")
         self.guild_leaver.restart()
 
     async def _change_activity_after_booting(self) -> None:
@@ -187,6 +199,8 @@ class Haruka(commands.Bot):
             row = await self.conn.fetchrow(f"SELECT * FROM inactivity WHERE id = '{guild.id}';")
             if not row:
                 await self.conn.execute(f"INSERT INTO inactivity VALUES ('{guild.id}', $1);", now)
+                self.log(f"Inserted guild ID {guild.id} into the inactivity table: {now}")
+
         self.log("Initialized all guild inactivity checks")
 
         # Start all future tasks
@@ -194,10 +208,10 @@ class Haruka(commands.Bot):
             try:
                 task.start()
             except BaseException:
-                self.log(f"An exception occured when starting {task}:")
+                self.log(f"An exception occured when starting {task.coro.__name__}:")
                 self.log(traceback.format_exc())
             else:
-                self.log(f"Started {task}")
+                self.log(f"Started {task.coro.__name__}")
 
         # Fetch repository's latest commits
         async with self.session.get("https://api.github.com/repos/Serious-senpai/haruka-rewrite/commits") as response:
