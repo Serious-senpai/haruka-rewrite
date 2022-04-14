@@ -53,7 +53,7 @@ async def create_image_slash_command() -> None:
     async def _autocomplete(current: str, keys: List[str]) -> List[app_commands.Choice[str]]:
         results = [app_commands.Choice(name=key, value=key) for key in keys if current in key]
         if not results:
-            key = await utils.fuzzy_match(current, keys, pattern=r"[\w\s-]+")
+            key = await utils.fuzzy_match(current, keys, pattern=r"[\w -]+")
             results = [app_commands.Choice(name=key, value=key)]
 
         return results[:25]
