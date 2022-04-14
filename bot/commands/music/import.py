@@ -8,7 +8,7 @@ from core import bot
 
 @bot.command(
     name="import",
-    description="Import a music queue from a file. Note that the old queue of the voice channel will be overwritten.\nSee also: the `export` command.",
+    description="Import a music queue from a file. Note that the old queue of the voice channel will be overwritten.\nSee also: the `{prefix}export` command.",
 )
 @bot.audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)

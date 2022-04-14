@@ -15,13 +15,14 @@ from lib import audio
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _play_cmd(ctx: Context):
     channel = ctx.author.voice.channel
+    prefix = ctx.clean_prefix
 
     queue = await bot.audio.queue(channel.id)
     if len(queue) == 0:
-        return await ctx.send("Please add a song to the queue with `add` or `playlist`")
+        return await ctx.send(f"Please add a song to the queue with `{prefix}add` or `{prefix}playlist`")
 
     if ctx.voice_client:
-        return await ctx.send("Currently connected to another voice channel in the server. Please use `stop` first.")
+        return await ctx.send(f"Currently connected to another voice channel in the server. Please use `{prefix}stop` first.")
 
     try:
         async with ctx.typing():

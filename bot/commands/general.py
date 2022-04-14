@@ -109,7 +109,7 @@ async def _say_cmd(ctx: Context, *, content: str = ""):
 
 @bot.command(
     name="speak",
-    description="Just like `say`, but will attempt to delete your message. Attachments are also allowed.",
+    description="Just like `{prefix}say`, but will attempt to delete your message. Attachments are also allowed.",
     usage="speak <something>"
 )
 @commands.cooldown(1, 1, commands.BucketType.user)
