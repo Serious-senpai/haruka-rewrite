@@ -8,6 +8,7 @@ from typing import Dict, Callable, List, Optional, Type, TypeVar, TYPE_CHECKING
 import aiohttp
 import asyncpg
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from env import HOST
@@ -15,7 +16,7 @@ from .exceptions import AudioNotFound
 from .sources import PartialInvidiousSource, InvidiousSource
 if TYPE_CHECKING:
     import haruka
-    from _types import Context
+    from _types import Context, Interaction
 
 
 __all__ = ("AudioClient",)
@@ -44,17 +45,32 @@ class AudioClient:
     def session(self) -> aiohttp.ClientSession:
         return self.bot.session
 
-    def in_voice(self) -> Callable[[T], T]:
-        """A text command check that returns ``True`` if the invoker is
+    @staticmethod
+    def in_voice(*, slash_command: bool = False) -> Callable[[T], T]:
+        """A command check that returns ``True`` if the invoker is
         currently in a voice channel.
         """
-        async def predicate(ctx: Context) -> bool:
-            if not getattr(ctx.author, "voice", None):
-                await ctx.send("Please join a voice channel first.")
+        if slash_command:
+            async def predicate(interaction: Interaction) -> bool:
+                if isinstance(interaction.user, discord.Member):
+                    if interaction.user.voice:
+                        return True
+
+                await interaction.response.send_message("Please join a voice channel first!")
                 return False
 
-            return True
-        return commands.check(predicate)
+            return app_commands.check(predicate)
+
+        else:
+            async def predicate(ctx: Context) -> bool:
+                if isinstance(ctx.author, discord.Member):
+                    if ctx.author.voice:
+                        return True
+
+                await ctx.send("Please join a voice channel first!")
+                return False
+
+            return commands.check(predicate)
 
     @staticmethod
     def create_audio_url(track_id: str) -> str:

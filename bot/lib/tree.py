@@ -46,6 +46,10 @@ class SlashCommandTree(app_commands.CommandTree):
 
     async def on_error(self, interaction: Interaction, command: Optional[Union[app_commands.Command, app_commands.ContextMenu]], error: app_commands.AppCommandError) -> None:
         bot = self.client
+
+        if isinstance(error, app_commands.CheckFailure):
+            return
+
         bot.log(f"'{command.name}' in {interaction.channel_id}/{interaction.guild_id} from {interaction.user} ({interaction.user.id}):")
         bot.log("".join(traceback.format_exception(error.__class__, error, error.__traceback__)))
         await bot.report("An error has just occured and was handled by `SlashCommandTree.on_error`", send_state=False)

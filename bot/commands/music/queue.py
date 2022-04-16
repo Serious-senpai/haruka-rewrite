@@ -16,9 +16,6 @@ SONGS_PER_PAGE = 8
 @bot.audio.in_voice()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _queue_cmd(ctx: Context):
-    if not ctx.author.voice:
-        return await ctx.send("Please join a voice channel first.")
-
     channel = ctx.author.voice.channel
     track_ids = await bot.audio.queue(channel.id)
     pages = 1 + len(track_ids) // SONGS_PER_PAGE
