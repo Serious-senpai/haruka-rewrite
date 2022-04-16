@@ -19,7 +19,7 @@ from discord.utils import escape_markdown as escape
 
 import env
 import web as server
-from _types import Context, Interaction
+from _types import Context, Interaction, Loop
 from lib import asset, tests
 from lib.audio import AudioClient
 from lib.image import ImageClient
@@ -46,21 +46,12 @@ class Haruka(commands.Bot):
         conn: asyncpg.Pool
         image: ImageClient
         logfile: io.TextIOWrapper
+        loop: Loop
         owner: Optional[discord.User]
         owner_bypass: bool
         runner: web.AppRunner
         session: aiohttp.ClientSession
         uptime: datetime.datetime
-
-        if sys.platform == "win32":
-            loop: asyncio.ProactorEventLoop
-        else:
-            try:
-                import uvloop
-            except ImportError:
-                loop: asyncio.SelectorEventLoop
-            else:
-                loop: uvloop.Loop
 
     def __init__(self, *args, **kwargs) -> None:
         signal.signal(signal.SIGTERM, self.kill)

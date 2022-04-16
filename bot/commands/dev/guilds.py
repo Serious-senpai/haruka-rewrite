@@ -55,7 +55,7 @@ async def _guilds_cmd(ctx: Context):
             counter += 1
             embed.add_field(
                 name=f"#{counter} {escape_markdown(guild_name)}",
-                value=f"**Last active** {utils.format(last_active.seconds)} ago",
+                value=f"**Last active** {utils.format(last_active.total_seconds())} ago",
                 inline=False,
             )
 

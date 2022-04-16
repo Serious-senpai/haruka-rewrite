@@ -5,7 +5,6 @@ import contextlib
 import functools
 import select
 import struct
-import sys
 import traceback
 from typing import AsyncIterator, Optional, TYPE_CHECKING
 
@@ -19,6 +18,7 @@ from .constants import TIMEOUT
 from .sources import InvidiousSource
 if TYPE_CHECKING:
     import haruka
+    from _types import Loop
     from .client import AudioClient
 
 
@@ -266,16 +266,7 @@ class AudioReader(discord.VoiceClient):
 
     if TYPE_CHECKING:
         _listening: bool
-
-        if sys.platform == "win32":
-            loop: asyncio.ProactorEventLoop
-        else:
-            try:
-                import uvloop
-            except ImportError:
-                loop: asyncio.SelectorEventLoop
-            else:
-                loop: uvloop.Loop
+        loop: Loop
 
     def __init__(self, *args, **kwargs) -> None:
         self._listening = False

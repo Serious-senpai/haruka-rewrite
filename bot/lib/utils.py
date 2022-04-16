@@ -50,10 +50,12 @@ def format(time: float) -> str:
     """
     time = float(time)
 
-    if time < 1:
+    if time < 0:
+        raise ValueError("time must be a positive value")
+
+    elif time < 1:
         return "{:.2f} ms".format(1000 * time)
-    elif time < 60:
-        return "{:.2f} s".format(time)
+
     else:
         days = int(time / 86400)
         time -= days * 86400
@@ -65,10 +67,13 @@ def format(time: float) -> str:
         ret = []
         if days > 0:
             ret.append(f"{days}d")
+
         if hours > 0:
             ret.append(f"{hours}h")
+
         if minutes > 0:
             ret.append(f"{minutes}m")
+
         if time > 0:
             if time.is_integer():
                 ret.append(f"{int(time)}s")

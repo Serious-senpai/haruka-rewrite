@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import sys
 from typing import Optional, TYPE_CHECKING
 
 import discord
@@ -8,6 +10,17 @@ from discord.ext import commands
 if TYPE_CHECKING:
     import haruka
     from lib import audio
+
+
+if sys.platform == "win32":
+    Loop = asyncio.ProactorEventLoop
+else:
+    try:
+        import uvloop
+    except ImportError:
+        Loop = asyncio.SelectorEventLoop
+    else:
+        Loop = uvloop.Loop
 
 
 class Context(commands.Context):
