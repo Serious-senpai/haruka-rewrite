@@ -132,7 +132,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         await self.context.send(embed=embed)
 
     async def prepare_help_command(self, ctx: Context, command: Optional[str] = None) -> None:
-        if "sfw" in command:
+        if command is not None and "sfw" in command:
             await bot.image.wait_until_ready()
             self.sfw_keys = sorted(bot.image.sfw.keys())
             self.nsfw_keys = sorted(bot.image.nsfw.keys())
