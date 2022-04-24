@@ -134,13 +134,13 @@ async def _before_invoke(ctx: Context) -> None:
     bot._command_count[name].append(ctx)
 
 
-@bot.event(unverified_only=True)
+@bot.event
 async def on_ready() -> None:
     bot.log(f"Logged in as {bot.user}")
     print(f"Logged in as {bot.user}")
 
 
-@bot.event()
+@bot.event
 async def on_error(event_method: str, *args: Any, **kwargs: Any) -> None:
     exc_type, _, _ = sys.exc_info()
     if issubclass(exc_type, discord.Forbidden):  # type: ignore
