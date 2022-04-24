@@ -15,7 +15,7 @@ from lib import zerochan
 @app_commands.describe(query="The searching query")
 async def _zerochan_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
-    urls = await zerochan.search(query, max_results=20, session=bot.session)
+    urls = await zerochan.search(query, max_results=20, session=interaction.client.session)
     if not urls:
         return await interaction.followup.send("No matching result was found.")
 
@@ -23,6 +23,6 @@ async def _zerochan_slash(interaction: Interaction, query: str):
     embed.set_image(url=random.choice(urls))
     embed.set_author(
         name=f"Zerochan search for {query}",
-        icon_url=bot.user.avatar.url,
+        icon_url=interaction.client.user.avatar.url,
     )
     await interaction.followup.send(embed=embed)

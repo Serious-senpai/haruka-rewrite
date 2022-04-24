@@ -15,4 +15,4 @@ from lib.quotes import Quote
 async def _quote_slash(interaction: Interaction, anime: Optional[str]):
     await interaction.response.defer()
     quote = await Quote.get(anime)
-    await interaction.followup.send(embed=quote.create_embed(icon_url=bot.user.avatar.url))
+    await interaction.followup.send(embed=quote.create_embed(icon_url=interaction.client.user.avatar.url))

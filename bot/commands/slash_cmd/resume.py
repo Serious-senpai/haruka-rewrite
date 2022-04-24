@@ -5,6 +5,7 @@ from core import bot
 @bot.slash(
     name="resume",
     description="Resume the paused audio",
+    verified_client=False,
 )
 async def _resume_slash(interaction: Interaction):
     if not interaction.guild:

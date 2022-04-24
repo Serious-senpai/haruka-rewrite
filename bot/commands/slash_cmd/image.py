@@ -35,7 +35,7 @@ async def create_image_slash_command() -> None:
             await interaction.response.defer()
 
             try:
-                image_url = await bot.image.get(category, mode=mode)
+                image_url = await interaction.client.image.get(category, mode=mode)
             except image.CategoryNotFound:
                 return await interaction.followup.send(f"No category named `{category}` was found.")
 
@@ -46,7 +46,7 @@ async def create_image_slash_command() -> None:
             embed.set_image(url=image_url)
             embed.set_author(
                 name="This is your image!",
-                icon_url=bot.user.avatar.url,
+                icon_url=interaction.client.user.avatar.url,
             )
             await interaction.followup.send(embed=embed)
 
@@ -68,7 +68,9 @@ async def create_image_slash_command() -> None:
         await interaction.response.defer()
         return await _autocomplete(current, nsfw_keys)
 
-    bot.tree.add_command(_ImageSlashCommand(name="image", description="Get a random anime image"))
+    group = _ImageSlashCommand(name="image", description="Get a random anime image")
+    bot.tree.add_command(group)
+    bot.side_client.tree.add_command(group)
     bot.log("Initialized /image command")
 
 

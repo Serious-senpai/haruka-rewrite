@@ -6,6 +6,7 @@ from lib.audio import MusicClient
 @bot.slash(
     name="skip",
     description="Skip the playing song",
+    verified_client=False,
 )
 async def _skip_slash(interaction: Interaction):
     if not interaction.guild:

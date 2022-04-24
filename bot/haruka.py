@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import contextlib
 import datetime
@@ -5,7 +7,7 @@ import io
 import signal
 import sys
 import traceback
-from typing import Any, Coroutine, Deque, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Callable, Coroutine, Deque, Dict, List, Optional, Union, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -13,11 +15,13 @@ import discord
 import topgg
 import youtube_dl
 from aiohttp import web
+from discord import app_commands
 from discord.ext import commands, tasks
 from discord.state import ConnectionState
-from discord.utils import escape_markdown as escape
+from discord.utils import MISSING, escape_markdown as escape
 
 import env
+import side
 import web as server
 from _types import Context, Interaction, Loop
 from lib import asset, tests
@@ -26,6 +30,8 @@ from lib.image import ImageClient
 
 
 if TYPE_CHECKING:
+    from discord.app_commands.commands import Command, CommandCallback, Group, P, T
+
     class _ConnectionState(ConnectionState):
         conn: asyncpg.Pool
         _messages: Deque[discord.Message]
@@ -51,6 +57,7 @@ class Haruka(commands.Bot):
         owner_bypass: bool
         runner: web.AppRunner
         session: aiohttp.ClientSession
+        side_client: Optional[side.SideClient]
         uptime: datetime.datetime
 
     def __init__(self, *args, **kwargs) -> None:
@@ -60,7 +67,12 @@ class Haruka(commands.Bot):
         self.logfile = open("./bot/assets/server/log.txt", "a", encoding="utf-8")
         self.owner = None
         self._clear_counter()
-        self.slash = self.tree.command
+
+        if env.SECONDARY_TOKEN:
+            print("SECONDARY_TOKEN detected, initializing SideClient.")
+            self.side_client = side.SideClient(self, env.SECONDARY_TOKEN)
+        else:
+            self.side_client = None
 
         self.__initialize_clients()
 
@@ -112,6 +124,10 @@ class Haruka(commands.Bot):
         print(f"Started serving on port {port}")
 
         self.uptime = discord.utils.utcnow()
+
+        if self.side_client:
+            self.loop.create_task(self.side_client.start())
+
         self.loop.create_task(self.startup())
 
     async def prepare_database(self) -> None:
@@ -231,6 +247,28 @@ class Haruka(commands.Bot):
         except BaseException:
             self.log("Cannot send ready notification:")
             self.log(traceback.format_exc())
+
+    def slash(
+        self,
+        *,
+        name: str,
+        description: str,
+        guilds: List[discord.Object] = MISSING,
+        verified_client: bool = True,
+        unverified_client: bool = True,
+    ) -> Callable[[CommandCallback[Group, P, T]], Command[Group, P, T]]:
+        def decorator(func: CommandCallback[Group, P, T]) -> Command[Group, P, T]:
+            command = app_commands.Command(name=name, description=description, callback=func)
+            if verified_client:
+                if not self.side_client:
+                    raise RuntimeError("A secondary token must be provided")
+
+                self.side_client.tree.add_command(command, guilds=guilds)
+
+            if unverified_client:
+                self.tree.add_command(command, guilds=guilds)
+
+        return decorator
 
     def kill(self, *args) -> None:
         print("Received SIGTERM signal. Terminating bot...")

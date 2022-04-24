@@ -10,6 +10,7 @@ from lib.audio import MusicClient
 @bot.slash(
     name="play",
     description="Start playing the queue of the voice channel you are connected to.",
+    verified_client=False,
 )
 @bot.audio.in_voice(slash_command=True)
 async def _play_slash(interaction: Interaction):

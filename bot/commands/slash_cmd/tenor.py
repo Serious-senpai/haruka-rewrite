@@ -15,7 +15,7 @@ from lib import tenor
 @app_commands.describe(query="The searching query")
 async def _tenor_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
-    urls = await tenor.search(query, session=bot.session)
+    urls = await tenor.search(query, session=interaction.client.session)
     if not urls:
         return await interaction.followup.send("No matching result was found.")
 
@@ -23,6 +23,6 @@ async def _tenor_slash(interaction: Interaction, query: str):
     embed.set_image(url=random.choice(urls[:10]))
     embed.set_author(
         name=f"Tenor search for {query}",
-        icon_url=bot.user.avatar.url,
+        icon_url=interaction.client.user.avatar.url,
     )
     await interaction.followup.send(embed=embed)

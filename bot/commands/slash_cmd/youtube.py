@@ -11,6 +11,7 @@ from lib import audio, emojis, ui, utils
 @bot.slash(
     name="youtube",
     description="Search for a YouTube video and get the mp3 file",
+    verified_client=False,
 )
 @app_commands.describe(query="The searching query")
 async def _youtube_slash(interaction: Interaction, query: str):

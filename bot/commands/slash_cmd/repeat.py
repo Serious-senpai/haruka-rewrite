@@ -5,6 +5,7 @@ from core import bot
 @bot.slash(
     name="repeat",
     description="Switch between REPEAT_ONE and REPEAT_ALL",
+    verified_client=False,
 )
 async def _repeat_slash(interaction: Interaction):
     if not interaction.guild:

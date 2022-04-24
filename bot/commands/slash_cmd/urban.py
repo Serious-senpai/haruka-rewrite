@@ -13,12 +13,12 @@ from lib import urban
 async def _urban_slash(interaction: Interaction, word: str):
     await interaction.response.defer()
 
-    result = await urban.UrbanSearch.search(word, session=bot.session)
+    result = await urban.UrbanSearch.search(word, session=interaction.client.session)
     if result:
         embed = result.create_embed()
         embed.set_author(
             name=f"This is the definition of {word}",
-            icon_url=bot.user.avatar.url,
+            icon_url=interaction.client.user.avatar.url,
         )
         await interaction.followup.send(embed=embed)
     else:

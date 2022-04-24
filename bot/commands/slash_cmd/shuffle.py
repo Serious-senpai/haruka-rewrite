@@ -5,6 +5,7 @@ from core import bot
 @bot.slash(
     name="shuffle",
     description="Enable/Disable music playing shuffle",
+    verified_client=False,
 )
 async def _shuffle_slash(interaction: Interaction):
     if not interaction.guild:

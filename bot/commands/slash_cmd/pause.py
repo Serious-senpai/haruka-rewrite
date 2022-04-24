@@ -5,6 +5,7 @@ from core import bot
 @bot.slash(
     name="pause",
     description="Pause the playing audio",
+    verified_client=False,
 )
 async def _pause_slash(interaction: Interaction):
     if not interaction.guild:

@@ -14,7 +14,7 @@ from lib import pixiv
 async def _pixiv_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
     try:
-        parsed = await pixiv.parse(query, session=bot.session)
+        parsed = await pixiv.parse(query, session=interaction.client.session)
     except pixiv.NSFWArtworkDetected as exc:
         parsed = exc.artwork
         if isinstance(interaction.channel, discord.TextChannel) and not interaction.channel.is_nsfw():
@@ -26,4 +26,4 @@ async def _pixiv_slash(interaction: Interaction, query: str):
         except IndexError:
             return await interaction.followup.send("No matching result was found.")
 
-    await interaction.followup.send(embed=await parsed.create_embed(session=bot.session))
+    await interaction.followup.send(embed=await parsed.create_embed(session=interaction.client.session))

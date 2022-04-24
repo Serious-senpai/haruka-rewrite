@@ -21,17 +21,19 @@ class _SauceSlashCommand(app_commands.Group):
 
     async def _process_request(self, interaction: Interaction, image_url: str) -> Any:
         await interaction.response.defer()
-        results = await saucenao.SauceResult.get_sauce(image_url, session=bot.session)
+        results = await saucenao.SauceResult.get_sauce(image_url, session=interaction.client.session)
         if not results:
             return await interaction.followup.send("Cannot find the image sauce.")
 
         embed = results[0].create_embed()
         embed.set_author(
             name="Image search result",
-            icon_url=bot.user.avatar.url,
+            icon_url=interaction.client.user.avatar.url,
         )
         embed.set_footer(text="For all results, consider using the text command")
         await interaction.followup.send(embed=embed)
 
 
-bot.tree.add_command(_SauceSlashCommand(name="sauce", description="Find the source of an artwork"))
+group = _SauceSlashCommand(name="sauce", description="Find the source of an artwork")
+bot.tree.add_command(group)
+bot.side_client.tree.add_command(group)

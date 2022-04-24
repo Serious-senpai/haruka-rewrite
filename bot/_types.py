@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import sys
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, Union, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
 
 if TYPE_CHECKING:
     import haruka
+    import side
     from lib import audio
 
 
@@ -23,9 +24,12 @@ else:
         Loop = uvloop.Loop
 
 
+if TYPE_CHECKING:
+    ClientT = Union[haruka.Haruka, side.SideClient]
+
+
 class Context(commands.Context):
     if TYPE_CHECKING:
-        bot: haruka.Haruka
         guild: Optional[Guild]
         voice_client: Optional[audio.MusicClient]
 
@@ -37,6 +41,7 @@ class Guild(discord.Guild):
 
 class Interaction(discord.Interaction):
     if TYPE_CHECKING:
+        client: ClientT
         guild: Optional[Guild]
 
 

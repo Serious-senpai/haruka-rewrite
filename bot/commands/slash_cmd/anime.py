@@ -18,7 +18,7 @@ async def _anime_slash(interaction: Interaction, query: str):
     if len(query) < 3:
         return await interaction.followup.send("Please provide at least 3 characters in the searching query.")
 
-    results = await mal.MALSearchResult.search(query, criteria="anime", session=bot.session)
+    results = await mal.MALSearchResult.search(query, criteria="anime", session=interaction.client.session)
     if not results:
         return await interaction.followup.send("No matching result was found.")
 
@@ -34,12 +34,12 @@ async def _anime_slash(interaction: Interaction, query: str):
     except asyncio.TimeoutError:
         return
     else:
-        anime = await mal.Anime.get(id, session=bot.session)
+        anime = await mal.Anime.get(id, session=interaction.client.session)
 
     embed = anime.create_embed()
     embed.set_author(
         name="Anime search result",
-        icon_url=bot.user.avatar.url,
+        icon_url=interaction.client.user.avatar.url,
     )
     embed.set_footer(text="From myanimelist.net")
     await interaction.followup.send(embed=embed)

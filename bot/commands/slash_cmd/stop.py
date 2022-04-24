@@ -5,6 +5,7 @@ from core import bot
 @bot.slash(
     name="stop",
     description="Stop the playing audio and disconnect from the voice channel",
+    verified_client=False,
 )
 async def _stop_slash(interaction: Interaction):
     if not interaction.guild:
