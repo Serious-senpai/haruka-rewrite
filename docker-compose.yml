@@ -9,4 +9,3 @@ services:
     environment:
       DATABASE_URL: $DATABASE_URL
       TOKEN: $TOKEN
-      TOPGG_TOKEN: ${TOPGG_TOKEN-}

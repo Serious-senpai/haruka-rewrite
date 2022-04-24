@@ -382,12 +382,3 @@ class Haruka(commands.Bot):
             with contextlib.suppress(discord.HTTPException):
                 await guild.leave()
                 await asyncio.sleep(3.0)
-
-    async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
-        exc_type, _, _ = sys.exc_info()
-        if issubclass(exc_type, discord.Forbidden):  # type: ignore
-            return
-
-        self.log(f"Exception in {event_method}:")
-        self.log(traceback.format_exc())
-        await self.report("An error has just occurred and was handled by `Haruka.on_error`", send_state=False)

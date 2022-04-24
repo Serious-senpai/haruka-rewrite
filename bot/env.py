@@ -13,4 +13,5 @@ TOKEN = os.environ["TOKEN"]
 # Optional
 HOST = os.environ.get("HOST", "http://localhost").strip("/")
 PORT = int(os.environ.get("PORT", 8080))
-TOPGG_TOKEN = os.environ.get("TOPGG_TOKEN", "")
+TOPGG_TOKEN = os.environ.get("TOPGG_TOKEN")
+SECONDARY_TOKEN = os.environ.get("SECONDARY_TOKEN")

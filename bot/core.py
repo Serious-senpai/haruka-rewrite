@@ -1,7 +1,9 @@
 import asyncio
 import gc
 import logging
-from typing import List
+import sys
+import traceback
+from typing import Any, List
 
 import discord
 from discord.ext import commands
@@ -113,12 +115,6 @@ async def _blacklist_check(ctx: Context) -> bool:
     return row is None
 
 
-@bot.event
-async def on_ready() -> None:
-    bot.log(f"Logged in as {bot.user}")
-    print(f"Logged in as {bot.user}")
-
-
 @bot.before_invoke
 async def _before_invoke(ctx: Context) -> None:
     # Count text commands
@@ -136,3 +132,20 @@ async def _before_invoke(ctx: Context) -> None:
         bot._command_count[name] = []
 
     bot._command_count[name].append(ctx)
+
+
+@bot.event(unverified_only=True)
+async def on_ready() -> None:
+    bot.log(f"Logged in as {bot.user}")
+    print(f"Logged in as {bot.user}")
+
+
+@bot.event()
+async def on_error(event_method: str, *args: Any, **kwargs: Any) -> None:
+    exc_type, _, _ = sys.exc_info()
+    if issubclass(exc_type, discord.Forbidden):  # type: ignore
+        return
+
+    bot.log(f"Exception in {event_method}:")
+    bot.log(traceback.format_exc())
+    await bot.report("An error has just occurred and was handled by `on_error`", send_state=False)
