@@ -1,6 +1,3 @@
-[![Discord Bots](https://top.gg/api/widget/status/848178172536946708.svg)](https://top.gg/bot/848178172536946708)
-[![Discord Bots](https://top.gg/api/widget/servers/848178172536946708.svg)](https://top.gg/bot/848178172536946708)
-[![Discord Bots](https://top.gg/api/widget/owner/848178172536946708.svg)](https://top.gg/bot/848178172536946708)
 # Developer notes
 ### Key features
 - Stream and download music from [YouTube](https://youtube.com) without having to install an opus library or host a Lavalink server
