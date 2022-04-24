@@ -36,4 +36,5 @@ class _SauceSlashCommand(app_commands.Group):
 
 group = _SauceSlashCommand(name="sauce", description="Find the source of an artwork")
 bot.tree.add_command(group)
-bot.side_client.tree.add_command(group)
+if bot.side_client:
+    bot.side_client.tree.add_command(group)

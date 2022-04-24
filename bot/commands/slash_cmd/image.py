@@ -70,7 +70,9 @@ async def create_image_slash_command() -> None:
 
     group = _ImageSlashCommand(name="image", description="Get a random anime image")
     bot.tree.add_command(group)
-    bot.side_client.tree.add_command(group)
+    if bot.side_client:
+        bot.side_client.tree.add_command(group)
+
     bot.log("Initialized /image command")
 
 
