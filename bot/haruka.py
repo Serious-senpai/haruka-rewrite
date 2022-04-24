@@ -260,10 +260,10 @@ class Haruka(commands.Bot):
         def decorator(func: CommandCallback[Group, P, T]) -> Command[Group, P, T]:
             command = app_commands.Command(name=name, description=description, callback=func)
             if verified_client:
-                if not self.side_client:
-                    raise RuntimeError("A secondary token must be provided")
-
-                self.side_client.tree.add_command(command, guilds=guilds)
+                if self.side_client:
+                    self.side_client.tree.add_command(command, guilds=guilds)
+                else:
+                    self.log("A secondary token should be provided to register command to a verified client")
 
             if unverified_client:
                 self.tree.add_command(command, guilds=guilds)
