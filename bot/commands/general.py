@@ -19,7 +19,6 @@ from lib import emoji_ui, info, utils
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _about_cmd(ctx: Context):
     embed = info.user_info(bot.user)
-    embed.description += "\nIf you are too bored, [vote](https://top.gg/bot/848178172536946708/vote) for me on top.gg!"
     embed.add_field(
         name="Latest commits from the `main` branch",
         value=bot.latest_commits,
@@ -35,7 +34,7 @@ async def _about_cmd(ctx: Context):
     )
     embed.add_field(
         name="Links",
-        value=f"[Top.gg](https://top.gg/bot/848178172536946708)\n[GitHub](https://github.com/Serious-senpai/haruka-rewrite)\n[Website]({env.HOST})",
+        value=f"[GitHub](https://github.com/Serious-senpai/haruka-rewrite)\n[Website]({env.HOST})",
     )
     await ctx.send(embed=embed)
 

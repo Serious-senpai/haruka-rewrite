@@ -38,5 +38,10 @@ jobs:
     - name: Install dependencies
       run: pip3.9 install -r requirements.txt
 
-    - name: Test run
+    - name: Test single client
+      run: python3.9 bot/main.py
+
+    - name: Test secondary client
+      env:
+        SECONDARY_TOKEN: MjM4NDk0NzU2NTIxMzc3Nzky.CunGFQ.wUILz7z6HoJzVeq6pyHPmVgQgV4
       run: python3.9 bot/main.py
