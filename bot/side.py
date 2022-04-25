@@ -26,6 +26,7 @@ class SideClient(discord.Client):
         super().__init__(intents=core.intents)
 
         self.tree = app_commands.CommandTree(self)
+        self.tree.on_error = core.tree.on_error
 
     async def start(self) -> None:
         await self.core.wait_until_ready()
