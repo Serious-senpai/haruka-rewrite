@@ -23,7 +23,7 @@ class SideClient(discord.Client):
     def __init__(self, core: haruka.Haruka, token: str) -> None:
         self.core = core
         self.token = token
-        super().__init__(intents=core.intents)
+        super().__init__(intents=core.intents, activity=discord.Game("with my senpai"))
 
         self.tree = app_commands.CommandTree(self)
         self.tree.on_error = core.tree.on_error
