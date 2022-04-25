@@ -45,7 +45,7 @@ class SlashCommandTree(app_commands.CommandTree):
         return commands
 
     async def on_error(self, interaction: Interaction, error: BaseException) -> None:
-        bot = self.client
+        bot = interaction.client
 
         if isinstance(error, app_commands.CommandInvokeError):
             return await self.on_error(interaction, error.original)
@@ -57,4 +57,4 @@ class SlashCommandTree(app_commands.CommandTree):
 
         bot.log(f"Interaction {interaction.id} ({command_display}) in {interaction.channel_id}/{interaction.guild_id} from {interaction.user} ({interaction.user.id}):")
         bot.log("".join(traceback.format_exception(error.__class__, error, error.__traceback__)))
-        await bot.report("An error has just occured and was handled by `SlashCommandTree.on_error`", send_state=False)
+        await bot.report(f"An error has just occured and was handled by `SlashCommandTree.on_error` (from `{bot.__class__.__name__}`)", send_state=False)
