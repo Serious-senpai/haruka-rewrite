@@ -87,7 +87,15 @@ class User:
             descriptions.append(f"**Open ID** {self.open_id}")
 
         if self.first_name or self.last_name:
-            descriptions.append(" ".join(("**Name**", self.first_name, self.last_name)))
+            name_display = ["**Name**"]
+
+            if self.first_name:
+                name_display.append(self.first_name)
+
+            if self.last_name:
+                name_display.append(self.last_name)
+
+            descriptions.append(" ".join(name_display))
 
         if self.country:
             descriptions.append(f"**Country** {self.country}")
