@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 from typing import overload, Any, Dict, List, Optional, Tuple, Type, Union, TYPE_CHECKING
 
 import aiohttp
@@ -143,15 +144,14 @@ class User:
         )
         try:
             async with session.get(url) as response:
-                if response.status != 200:
-                    raise CodeforcesException(f"Cannot connect to codeforces.com, HTTP response {response.status}")
-
                 data = await response.json(encoding="utf-8")
                 if data["status"] == "FAILED":
                     raise CodeforcesException(data["comment"])
 
-                assert data["status"] == "OK"
                 return [cls(payload) for payload in data["result"]]
 
         except aiohttp.ClientError:
             raise CodeforcesException("Unable to connect to codeforces.com")
+
+        except json.JSONDecodeError:
+            raise CodeforcesException("Cannot parse received data from codeforces.com")
