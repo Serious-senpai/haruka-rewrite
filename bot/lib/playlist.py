@@ -46,7 +46,7 @@ class YouTubePlaylist:
             description = None
 
         embed = discord.Embed(
-            title=slice_string(title, 30),
+            title=slice_string(title, 200),
             description=slice_string(description, 4000),
             url=self.url,
         )

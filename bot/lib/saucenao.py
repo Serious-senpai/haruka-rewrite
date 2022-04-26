@@ -56,7 +56,7 @@ class SauceResult:
             The created embed
         """
         embed = discord.Embed(
-            title=utils.slice_string(escape(self.title), 30),
+            title=utils.slice_string(escape(self.title), 200),
             description=self.url,
             url=self.url,
         )

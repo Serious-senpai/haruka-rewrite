@@ -120,7 +120,7 @@ class MALObject(MAL, Generic[T]):
             description = None
 
         embed = discord.Embed(
-            title=utils.slice_string(title, 30),
+            title=utils.slice_string(title, 200),
             description=utils.slice_string(description, 4000),
             url=self.url,
         )

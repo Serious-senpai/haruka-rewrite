@@ -40,7 +40,7 @@ class UrbanSearch:
         description = f"{meaning}\n---------------\n{example}"
 
         embed = discord.Embed(
-            title=utils.slice_string(title, 30),
+            title=utils.slice_string(title, 200),
             description=utils.slice_string(description, 4000),
             url=self.url,
         )

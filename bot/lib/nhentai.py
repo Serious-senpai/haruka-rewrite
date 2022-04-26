@@ -117,8 +117,8 @@ class NHentai:
             description = None
 
         embed = discord.Embed(
-            title=utils.slice_string(title, 30),
-            description=utils.slice_string(description, 30) if description else None,
+            title=utils.slice_string(title, 200),
+            description=utils.slice_string(description, 4000) if description else None,
             url=self.url,
         )
         for section in self.sections:

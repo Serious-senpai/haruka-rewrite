@@ -126,8 +126,8 @@ class PartialInvidiousSource:
             description = None
 
         embed = discord.Embed(
-            title=slice_string(title, 30),
-            description=slice_string(description, 300) if description else None,
+            title=slice_string(title, 200),
+            description=slice_string(description, 350) if description else None,
             url=f"https://www.youtube.com/watch?v={self.id}",
         )
         embed.add_field(
