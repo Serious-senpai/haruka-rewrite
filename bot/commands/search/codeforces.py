@@ -21,7 +21,7 @@ async def _codeforces_cmd(ctx: Context, *handles: str):
     embeds = []
     for user in users:
         embed = user.create_embed()
-        embed.set_author("CodeForces user", icon_url=bot.user.avatar.url)
+        embed.set_author(name="CodeForces user", icon_url=bot.user.avatar.url)
         embeds.append(embed)
 
     if len(embeds) > 1:
