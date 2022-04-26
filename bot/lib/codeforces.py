@@ -40,10 +40,10 @@ class User:
         city: Optional[str]
         organization: Optional[str]
         contribution: int
-        rank: Optional[str]  # Can be None for Headquarter users
-        rating: Optional[int]  # Can be None for Headquarter users
-        max_rank: Optional[str]  # Can be None for Headquarter users
-        max_rating: Optional[int]  # Can be None for Headquarter users
+        rank: Optional[str]  # Can be None for Headquarter and Unrated users
+        rating: Optional[int]  # Can be None for Headquarter and Unrated users
+        max_rank: Optional[str]  # Can be None for Headquarter and Unrated users
+        max_rating: Optional[int]  # Can be None for Headquarter and Unrated users
         last_online: datetime.datetime
         registration_time: datetime.datetime
         friends_count: int
