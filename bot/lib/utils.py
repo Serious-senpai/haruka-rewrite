@@ -21,7 +21,7 @@ def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
 
 
 def slice_string(string: str, offset: int) -> str:
-    if len(string) > offset:
+    if len(string) < offset:
         return string
 
     return string[:offset] + " [...]"
