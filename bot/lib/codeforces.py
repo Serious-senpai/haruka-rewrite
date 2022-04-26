@@ -40,10 +40,10 @@ class User:
         city: Optional[str]
         organization: Optional[str]
         contribution: int
-        rank: str
-        rating: int
-        max_rank: str
-        max_rating: int
+        rank: Optional[str]  # Can be None for Headquarter users
+        rating: Optional[int]  # Can be None for Headquarter users
+        max_rank: Optional[str]  # Can be None for Headquarter users
+        max_rating: Optional[int]  # Can be None for Headquarter users
         last_online: datetime.datetime
         registration_time: datetime.datetime
         friends_count: int
@@ -61,10 +61,10 @@ class User:
         self.city = data.get("city")
         self.organization = data.get("organization")
         self.contribution = data["contribution"]
-        self.rank = data["rank"]
-        self.rating = data["rating"]
-        self.max_rank = data["maxRank"]
-        self.max_rating = data["maxRating"]
+        self.rank = data.get("rank")
+        self.rating = data.get("rating")
+        self.max_rank = data.get("maxRank")
+        self.max_rating = data.get("maxRating")
         self.last_online = EPOCH + datetime.timedelta(seconds=data["lastOnlineTimeSeconds"])
         self.registration_time = EPOCH + datetime.timedelta(seconds=data["registrationTimeSeconds"])
         self.friends_count = data["friendOfCount"]
@@ -105,8 +105,8 @@ class User:
             timestamp=self.registration_time,
         )
         embed.add_field(name="Contribution", value=self.contribution)
-        embed.add_field(name="Rank", value=f"{self.rank} (max. {self.max_rank})")
-        embed.add_field(name="Rating", value=f"{self.rating} (max. {self.max_rating})")
+        embed.add_field(name="Rank", value=f"{self.rank} (max. {self.max_rank})" if self.max_rank is not None else "*Unknown*")
+        embed.add_field(name="Rating", value=f"{self.rating} (max. {self.max_rating})" if self.max_rating is not None else "*Unknown*")
         embed.add_field(name="Friends Count", value=f"{self.friends_count}", inline=False)
 
         last_online = discord.utils.utcnow() - self.last_online
