@@ -24,7 +24,7 @@ import env
 import side
 import web as server
 from _types import Context, Interaction, Loop
-from lib import asset, tests
+from lib import asset, tests, utils
 from lib.audio import AudioClient
 from lib.image import ImageClient
 
@@ -389,7 +389,7 @@ class Haruka(commands.Bot):
             return
 
         embed = discord.Embed(
-            description=row["content"],
+            description=utils.slice_string(row["content"], 3000),
             timestamp=row["original"],
         )
         embed.set_author(

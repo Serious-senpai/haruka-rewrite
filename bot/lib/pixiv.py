@@ -12,6 +12,7 @@ import discord
 from discord.utils import escape_markdown as escape
 
 from env import HOST
+from lib import utils
 
 
 PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
@@ -103,9 +104,15 @@ class PixivArtwork:
         raise StreamError
 
     async def create_embed(self, *, session: aiohttp.ClientSession) -> discord.Embed:
+        title = escape(self.title)
+        if self.description:
+            description = escape(self.description)
+        else:
+            description = None
+
         embed = discord.Embed(
-            title=escape(self.title),
-            description=escape(self.description) if self.description else None,
+            title=utils.slice_string(title, 30),
+            description=utils.slice_string(description, 4000) if self.description else None,
             url=self.url,
         )
 

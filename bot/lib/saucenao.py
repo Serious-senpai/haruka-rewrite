@@ -8,6 +8,8 @@ import bs4
 import discord
 from discord.utils import escape_markdown as escape
 
+from lib import utils
+
 
 class SauceResult:
     """Represents a search result from saucenao
@@ -54,7 +56,7 @@ class SauceResult:
             The created embed
         """
         embed = discord.Embed(
-            title=escape(self.title),
+            title=utils.slice_string(escape(self.title), 30),
             description=self.url,
             url=self.url,
         )

@@ -10,6 +10,7 @@ import discord
 from discord.utils import escape_markdown as escape
 
 import haruka
+from lib.utils import slice_string
 from lib.audio import constants, sources
 
 
@@ -41,12 +42,14 @@ class YouTubePlaylist:
         title = escape(self.title)
         if self.description is not None:
             description = escape(self.description)
-            if len(description) > 400:
-                description = description[:400] + f" [...]({self.url})"
         else:
             description = None
 
-        embed = discord.Embed(title=title, description=description, url=self.url)
+        embed = discord.Embed(
+            title=slice_string(title, 30),
+            description=slice_string(description, 4000),
+            url=self.url,
+        )
         embed.set_thumbnail(url=self.thumbnail)
         embed.add_field(
             name="Author",

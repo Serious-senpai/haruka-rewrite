@@ -12,7 +12,7 @@ import aiohttp
 import discord
 from discord.utils import escape_markdown as escape
 
-from lib.utils import format
+from lib.utils import format, slice_string
 from .constants import INVIDIOUS_URLS, TIMEOUT
 if TYPE_CHECKING:
     from .client import AudioClient
@@ -120,15 +120,16 @@ class PartialInvidiousSource:
             The embed with information about the video
         """
         title = escape(self.title)
-        url = f"https://www.youtube.com/watch?v={self.id}"
         if self.description is not None:
             description = escape(self.description.replace("\n\n", "\n"))
-            if len(description) > 300:
-                description = description[:300] + f" [...]({url})"
         else:
             description = None
 
-        embed = discord.Embed(title=title, description=description, url=url)
+        embed = discord.Embed(
+            title=slice_string(title, 30),
+            description=slice_string(description, 300) if description else None,
+            url=f"https://www.youtube.com/watch?v={self.id}",
+        )
         embed.add_field(
             name="Channel",
             value=escape(self.channel),

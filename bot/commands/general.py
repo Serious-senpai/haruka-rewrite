@@ -193,9 +193,6 @@ async def _remind_cmd(ctx: Context, hours: int, minutes: int, *, content: str):
     if hours == 0 and minutes == 0:
         return await ctx.send("Specified time must be greater than 0.")
 
-    if len(content) > 1000:
-        return await ctx.send("Maximum length for `content` is 1000 characters.")
-
     now = discord.utils.utcnow()
     time = now + datetime.timedelta(hours=hours, minutes=minutes)
 

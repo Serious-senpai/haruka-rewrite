@@ -5,27 +5,12 @@ import contextlib
 import re
 import time
 from types import TracebackType
-from typing import Callable, Iterator, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Iterator, Optional, Type, TypeVar, TYPE_CHECKING
 
 import discord
-from discord.ext import commands
-
-from _types import Context
 
 
 T = TypeVar("T")
-TESTING_GUILD_IDS = (764494394430193734, 886311355211190372)
-
-
-def testing() -> Callable[[T], T]:
-    """A check indicates that a command is still in the development phase"""
-    async def predicate(ctx: Context) -> bool:
-        if await ctx.bot.is_owner(ctx.author):
-            return True
-        if ctx.guild and ctx.guild.id in TESTING_GUILD_IDS:
-            return True
-        return False
-    return commands.check(predicate)
 
 
 def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
@@ -33,6 +18,13 @@ def get_all_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
     for subclass in cls.__subclasses__():
         yield subclass
         yield from get_all_subclasses(subclass)
+
+
+def slice_string(string: str, offset: int) -> str:
+    if len(string) > offset:
+        return string
+
+    return string[:offset] + " [...]"
 
 
 def format(time: float) -> str:

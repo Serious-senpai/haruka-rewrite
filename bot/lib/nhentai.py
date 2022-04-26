@@ -9,6 +9,8 @@ import bs4
 import discord
 from discord.utils import escape_markdown as escape
 
+from lib import utils
+
 
 ID_PATTERN = re.compile(r"(?<!\d)\d{6}(?!\d)")
 
@@ -108,9 +110,15 @@ class NHentai:
         return self.thumbnail
 
     def create_embed(self) -> discord.Embed:
+        title = escape(self.title)
+        if self.subtitle:
+            description = escape(self.subtitle)
+        else:
+            description = None
+
         embed = discord.Embed(
-            title=escape(self.title),
-            description=escape(self.subtitle) if self.subtitle else None,
+            title=utils.slice_string(title, 30),
+            description=utils.slice_string(description, 30) if description else None,
             url=self.url,
         )
         for section in self.sections:

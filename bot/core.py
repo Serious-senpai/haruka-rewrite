@@ -91,14 +91,8 @@ intents.invites = False
 intents.webhooks = False
 
 
-activity = discord.Activity(
-    type=discord.ActivityType.playing,
-    name="Restarting...",
-)
-
-
 bot = haruka.Haruka(
-    activity=activity,
+    activity=discord.Game("Restarting..."),
     command_prefix=get_prefix,
     intents=intents,
     case_insensitive=True,

@@ -8,6 +8,8 @@ import bs4
 import discord
 from discord.utils import escape_markdown as escape
 
+from lib import utils
+
 
 class UrbanSearch:
     """Represents a search result from Urban Dictionary"""
@@ -35,14 +37,11 @@ class UrbanSearch:
         title = escape(self.title)
         meaning = escape(self.meaning)
         example = escape(self.example)
-        desc = f"{meaning}\n---------------\n{example}"
-
-        if len(desc) > 4096:
-            desc = desc[:4090] + f" [...]({self.url})"
+        description = f"{meaning}\n---------------\n{example}"
 
         embed = discord.Embed(
-            title=f"{title}",
-            description=desc,
+            title=utils.slice_string(title, 30),
+            description=utils.slice_string(description, 4000),
             url=self.url,
         )
         embed.set_footer(text="From Urban Dictionary")

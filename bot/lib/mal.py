@@ -19,6 +19,8 @@ import discord
 from bs4 import BeautifulSoup as bs
 from discord.utils import escape_markdown as escape
 
+from lib import utils
+
 
 T = TypeVar("T")
 
@@ -114,10 +116,14 @@ class MALObject(MAL, Generic[T]):
         title = escape(self.title)
         if self.synopsis:
             description = escape(self.synopsis)
-            if len(description) > 4000:
-                description = description[:4000] + f" [...]({self.url})"
+        else:
+            description = None
 
-        embed = discord.Embed(title=title, description=description, url=self.url)
+        embed = discord.Embed(
+            title=utils.slice_string(title, 30),
+            description=utils.slice_string(description, 4000),
+            url=self.url,
+        )
         return embed
 
 
