@@ -227,11 +227,11 @@ class Haruka(commands.Bot):
 
                 for commit in js[:4]:
                     sha = commit["sha"][:6]
-                    message = commit["commit"]["message"].split("\n")[0]
+                    message = commit["commit"]["message"].split("\n")[0].replace("``", "`")
                     url = commit["html_url"]
-                    desc.append(f"__[`{sha}`]({url})__ {escape(message)}")
+                    desc.append(f"__[`{sha}`]({url})__ {message}")
 
-                self.latest_commits = "\n".join(desc).replace(r"\`\`", "`")
+                self.latest_commits = "\n".join(desc)
                 self.log("Fetched latest repository commits")
 
             else:
