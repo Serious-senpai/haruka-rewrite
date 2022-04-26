@@ -30,6 +30,7 @@ from lib.image import ImageClient
 
 
 if TYPE_CHECKING:
+    from discord.abc import Snowflake
     from discord.app_commands.commands import Command, CommandCallback, Group, P, T
 
     class _ConnectionState(ConnectionState):
@@ -253,7 +254,7 @@ class Haruka(commands.Bot):
         *,
         name: str,
         description: str,
-        guilds: List[discord.Object] = MISSING,
+        guilds: List[Snowflake] = MISSING,
         verified_client: bool = True,
         unverified_client: bool = True,
     ) -> Callable[[CommandCallback[Group, P, T]], Command[Group, P, T]]:
