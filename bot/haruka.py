@@ -15,7 +15,6 @@ import discord
 import topgg
 import youtube_dl
 from aiohttp import web
-from discord import app_commands
 from discord.ext import commands, tasks
 from discord.state import ConnectionState
 from discord.utils import MISSING, escape_markdown as escape
@@ -24,7 +23,7 @@ import env
 import side
 import web as server
 from _types import Context, Interaction, Loop
-from lib import asset, tests, utils
+from lib import asset, tests, tree, utils
 from lib.audio import AudioClient
 from lib.image import ImageClient
 
@@ -256,18 +255,15 @@ class Haruka(commands.Bot):
         description: str,
         guilds: List[Snowflake] = MISSING,
         verified_client: bool = True,
-        unverified_client: bool = True,
     ) -> Callable[[CommandCallback[Group, P, T]], Command[Group, P, T]]:
         def decorator(func: CommandCallback[Group, P, T]) -> Command[Group, P, T]:
-            command = app_commands.Command(name=name, description=description, callback=func)
+            command = tree.SlashCommand(name=name, description=description, callback=func)
+            self.tree.add_command(command, guilds=guilds)
             if verified_client:
                 if self.side_client:
                     self.side_client.tree.add_command(command, guilds=guilds)
                 else:
                     self.log("A secondary token should be provided to register command to a verified client")
-
-            if unverified_client:
-                self.tree.add_command(command, guilds=guilds)
 
         return decorator
 

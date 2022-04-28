@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import traceback
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional,  TYPE_CHECKING
 
 from discord import app_commands
 
 if TYPE_CHECKING:
+    from discord.app_commands.commands import CommandCallback, GroupT, P, T
+
     import haruka
     from _types import Guild, Interaction
 
@@ -59,3 +61,27 @@ class SlashCommandTree(app_commands.CommandTree):
         bot.log(f"Interaction {interaction.id} ({command_display}) in {interaction.channel_id}/{interaction.guild_id} from {interaction.user} ({interaction.user.id}):")
         bot.log("".join(traceback.format_exception(error.__class__, error, error.__traceback__)))
         await bot.report(f"An error has just occured and was handled by `SlashCommandTree.on_error` (from `{client.__class__.__name__}`)", send_state=False)
+
+
+class SlashCommand(app_commands.Command):
+
+    __slots__ = ("_guild_only",)
+    if TYPE_CHECKING:
+        _guild_only: bool
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        description: str,
+        callback: CommandCallback[GroupT, P, T],
+        parent: Optional[app_commands.Group] = None,
+        guild_ids: Optional[List[int]] = None,
+        guild_only: bool = False
+    ) -> None:
+        self._guild_only = guild_only
+        super().__init__(name=name, description=description, callback=callback, parent=parent, guild_ids=guild_ids)
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = super().to_dict()
+        data["dm_permission"] = not self._guild_only
