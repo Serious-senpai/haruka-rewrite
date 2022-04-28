@@ -6,11 +6,9 @@ from core import bot
     name="stop",
     description="Stop the playing audio and disconnect from the voice channel",
     verified_client=False,
+    guild_only=True,
 )
 async def _stop_slash(interaction: Interaction):
-    if not interaction.guild:
-        return await interaction.response.send_message("This command can only be invoked in a server channel.")
-
     await interaction.response.defer()
     player = interaction.guild.voice_client
 

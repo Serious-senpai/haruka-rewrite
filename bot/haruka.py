@@ -255,9 +255,10 @@ class Haruka(commands.Bot):
         description: str,
         guilds: List[Snowflake] = MISSING,
         verified_client: bool = True,
+        guild_only: bool = False,
     ) -> Callable[[CommandCallback[Group, P, T]], Command[Group, P, T]]:
         def decorator(func: CommandCallback[Group, P, T]) -> Command[Group, P, T]:
-            command = tree.SlashCommand(name=name, description=description, callback=func)
+            command = tree.SlashCommand(name=name, description=description, callback=func, guild_only=guild_only)
             self.tree.add_command(command, guilds=guilds)
             if verified_client:
                 if self.side_client:

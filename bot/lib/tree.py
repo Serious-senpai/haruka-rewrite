@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import traceback
-from typing import Any, Dict, List, Optional,  TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from discord import app_commands
 

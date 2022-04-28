@@ -7,11 +7,9 @@ from lib.audio import MusicClient
     name="skip",
     description="Skip the playing song",
     verified_client=False,
+    guild_only=True,
 )
 async def _skip_slash(interaction: Interaction):
-    if not interaction.guild:
-        return await interaction.response.send_message("This command can only be invoked in a server channel.")
-
     await interaction.response.defer()
     player = interaction.guild.voice_client
 

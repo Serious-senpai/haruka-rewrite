@@ -6,11 +6,9 @@ from core import bot
     name="resume",
     description="Resume the paused audio",
     verified_client=False,
+    guild_only=True,
 )
 async def _resume_slash(interaction: Interaction):
-    if not interaction.guild:
-        return await interaction.response.send_message("This command can only be invoked in a server channel.")
-
     await interaction.response.defer()
     player = interaction.guild.voice_client
 
