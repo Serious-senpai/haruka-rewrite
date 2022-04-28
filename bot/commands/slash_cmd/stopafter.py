@@ -1,3 +1,5 @@
+from discord import app_commands
+
 from _types import Interaction
 from core import bot
 
@@ -7,10 +9,8 @@ from core import bot
     description="Tell the bot to disconnect after playing the current song",
     verified_client=False,
 )
+@app_commands.guild_only()
 async def _stopafter_slash(interaction: Interaction):
-    if not interaction.guild:
-        return await interaction.response.send_message("This command can only be invoked in a server channel.")
-
     await interaction.response.defer()
     player = interaction.guild.voice_client
 
