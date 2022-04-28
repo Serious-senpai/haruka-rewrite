@@ -85,3 +85,4 @@ class SlashCommand(app_commands.Command):
     def to_dict(self) -> Dict[str, Any]:
         data = super().to_dict()
         data["dm_permission"] = not self._guild_only
+        return data
