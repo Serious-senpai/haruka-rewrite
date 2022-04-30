@@ -20,12 +20,6 @@ CHOICES = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣")
 NAVIGATOR = ("⬅️", "➡️")
 
 
-def cancel_tasks(tasks: Set[Union[asyncio.Future, asyncio.Task]]) -> None:
-    for task in tasks:
-        if not task.done():
-            task.cancel()
-
-
 class EmojiUI:
     """Base class for emoji-based UIs."""
 
@@ -53,6 +47,10 @@ class EmojiUI:
             self.__user_id = int(value)
         except TypeError as exc:
             raise ValueError(f"Cannot cannot convert {repr(value)} to int") from exc
+
+    def initialize_user_id(self, user_id: Optional[int]) -> None:
+        if user_id is not None:
+            self.user_id = user_id
 
     def check(self, payload: discord.RawReactionActionEvent) -> bool:
         if self.user_id is not None:
@@ -109,14 +107,13 @@ class Pagination(EmojiUI):
             the bot itself.
         """
         self.message = await target.send(embed=self.pages[0])
-        if user_id is not None:
-            self.user_id = user_id
+        self.initialize_user_id(user_id)
 
         for emoji in self.allowed_emojis:
             await self.message.add_reaction(emoji)
 
         while True:
-            done, pending = await asyncio.wait([
+            done, _ = await asyncio.wait([
                 self.bot.wait_for("raw_reaction_add", check=self.check),
                 self.bot.wait_for("raw_reaction_remove", check=self.check),
             ],
@@ -130,7 +127,6 @@ class Pagination(EmojiUI):
                 await self.message.edit(embed=self.pages[page])
                 await asyncio.sleep(1.0)
             else:
-                cancel_tasks(pending)
                 return await self.timeout()
 
 
@@ -171,22 +167,13 @@ class RandomPagination(EmojiUI):
             ``None``, anyone can interact with this message except
             the bot itself.
         """
-        if user_id is not None:
-            self.user_id = user_id
+        self.initialize_user_id(user_id)
+
+        self.message = await target.send(embed=random.choice(self.pages))
+        await self.message.add_reaction(self.allowed_emojis[0])
 
         while True:
-            if self.message:
-                try:
-                    await self.message.edit(embed=random.choice(self.pages))
-                    await asyncio.sleep(1.0)
-                except discord.HTTPException:
-                    self.message = None
-
-            if not self.message:
-                self.message = await target.send(embed=random.choice(self.pages))
-                await self.message.add_reaction("🔄")
-
-            done, pending = await asyncio.wait([
+            done, _ = await asyncio.wait([
                 self.bot.wait_for("raw_reaction_add", check=self.check),
                 self.bot.wait_for("raw_reaction_remove", check=self.check),
             ],
@@ -194,8 +181,9 @@ class RandomPagination(EmojiUI):
                 return_when=asyncio.FIRST_COMPLETED,
             )
 
-            if not done:
-                cancel_tasks(pending)
+            if done:
+                await self.message.edit(embed=random.choice(self.pages))
+            else:
                 return await self.timeout()
 
 
@@ -238,8 +226,7 @@ class NavigatorPagination(EmojiUI):
             ``None``, anyone can interact with this message except
             the bot itself.
         """
-        if user_id is not None:
-            self.user_id = user_id
+        self.initialize_user_id(user_id)
 
         self.message = await target.send(embed=self.pages[0])
         page = 0
@@ -248,7 +235,7 @@ class NavigatorPagination(EmojiUI):
             await self.message.add_reaction(emoji)
 
         while True:
-            done, pending = await asyncio.wait([
+            done, _ = await asyncio.wait([
                 self.bot.wait_for("raw_reaction_add", check=self.check),
                 self.bot.wait_for("raw_reaction_remove", check=self.check),
             ],
@@ -266,16 +253,88 @@ class NavigatorPagination(EmojiUI):
                     else:
                         page = len(self.pages) - 1
 
-                else:  # action == 1
+                elif action == 1:
                     if page == len(self.pages) - 1:
                         page = 0
                     else:
                         page += 1
 
+                else:
+                    raise ValueError(f"Unknown action = {action}")
+
                 await self.message.edit(embed=self.pages[page])
                 await asyncio.sleep(1.0)
             else:
-                cancel_tasks(pending)
+                return await self.timeout()
+
+
+class StackedNavigatorPagination(EmojiUI):
+
+    __slots__ = ("breakpoints", "pages",)
+    if TYPE_CHECKING:
+        breakpoints: Set[int]
+        pages: List[discord.Embed]
+
+    def __init__(self, bot: haruka.Haruka, pages: List[discord.Embed], breakpoints: Set[int]) -> None:
+        super().__init__(bot, ("⏪", *NAVIGATOR, "⏩"))
+        self.pages = pages
+        self.breakpoints = breakpoints
+
+    async def send(self, target: discord.abc.Messageable, *, user_id: Optional[int] = None) -> None:
+        self.initialize_user_id(user_id)
+
+        self.message = await target.send(embed=self.pages[0])
+        page = 0
+
+        for emoji in self.allowed_emojis:
+            await self.message.add_reaction(emoji)
+
+        while True:
+            done, _ = await asyncio.wait([
+                self.bot.wait_for("raw_reaction_add", check=self.check),
+                self.bot.wait_for("raw_reaction_remove", check=self.check),
+            ],
+                timeout=300.0,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            if done:
+                payload: discord.RawReactionActionEvent = done.pop().result()
+                action = self.allowed_emojis.index(str(payload.emoji))
+
+                if action == 0:
+                    while True:
+                        page -= 1
+                        if page < 0:
+                            page += len(self.pages)
+
+                        if page in self.breakpoints:
+                            break
+
+                elif action == 3:
+                    while True:
+                        page += 1
+                        if page > len(self.pages) - 1:
+                            page -= len(self.pages)
+
+                        if page in self.breakpoints:
+                            break
+
+                elif action == 1:
+                    page -= 1
+                    if page < 0:
+                        page += len(self.pages)
+
+                elif action == 2:
+                    page += 1
+                    if page > len(self.pages) - 1:
+                        page -= len(self.pages)
+
+                else:
+                    raise ValueError(f"Unknown action = {action}")
+
+                await self.message.edit(embed=self.pages[page])
+                await asyncio.sleep(1.0)
+            else:
                 return await self.timeout()
 
 
@@ -323,8 +382,7 @@ class SelectMenu(EmojiUI):
             The index of the selected option, starting from 0,
             or ``None`` if the menu times out.
         """
-        self.user_id = user_id
-
+        self.initialize_user_id(user_id)
         for emoji in self.allowed_emojis:
             await self.message.add_reaction(emoji)
 
@@ -349,9 +407,7 @@ class YesNoSelection(EmojiUI):
         self.message = message
 
     async def listen(self, user_id: Optional[int] = None) -> Optional[bool]:
-        if user_id is not None:
-            self.user_id = user_id
-
+        self.initialize_user_id(user_id)
         for emoji in self.allowed_emojis:
             await self.message.add_reaction(emoji)
 

@@ -46,9 +46,13 @@ async def _sauce_cmd(ctx: Context, image_url: Optional[str] = None):
     if image_total == 1:
         return await _send_single_sauce(ctx.channel, ctx.message.attachments[0].url)
 
+    breakpoints = set()
     for image_index, attachment in enumerate(ctx.message.attachments):
         results = await saucenao.SauceResult.get_sauce(attachment.url, session=bot.session)
         result_total = len(results)
+        if result_total > 0:
+            breakpoints.add(len(embeds))
+
         for result_index, result in enumerate(results):
             embed = result.create_embed()
             embed.set_author(
@@ -59,7 +63,7 @@ async def _sauce_cmd(ctx: Context, image_url: Optional[str] = None):
             embeds.append(embed)
 
     if embeds:
-        display = emoji_ui.NavigatorPagination(bot, embeds)
+        display = emoji_ui.StackedNavigatorPagination(bot, embeds, breakpoints)
         await display.send(ctx.channel)
     else:
         await ctx.send("Cannot find the sauce for any of the images provided!")
