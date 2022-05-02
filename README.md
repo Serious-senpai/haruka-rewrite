@@ -1,3 +1,6 @@
+## Invitation URLs
+- [Haruka v1](https://discord.com/api/oauth2/authorize?client_id=848178172536946708&permissions=1099514899718&scope=bot%20applications.commands)
+- [Haruka v2 a.k.a. `SideClient`](https://discord.com/api/oauth2/authorize?client_id=870160931219439667&permissions=388160&scope=bot%20applications.commands)
 ## Key features
 - Stream and download music from [YouTube](https://youtube.com) without having to install an opus library or host a Lavalink server
 - Load images from [waifu.pics](https://waifu.pics), [waifu.im](https://waifu.im), [nekos.life](https://nekos.life), and [asuna.ga](https://asuna.ga)
