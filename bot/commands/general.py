@@ -59,7 +59,7 @@ async def _info_cmd(ctx: Context, *, user: discord.User = commands.Author):
 async def _ping_cmd(ctx: Context):
     with utils.TimingContextManager() as measure:
         message = await ctx.send("🏓 **Ping!**")
-    await message.edit(f"🏓 **Pong!** in {utils.format(measure.result)} (average {utils.format(bot.latency)})")
+    await message.edit(content=f"🏓 **Pong!** in {utils.format(measure.result)} (average {utils.format(bot.latency)})")
 
 
 @bot.command(

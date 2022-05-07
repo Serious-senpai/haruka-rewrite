@@ -51,11 +51,11 @@ class DropdownMenu(discord.ui.View):
 
     async def _do_stop(self) -> None:
         if self.message:
-            await self.message.edit("This request was received. Please wait for me a bit...", view=None)
+            await self.message.edit(content="This request was received. Please wait for me a bit...", view=None)
 
     async def on_timeout(self) -> None:
         if self.message:
-            await self.message.edit("This request has timed out.", view=None)
+            await self.message.edit(content="This request has timed out.", view=None)
             for item in self.children:
                 item._future.set_exception(asyncio.TimeoutError)
 

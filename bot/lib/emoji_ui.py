@@ -60,7 +60,7 @@ class EmojiUI:
 
     async def timeout(self) -> None:
         with contextlib.suppress(discord.HTTPException):
-            await self.message.edit("This message has timed out.")
+            await self.message.edit(content="This message has timed out.")
             await self.message.clear_reactions()
 
 
