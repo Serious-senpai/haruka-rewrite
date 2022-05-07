@@ -37,6 +37,10 @@ async def _manga_cmd(ctx: Context, *, query):
     if choice is not None:
         manga = await mal.Manga.get(rslt[choice].id, session=bot.session)
         if manga:
+
+            if not manga.is_safe() and not getattr(ctx.channel, "nsfw", False):
+                return await ctx.send("🔞 This manga contains NSFW content and cannot be displayed in this channel!")
+
             embed = manga.create_embed()
             embed.set_author(
                 name=f"{ctx.author.name}'s request",

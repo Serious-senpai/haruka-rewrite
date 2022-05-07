@@ -36,6 +36,9 @@ async def _manga_slash(interaction: Interaction, query: str):
     else:
         manga = await mal.Manga.get(id, session=interaction.client.session)
 
+    if not manga.is_safe() and not getattr(interaction.channel, "nsfw", False):
+        return await interaction.followup.send("🔞 This manga contains NSFW content and cannot be displayed in this channel!")
+
     embed = manga.create_embed()
     embed.set_author(
         name="Manga search result",

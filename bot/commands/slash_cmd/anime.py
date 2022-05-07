@@ -36,6 +36,9 @@ async def _anime_slash(interaction: Interaction, query: str):
     else:
         anime = await mal.Anime.get(id, session=interaction.client.session)
 
+    if not anime.is_safe() and not getattr(interaction.channel, "nsfw", False):
+        return await interaction.followup.send("🔞 This anime contains NSFW content and cannot be displayed in this channel!")
+
     embed = anime.create_embed()
     embed.set_author(
         name="Anime search result",

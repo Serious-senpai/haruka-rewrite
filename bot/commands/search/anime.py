@@ -37,6 +37,10 @@ async def _anime_cmd(ctx: Context, *, query):
     if choice is not None:
         anime = await mal.Anime.get(results[choice].id, session=bot.session)
         if anime:
+
+            if not anime.is_safe() and not getattr(ctx.channel, "nsfw", False):
+                return await ctx.send("🔞 This anime contains NSFW content and cannot be displayed in this channel!")
+
             embed = anime.create_embed()
             embed.set_author(
                 name=f"{ctx.author.name}'s request",

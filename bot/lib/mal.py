@@ -23,6 +23,11 @@ from lib import utils
 
 
 T = TypeVar("T")
+NSFW_ANIME_GENRES = set(["Ecchi", "Erotica", "Hentai"])
+NSFW_MANGA_GENRES = set(["Ecchi", "Erotica", "Hentai"])
+# References:
+# https://myanimelist.net/anime.php
+# https://myanimelist.net/manga.php
 
 
 class MAL:
@@ -93,14 +98,14 @@ class MALObject(MAL, Generic[T]):
         self.genres = [genre.get_text() for genre in __genres]
 
     @overload
-    def data(self, category: str, cls: Type[T]) -> Optional[T]:
+    def _data(self, category: str, cls: Type[T]) -> Optional[T]:
         ...
 
     @overload
-    def data(self, category: str) -> Optional[str]:
+    def _data(self, category: str) -> Optional[str]:
         ...
 
-    def data(self, category, cls=str):
+    def _data(self, category, cls=str):
         with contextlib.suppress(AttributeError, ValueError):
             obj = self.soup.find(
                 name="span",
@@ -108,6 +113,9 @@ class MALObject(MAL, Generic[T]):
             ).parent
             obj.span.extract()
             return cls(obj.get_text(strip=True))
+
+    def is_safe(self) -> bool:
+        return True
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} title={self.title} id={self.id} score={self.score} popularity={self.popularity}>"
@@ -171,6 +179,7 @@ class MALSearchResult(MAL):
                     if tag[0] % 2 == 0:
                         continue
                     rslt.append(cls(tag[1].find("a")))
+
         return rslt
 
 
@@ -183,12 +192,17 @@ class Anime(MALObject):
     async def get(cls: Type[Anime], id: Union[int, str], *, session: aiohttp.ClientSession) -> Anime:
         url = f"https://myanimelist.net/anime/{id}"
         async with session.get(url) as response:
-            if response.ok:
-                html = await response.text(encoding="utf-8")
-                soup = bs(html, "html.parser")
-                return cls(id, soup)
-            else:
-                return
+            response.raise_for_status()
+            html = await response.text(encoding="utf-8")
+            soup = bs(html, "html.parser")
+            return cls(id, soup)
+
+    def is_safe(self) -> bool:
+        for genre in self.genres:
+            if genre in NSFW_ANIME_GENRES:
+                return False
+
+        return True
 
     def create_embed(self) -> discord.Embed:
         embed = super().create_embed()
@@ -205,11 +219,11 @@ class Anime(MALObject):
         )
         embed.add_field(
             name="Aired",
-            value=self.data("Aired:"),
+            value=self._data("Aired:"),
         )
         embed.add_field(
             name="Status",
-            value=self.data("Status:"),
+            value=self._data("Status:"),
         )
         embed.add_field(
             name="Ranked",
@@ -221,15 +235,15 @@ class Anime(MALObject):
         )
         embed.add_field(
             name="Episodes",
-            value=self.data("Episodes:", int),
+            value=self._data("Episodes:", int),
         )
         embed.add_field(
             name="Type",
-            value=self.data("Type:"),
+            value=self._data("Type:"),
         )
         embed.add_field(
             name="Broadcast",
-            value=self.data("Broadcast:"),
+            value=self._data("Broadcast:"),
         )
         embed.add_field(
             name="Link reference",
@@ -248,12 +262,17 @@ class Manga(MALObject):
     async def get(cls: Type[Manga], id: Union[int, str], *, session: aiohttp.ClientSession) -> Manga:
         url = f"https://myanimelist.net/manga/{id}"
         async with session.get(url) as response:
-            if response.status == 200:
-                html = await response.text(encoding="utf-8")
-                soup = bs(html, "html.parser")
-                return cls(id, soup)
-            else:
-                return
+            response.raise_for_status()
+            html = await response.text(encoding="utf-8")
+            soup = bs(html, "html.parser")
+            return cls(id, soup)
+
+    def is_safe(self) -> bool:
+        for genre in self.genres:
+            if genre in NSFW_MANGA_GENRES:
+                return False
+
+        return True
 
     def create_embed(self) -> discord.Embed:
         embed = super().create_embed()
@@ -270,7 +289,7 @@ class Manga(MALObject):
         )
         embed.add_field(
             name="Published",
-            value=self.data("Published:")
+            value=self._data("Published:")
         )
         embed.add_field(
             name="Ranked",
@@ -282,15 +301,15 @@ class Manga(MALObject):
         )
         embed.add_field(
             name="Episodes",
-            value=self.data("Episodes:", int),
+            value=self._data("Episodes:", int),
         )
         embed.add_field(
             name="Chapters",
-            value=self.data("Chapters:", int),
+            value=self._data("Chapters:", int),
         )
         embed.add_field(
             name="Type",
-            value=self.data("Type:"),
+            value=self._data("Type:"),
         )
         embed.add_field(
             name="Link reference",
