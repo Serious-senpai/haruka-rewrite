@@ -171,13 +171,14 @@ class Haruka(commands.Bot):
         self.log(f"Reset inactivity counter for guild ID {guild_id} to {now}")
         self.guild_leaver.restart()
 
-    async def _change_activity_after_booting(self) -> None:
-        await asyncio.sleep(20.0)
-        await self.change_presence(activity=discord.Game("@Haruka help"))
-
     async def startup(self) -> None:
         await self.wait_until_ready()
-        self.loop.create_task(self._change_activity_after_booting(), name="Change activity")
+
+        async def _change_activity_after_booting() -> None:
+            await asyncio.sleep(20.0)
+            await self.change_presence(activity=discord.Game("@Haruka help"))
+
+        self.loop.create_task(_change_activity_after_booting(), name="Change activity: v1")
         await self.__do_startup()
 
     async def __do_startup(self) -> None:
@@ -280,6 +281,8 @@ class Haruka(commands.Bot):
         self.log("Closed database connection pool for bot.")
         await self.session.close()
         self.log("Closed side session.")
+        await self.side_client.close()
+        self.log("Closed side client.")
         try:
             await self.report("Terminating bot. This is the final report.")
             print("Final report has been sent.")

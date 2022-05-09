@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING
 
 import aiohttp
@@ -31,7 +32,7 @@ class SideClient(discord.Client):
         intents.invites = False
         intents.webhooks = False
 
-        super().__init__(intents=intents, activity=discord.Game("with my senpai!"))
+        super().__init__(intents=intents, activity=discord.Game("Restarting..."))
 
         self.tree = app_commands.CommandTree(self)
         self.tree.on_error = core.tree.on_error
@@ -47,3 +48,10 @@ class SideClient(discord.Client):
     async def __initialize_state(self) -> None:
         self.image = self.core.image
         self.session = self.core.session
+
+        async def _change_activity_after_booting() -> None:
+            await self.wait_until_ready()
+            await asyncio.sleep(20.0)
+            await self.change_presence(activity=discord.Game("with my senpai!"))
+
+        self.loop.create_task(_change_activity_after_booting(), name="Change activity: v2")
