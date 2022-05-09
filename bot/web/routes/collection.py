@@ -17,3 +17,12 @@ async def _collection_route(request: WebRequest) -> web.Response:
         raise web.HTTPServiceUnavailable
 
     return web.json_response({"url": url})
+
+
+@routes.get("/collection/list")
+async def _collection_list_route(request: WebRequest) -> web.Response:
+    results = request.app.bot.asset_client.list_images()
+    if results is None:
+        raise web.HTTPServiceUnavailable
+
+    return web.json_response(results)

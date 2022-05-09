@@ -22,17 +22,15 @@ class AssetClient:
     """
 
     __slots__ = ("_ready", "bot", "anime_images_fetch", "files")
-    directory: ClassVar[str] = "./bot/assets/server/images"
+    DIRECTORY: ClassVar[str] = "./bot/assets/server/images"
     if TYPE_CHECKING:
         _ready: asyncio.Event
         bot: haruka.Haruka
-        anime_images_fetch: bool
         files: List[str]
 
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot = bot
         self._ready = asyncio.Event()
-        self.anime_images_fetch = False
 
     @property
     def session(self) -> aiohttp.ClientSession:
@@ -47,9 +45,9 @@ class AssetClient:
         Asynchronously fetch the image TAR file from Mediafire
         and save it to the local machine.
         """
-        tar_location = self.directory + "/collection.tar"
+        tar_location = self.DIRECTORY + "/collection.tar"
 
-        if os.listdir(self.directory):
+        if os.listdir(self.DIRECTORY):
             return await self.__finalize()
 
         with utils.TimingContextManager() as measure:
@@ -83,21 +81,20 @@ class AssetClient:
 
         size = os.path.getsize(tar_location)
         self.log(f"Downloaded TAR file in {utils.format(measure.result)}" + " (file size {:.2f} MB)".format(size / 2 ** 20))
-        await self.extract_tar_file(tar_location, self.directory)
+        await self.extract_tar_file(tar_location, self.DIRECTORY)
         os.remove(tar_location)
         await self.__finalize()
 
     async def __finalize(self) -> None:
-        for filename in os.listdir(self.directory):
-            path = os.path.join(self.directory, filename)
+        for filename in os.listdir(self.DIRECTORY):
             if filename.endswith(".jfif"):
+                path = os.path.join(self.DIRECTORY, filename)
                 os.rename(path, path.removesuffix(".jfif") + ".jpeg")
 
             await asyncio.sleep(0)
 
-        self.files = os.listdir(self.directory)
+        self.files = os.listdir(self.DIRECTORY)
         self._ready.set()
-        self.anime_images_fetch = True
 
     async def extract_tar_file(self, tar_location: str, destination: str) -> None:
         args = (
@@ -120,7 +117,7 @@ class AssetClient:
         await self._ready.wait()
 
     def get_anime_image_path(self) -> Optional[str]:
-        if not self.anime_images_fetch:
+        if not self._ready.is_set():
             return
 
         if self.files:
@@ -132,3 +129,9 @@ class AssetClient:
         if path:
             url = URL(HOST + path)
             return str(url)
+
+    def list_images(self) -> Optional[List[str]]:
+        if not self._ready.is_set():
+            return
+
+        return self.files
