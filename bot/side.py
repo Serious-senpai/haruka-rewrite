@@ -45,13 +45,14 @@ class SideClient(discord.Client):
     async def on_ready(self) -> None:
         print(f"Logged in as {self.user}")
 
-    async def __initialize_state(self) -> None:
-        self.image = self.core.image
-        self.session = self.core.session
-
+    async def setup_hook(self) -> None:
         async def _change_activity_after_booting() -> None:
             await self.wait_until_ready()
             await asyncio.sleep(20.0)
             await self.change_presence(activity=discord.Game("with my senpai!"))
 
         self.loop.create_task(_change_activity_after_booting(), name="Change activity: v2")
+
+    async def __initialize_state(self) -> None:
+        self.image = self.core.image
+        self.session = self.core.session
