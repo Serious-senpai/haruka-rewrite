@@ -7,7 +7,7 @@ from core import bot
 @bot.slash(
     name="stopafter",
     description="Tell the bot to disconnect after playing the current song",
-    verified_client=False,
+    official_client=False,
 )
 @app_commands.guild_only()
 async def _stopafter_slash(interaction: Interaction):

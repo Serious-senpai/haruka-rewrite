@@ -7,7 +7,7 @@ from core import bot
 @bot.slash(
     name="shuffle",
     description="Enable/Disable music playing shuffle",
-    verified_client=False,
+    official_client=False,
 )
 @app_commands.guild_only()
 async def _shuffle_slash(interaction: Interaction):

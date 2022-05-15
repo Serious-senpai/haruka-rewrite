@@ -251,18 +251,18 @@ class Haruka(commands.Bot):
         name: str,
         description: str,
         guilds: List[Snowflake] = MISSING,
-        verified_client: bool = True,
-        unverified_client: bool = True,
+        official_client: bool = True,
+        unofficial_client: bool = True,
     ) -> Callable[[CommandCallback[Group, P, T]], Command[Group, P, T]]:
         def decorator(func: CommandCallback[Group, P, T]) -> Command[Group, P, T]:
             command = app_commands.Command(name=name, description=description, callback=func)
-            if verified_client:
+            if official_client:
                 if self.side_client:
                     self.side_client.tree.add_command(command, guilds=guilds)
                 else:
                     self.log("A secondary token should be provided to register command to a verified client")
 
-            if unverified_client:
+            if unofficial_client:
                 self.tree.add_command(command, guilds=guilds)
 
             return command

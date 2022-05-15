@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import datetime
 import re
 import time
 from types import TracebackType
@@ -145,3 +146,10 @@ async def fuzzy_match(string: str, against: Iterator[str], *, pattern: str = r"\
 
 async def coro_func(value: T) -> T:
     return value
+
+
+EPOCH = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+
+
+def from_unix_format(seconds: int) -> datetime.datetime:
+    return EPOCH + datetime.timedelta(seconds=seconds)

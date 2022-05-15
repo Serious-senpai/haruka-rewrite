@@ -2,35 +2,48 @@ from __future__ import annotations
 
 import datetime
 import json
-from typing import overload, Any, Dict, List, Optional, Tuple, Type, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 import aiohttp
 import discord
 from discord.utils import escape_markdown as escape
 from yarl import URL
 
+from .errors import CodeforcesException
 from lib import utils
 
 
-EPOCH = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+__all__ = (
+    "User",
+)
 
 
-class CodeforcesException(Exception):
-
-    __slots__ = ("comment",)
-    if TYPE_CHECKING:
-        comment: str
-
-    def __init__(self, comment: str) -> None:
-        self.comment = comment
-        super().__init__(comment)
-
-
-class User:
-    """Represents a CodeForces user"""
+class PartialUser:
+    """Represents a CodeForces user when just a handle is available"""
 
     if TYPE_CHECKING:
         handle: str
+
+    def __init__(self, handle: str) -> None:
+        self.handle = handle
+        self.__fetched = None
+
+    @property
+    def url(self) -> str:
+        return f"https://codeforces.com/profile/{self.handle}"
+
+    async def fetch(self, *, session: aiohttp.ClientSession) -> User:
+        if self.__fetched:
+            return self.__fetched
+
+        self.__fetched = await User.get(self.handle, session=session)
+        return self.__fetched
+
+
+class User(PartialUser):
+    """Represents a CodeForces user"""
+
+    if TYPE_CHECKING:
         email: Optional[str]
         vk_id: Optional[str]
         open_id: Optional[str]
@@ -40,10 +53,10 @@ class User:
         city: Optional[str]
         organization: Optional[str]
         contribution: int
-        rank: Optional[str]  # Can be None for Headquarter and Unrated users
-        rating: Optional[int]  # Can be None for Headquarter and Unrated users
-        max_rank: Optional[str]  # Can be None for Headquarter and Unrated users
-        max_rating: Optional[int]  # Can be None for Headquarter and Unrated users
+        rank: Optional[str]  # Can be None for Unrated users
+        rating: Optional[int]  # Can be None for Unrated users
+        max_rank: Optional[str]  # Can be None for Unrated users
+        max_rating: Optional[int]  # Can be None for Unrated users
         last_online: datetime.datetime
         registration_time: datetime.datetime
         friends_count: int
@@ -65,25 +78,21 @@ class User:
         self.rating = data.get("rating")
         self.max_rank = data.get("maxRank")
         self.max_rating = data.get("maxRating")
-        self.last_online = EPOCH + datetime.timedelta(seconds=data["lastOnlineTimeSeconds"])
-        self.registration_time = EPOCH + datetime.timedelta(seconds=data["registrationTimeSeconds"])
+        self.last_online = utils.from_unix_format(data["lastOnlineTimeSeconds"])
+        self.registration_time = utils.from_unix_format(data["registrationTimeSeconds"])
         self.friends_count = data["friendOfCount"]
         self.avatar_url = data["avatar"]
         self.title_url = data["titlePhoto"]
 
-    @property
-    def url(self) -> str:
-        return f"https://codeforces.com/profile/{self.handle}"
-
     def create_embed(self) -> discord.Embed:
         descriptions = []
-        if self.email:
+        if self.email is not None:
             descriptions.append(f"**Email** {self.email}")
 
-        if self.vk_id:
+        if self.vk_id is not None:
             descriptions.append(f"**ID for VK social network** {self.vk_id}")
 
-        if self.open_id:
+        if self.open_id is not None:
             descriptions.append(f"**Open ID** {self.open_id}")
 
         if self.first_name or self.last_name:
@@ -97,13 +106,13 @@ class User:
 
             descriptions.append(" ".join(name_display))
 
-        if self.country:
+        if self.country is not None:
             descriptions.append(f"**Country** {self.country}")
 
-        if self.city:
+        if self.city is not None:
             descriptions.append(f"**City** {self.city}")
 
-        if self.organization:
+        if self.organization is not None:
             descriptions.append(f"**Organization** {self.organization}")
 
         embed = discord.Embed(
@@ -124,25 +133,7 @@ class User:
         return embed
 
     @classmethod
-    @overload
-    async def get(cls: Type[User], handle: str, *, session: aiohttp.ClientSession) -> Optional[User]:
-        ...
-
-    @classmethod
-    @overload
-    async def get(cls: Type[User], handles: List[str], *, session: aiohttp.ClientSession) -> Optional[List[User]]:
-        ...
-
-    @classmethod
-    @overload
-    async def get(cls: Type[User], handles: Tuple[str], *, session: aiohttp.ClientSession) -> Optional[List[User]]:
-        ...
-
-    @classmethod
-    async def get(cls, handles: Union[str, List[str], Tuple[str]], *, session: aiohttp.ClientSession) -> Optional[List[User]]:
-        if isinstance(handles, str):
-            handles = [handles]
-
+    async def get(cls, *handles: str, session: aiohttp.ClientSession) -> Optional[List[User]]:
         query = ";".join(handles)
         url = URL.build(
             scheme="https",

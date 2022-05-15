@@ -7,7 +7,7 @@ from core import bot
 @bot.slash(
     name="resume",
     description="Resume the paused audio",
-    verified_client=False,
+    official_client=False,
 )
 @app_commands.guild_only()
 async def _resume_slash(interaction: Interaction):

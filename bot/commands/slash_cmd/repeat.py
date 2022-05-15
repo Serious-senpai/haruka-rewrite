@@ -7,7 +7,7 @@ from core import bot
 @bot.slash(
     name="repeat",
     description="Switch between REPEAT_ONE and REPEAT_ALL",
-    verified_client=False,
+    official_client=False,
 )
 @app_commands.guild_only()
 async def _repeat_slash(interaction: Interaction):

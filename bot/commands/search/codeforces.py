@@ -11,10 +11,10 @@ from lib import codeforces, emoji_ui
     description="Search for a CodeForces user(s)",
     usage="codeforces <handle(s)>",
 )
-@commands.cooldown(1, 2, commands.BucketType.user)
+@commands.cooldown(1, 4, commands.BucketType.user)
 async def _codeforces_cmd(ctx: Context, *handles: str):
     try:
-        users = await codeforces.User.get(handles, session=bot.session)
+        users = await codeforces.User.get(*handles, session=bot.session)
     except codeforces.CodeforcesException as exc:
         return await ctx.send(exc.comment)
 

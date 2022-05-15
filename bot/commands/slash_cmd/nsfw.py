@@ -11,7 +11,7 @@ from lib import image, utils
 @bot.slash(
     name="nsfw",
     description="Send a random NSFW image",
-    verified_client=False,
+    official_client=False,
 )
 @app_commands.describe(category="The image category")
 async def _nsfw_slash(interaction: Interaction, category: str):
