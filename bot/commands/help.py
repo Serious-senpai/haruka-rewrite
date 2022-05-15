@@ -63,7 +63,7 @@ class CustomHelpCommand(commands.MinimalHelpCommand):
         )
         embed.add_field(
             name="🔍 Searching",
-            value="```\nanime, codeforces, manga, nhentai, sauce, urban, youtube\n```",
+            value="```\nanime, codeforces, contests, manga, nhentai, sauce, urban, youtube\n```",
         )
         embeds.append(embed)
 
