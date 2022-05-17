@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import io
 from typing import List, Dict, Optional, TYPE_CHECKING
 
@@ -28,6 +29,7 @@ class SideClient(discord.Client, ClientMixin):
         logfile: io.TextIOWrapper
         session: aiohttp.ClientSession
         token: str
+        uptime: datetime.datetime
 
     def __init__(self, core: haruka.Haruka, token: str) -> None:
         self.core = core
@@ -50,6 +52,7 @@ class SideClient(discord.Client, ClientMixin):
     async def start(self) -> None:
         await self.core.wait_until_ready()
         await self.__initialize_state()
+        self.uptime = discord.utils.utcnow()
         await super().start(self.token)
 
     async def on_ready(self) -> None:
