@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import Any, List, Dict, Optional, TYPE_CHECKING
 
 import aiohttp
 import discord
-from discord import app_commands
 
+from lib import trees
 if TYPE_CHECKING:
     import haruka
+    from _types import Context, Interaction
     from lib.image import ImageClient
 
 
@@ -16,6 +17,10 @@ class SideClient(discord.Client):
     """Haruka v2 implementation"""
 
     if TYPE_CHECKING:
+        _command_count: Dict[str, List[Context]]  # This will always be empty though
+        _slash_command_count: Dict[str, List[Interaction]]
+        _owner: discord.User
+
         core: haruka.Haruka
         image: ImageClient
         session: aiohttp.ClientSession
@@ -24,6 +29,8 @@ class SideClient(discord.Client):
     def __init__(self, core: haruka.Haruka, token: str) -> None:
         self.core = core
         self.token = token
+        self._command_count = {}
+        self._slash_command_count = {}
 
         intents = discord.Intents.default()
         intents.bans = False
@@ -34,8 +41,15 @@ class SideClient(discord.Client):
 
         super().__init__(intents=intents, activity=discord.Game("Restarting..."))
 
-        self.tree = app_commands.CommandTree(self)
-        self.tree.on_error = core.tree.on_error
+        self.tree = trees.SideClientTree(self)
+        self.report = core.report
+
+    def log(self, content: Any) -> None:
+        prefix = "SIDE: "
+        logfile = self.core.logfile
+        content = str(content).replace("\n", f"\n{prefix}")
+        logfile.write(f"{prefix}{content}\n")
+        logfile.flush()
 
     async def start(self) -> None:
         await self.core.wait_until_ready()
@@ -48,7 +62,8 @@ class SideClient(discord.Client):
     async def setup_hook(self) -> None:
         async def _change_activity_after_booting() -> None:
             await self.wait_until_ready()
-            await asyncio.sleep(20.0)
+            await asyncio.sleep(5.0)
+            await self.core.owner_ready.wait()
             await self.change_presence(activity=discord.Game("with my senpai!"))
 
         self.loop.create_task(_change_activity_after_booting(), name="Change activity: v2")
@@ -56,3 +71,15 @@ class SideClient(discord.Client):
     async def __initialize_state(self) -> None:
         self.image = self.core.image
         self.session = self.core.session
+
+    @property
+    def owner(self) -> Optional[discord.User]:
+        if not self.core.owner_ready.is_set():
+            return
+
+        try:
+            return self._owner
+        except AttributeError:
+            self._owner = discord.User(state=self._connection, data=self.core.owner_data)
+
+        return self._owner

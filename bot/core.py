@@ -10,7 +10,7 @@ from discord.ext import commands
 
 import haruka
 from _types import Context
-from lib import tree
+from lib import trees
 
 
 # uvloop does not support Windows
@@ -99,7 +99,7 @@ bot = haruka.Haruka(
     strip_after_prefix=True,
     max_messages=5000,
     enable_debug_events=DEBUG_MODE,
-    tree_cls=tree.SlashCommandTree
+    tree_cls=trees.SlashCommandTree,
 )
 
 

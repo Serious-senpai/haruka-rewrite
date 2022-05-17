@@ -5,9 +5,8 @@ import contextlib
 import datetime
 import io
 import signal
-import sys
 import traceback
-from typing import Any, Callable, Coroutine, Deque, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Callable, Deque, Dict, List, Optional, Union, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -27,6 +26,7 @@ from _types import Context, Interaction, Loop
 from lib import asset, tests, utils
 from lib.audio import AudioClient
 from lib.image import ImageClient
+from lib.trees import SlashCommandTree
 
 
 if TYPE_CHECKING:
@@ -45,6 +45,7 @@ class Haruka(commands.Bot):
         _slash_command_count: Dict[str, List[Interaction]]
         _connection: _ConnectionState
         _eval_task: Optional[asyncio.Task]
+        _owner: discord.User
 
         app: server.WebApp
         asset_client: asset.AssetClient
@@ -53,11 +54,13 @@ class Haruka(commands.Bot):
         image: ImageClient
         logfile: io.TextIOWrapper
         loop: Loop
-        owner: Optional[discord.User]
         owner_bypass: bool
+        owner_data: Optional[Dict[str, Any]]
+        owner_ready: asyncio.Event
         runner: web.AppRunner
         session: aiohttp.ClientSession
         side_client: Optional[side.SideClient]
+        tree: SlashCommandTree
         uptime: datetime.datetime
 
     def __init__(self, *args, **kwargs) -> None:
@@ -65,8 +68,12 @@ class Haruka(commands.Bot):
 
         super().__init__(*args, **kwargs)
         self.logfile = open("./bot/assets/server/log.txt", "a", encoding="utf-8")
-        self.owner = None
-        self._clear_counter()
+
+        self.owner_data = None
+        self.owner_ready = asyncio.Event()
+
+        self._command_count = {}
+        self._slash_command_count = {}
 
         if env.SECONDARY_TOKEN:
             print("SECONDARY_TOKEN detected, initializing SideClient.")
@@ -80,11 +87,6 @@ class Haruka(commands.Bot):
         self.asset_client = asset.AssetClient(self)
         self.image = ImageClient(self)
         self.audio = AudioClient(self)
-
-    def _clear_counter(self) -> None:
-        """Clear the text command and slash command counter"""
-        self._command_count = {}
-        self._slash_command_count = {}
 
     async def setup_hook(self) -> None:
         # Prepare database connection
@@ -151,9 +153,11 @@ class Haruka(commands.Bot):
         self.log("Successfully initialized database.")
 
     def log(self, content: Any) -> None:
-        content = str(content).replace("\n", "\nHARUKA: ")
-        self.logfile.write(f"HARUKA: {content}\n")
-        self.logfile.flush()
+        prefix = "HARUKA: "
+        logfile = self.logfile
+        content = str(content).replace("\n", f"\n{prefix}")
+        logfile.write(f"{prefix}{content}\n")
+        logfile.flush()
 
     async def reset_inactivity_counter(self, guild_id: Union[int, str]) -> None:
         now = discord.utils.utcnow()
@@ -194,7 +198,8 @@ class Haruka(commands.Bot):
             self.owner_id = app_info.team.owner_id
         else:
             self.owner_id = app_info.owner.id
-        self.owner = await self.fetch_user(self.owner_id)
+        self.owner_data = await self.http.get_user(self.owner_id)
+        self.owner_ready.set()
 
         # Initialize guild activity check
         now = discord.utils.utcnow()
@@ -362,6 +367,18 @@ class Haruka(commands.Bot):
         )
 
         return embed
+
+    @property
+    def owner(self) -> Optional[discord.User]:
+        if not self.owner_ready.is_set():
+            return
+
+        try:
+            return self._owner
+        except AttributeError:
+            self._owner = discord.User(state=self._connection, data=self.owner_data)
+
+        return self._owner
 
     @tasks.loop(minutes=5)
     async def _keep_alive(self) -> None:
