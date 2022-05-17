@@ -7,9 +7,11 @@ from core import bot
 
 @bot.command(
     name="status",
-    aliases=["state", "log"],
+    aliases=["log"],
     description="Display the bot's `ConnectionState`",
 )
 @commands.is_owner()
 async def _status_cmd(ctx: Context):
     await ctx.send(embed=bot.display_status, file=discord.File("./bot/assets/server/log.txt"))
+    if bot.side_client:
+        await bot.side_client.report(f"Sending report due to request from message ID {ctx.message.id} in channel {ctx.channel.id}")

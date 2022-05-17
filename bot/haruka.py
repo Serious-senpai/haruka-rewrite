@@ -24,6 +24,7 @@ import side
 import web as server
 from _types import Context, Interaction, Loop
 from lib import asset, tests, utils
+from mixins import ClientMixin
 from lib.audio import AudioClient
 from lib.image import ImageClient
 from lib.trees import SlashCommandTree
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
         _messages: Deque[discord.Message]
 
 
-class Haruka(commands.Bot):
+class Haruka(commands.Bot, ClientMixin):
 
     if TYPE_CHECKING:
         _command_count: Dict[str, List[Context]]
@@ -75,13 +76,13 @@ class Haruka(commands.Bot):
         self._command_count = {}
         self._slash_command_count = {}
 
+        self.__initialize_clients()
+
         if env.SECONDARY_TOKEN:
             print("SECONDARY_TOKEN detected, initializing SideClient.")
             self.side_client = side.SideClient(self, env.SECONDARY_TOKEN)
         else:
             self.side_client = None
-
-        self.__initialize_clients()
 
     def __initialize_clients(self) -> None:
         self.asset_client = asset.AssetClient(self)
@@ -151,13 +152,6 @@ class Haruka(commands.Bot):
         """)
 
         self.log("Successfully initialized database.")
-
-    def log(self, content: Any) -> None:
-        prefix = "HARUKA: "
-        logfile = self.logfile
-        content = str(content).replace("\n", f"\n{prefix}")
-        logfile.write(f"{prefix}{content}\n")
-        logfile.flush()
 
     async def reset_inactivity_counter(self, guild_id: Union[int, str]) -> None:
         now = discord.utils.utcnow()
@@ -296,77 +290,6 @@ class Haruka(commands.Bot):
             print("Writing log file to the console:\n")
             with open("./bot/assets/server/log.txt", "r", encoding="utf-8") as f:
                 print(f.read())
-
-    async def report(
-        self,
-        message: str,
-        *,
-        send_state: bool = True,
-        send_log: bool = True,
-    ) -> None:
-        if self.owner is not None:
-            await self.owner.send(
-                message,
-                embed=self.display_status if send_state else None,  # type: ignore
-                file=discord.File("./bot/assets/server/log.txt") if send_log else None,  # type: ignore
-            )
-
-    @property
-    def display_status(self) -> discord.Embed:
-        guilds = self.guilds
-        users = self.users
-        emojis = self.emojis
-        stickers = self.stickers
-        voice_clients = self.voice_clients
-        private_channels = self.private_channels
-        messages = self._connection._messages
-
-        desc = "**Commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._command_count.items())) + "\n**Slash commands usage:** " + escape(", ".join(f"{command}: {len(uses)}" for command, uses in self._slash_command_count.items()))
-
-        embed = discord.Embed(description=desc)
-        embed.set_thumbnail(url=self.user.avatar.url)
-        embed.set_author(
-            name="Internal status",
-            icon_url=self.user.avatar.url,
-        )
-
-        embed.add_field(
-            name="Cached servers",
-            value=f"{len(guilds)} servers",
-            inline=False,
-        )
-        embed.add_field(
-            name="Cached users",
-            value=f"{len(users)} users",
-        )
-        embed.add_field(
-            name="Cached emojis",
-            value=f"{len(emojis)} emojis",
-        )
-        embed.add_field(
-            name="Cached stickers",
-            value=f"{len(stickers)} stickers",
-        )
-        embed.add_field(
-            name="Cached voice clients",
-            value=f"{len(voice_clients)} voice clients",
-        )
-        embed.add_field(
-            name="Cached DM channels",
-            value=f"{len(private_channels)} channels",
-        )
-        embed.add_field(
-            name="Cached messages",
-            value=f"{len(messages)} messages",
-            inline=False,
-        )
-        embed.add_field(
-            name="Uptime",
-            value=discord.utils.utcnow() - self.uptime,
-            inline=False,
-        )
-
-        return embed
 
     @property
     def owner(self) -> Optional[discord.User]:

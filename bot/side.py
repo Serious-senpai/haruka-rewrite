@@ -1,19 +1,21 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, List, Dict, Optional, TYPE_CHECKING
+import io
+from typing import List, Dict, Optional, TYPE_CHECKING
 
 import aiohttp
 import discord
 
 from lib import trees
+from mixins import ClientMixin
 if TYPE_CHECKING:
     import haruka
     from _types import Context, Interaction
     from lib.image import ImageClient
 
 
-class SideClient(discord.Client):
+class SideClient(discord.Client, ClientMixin):
     """Haruka v2 implementation"""
 
     if TYPE_CHECKING:
@@ -23,12 +25,14 @@ class SideClient(discord.Client):
 
         core: haruka.Haruka
         image: ImageClient
+        logfile: io.TextIOWrapper
         session: aiohttp.ClientSession
         token: str
 
     def __init__(self, core: haruka.Haruka, token: str) -> None:
         self.core = core
         self.token = token
+        self.logfile = core.logfile
         self._command_count = {}
         self._slash_command_count = {}
 
@@ -42,14 +46,6 @@ class SideClient(discord.Client):
         super().__init__(intents=intents, activity=discord.Game("Restarting..."))
 
         self.tree = trees.SideClientTree(self)
-        self.report = core.report
-
-    def log(self, content: Any) -> None:
-        prefix = "SIDE: "
-        logfile = self.core.logfile
-        content = str(content).replace("\n", f"\n{prefix}")
-        logfile.write(f"{prefix}{content}\n")
-        logfile.flush()
 
     async def start(self) -> None:
         await self.core.wait_until_ready()
