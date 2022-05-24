@@ -106,7 +106,14 @@ class Contest:
             url=self.url,
             timestamp=self.start_at,
         )
-        embed.set_footer(text="Starts at")
+
+        if self.relative_time is not None:
+            seconds = self.relative_time.total_seconds()
+            if seconds >= 0:
+                embed.add_field(name="Started at", value=f"{utils.format(seconds)} ago", inline=False)
+            else:
+                embed.add_field(name="Starts at", value=f"{utils.format(-seconds)} later", inline=False)
+
         embed.add_field(name="Type", value=self.type)
         embed.add_field(name="Phase", value=self.phase)
         embed.add_field(name="Duration", value=utils.format(self.duration.total_seconds()))
