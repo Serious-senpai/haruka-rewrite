@@ -5,14 +5,12 @@ from typing import TYPE_CHECKING
 
 from .audio import InvidiousSource
 from .mal import Anime, Manga
-from .nhentai import NHentai
 from .pixiv import PixivArtwork
 from .urban import UrbanSearch
 if TYPE_CHECKING:
     import haruka
 
 
-NHENTAI_TESTS = (177013,)
 PIXIV_TESTS = (92390471,)
 URBAN_TESTS = ("paimon", "hunter")
 YTDL_TESTS = (
@@ -23,7 +21,6 @@ YTDL_TESTS = (
     "T4XJQO3qol8",  # Controversy video
     "FIl7x6_3R5Y",  # Extraction from multiple DASH manifests (https://github.com/ytdl-org/youtube-dl/pull/6097)
     "Z4Vy8R84T1U",  # Video with unsupported adaptive stream type formats
-    "sJL6WA-aGkQ",  # Geo restricted to JP
 )
 ANIME_TESTS = (8425,)
 MANGA_TESTS = (1313,)
@@ -45,15 +42,6 @@ class MiniInvidiousObject:
 
     def __init__(self, id: str) -> None:
         self.id = id
-
-
-async def nhentai_test(bot: haruka.Haruka) -> str:
-    content = make_title("NHENTAI TESTS")
-    for id in NHENTAI_TESTS:
-        doujin = await NHentai.get(id, session=bot.session)
-        content += f"Finished NHentai test for ID {id}: {doujin}\n"
-
-    return content
 
 
 async def pixiv_test(bot: haruka.Haruka) -> str:
@@ -121,7 +109,6 @@ async def image_test(bot: haruka.Haruka) -> str:
 
 async def run_all_tests(bot: haruka.Haruka) -> None:
     logs = await asyncio.gather(
-        nhentai_test(bot),
         pixiv_test(bot),
         urban_test(bot),
         ytdl_test(bot),
