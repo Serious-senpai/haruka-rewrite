@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Type, Union, TYPE_CHECKING
+from typing import Optional, Type, Union, TYPE_CHECKING
 
 import aiohttp
 import bs4
@@ -18,11 +18,11 @@ class Anime(MALObject):
 
     __slots__ = ("aired", "status", "episodes", "type", "broadcast")
     if TYPE_CHECKING:
-        aired: str
-        status: str
-        episodes: int
-        type: str
-        broadcast: str
+        aired: Optional[str]
+        status: Optional[str]
+        episodes: Optional[int]
+        type: Optional[str]
+        broadcast: Optional[str]
 
     def __postinit__(self) -> None:
         self.aired = self.extract_span("Aired:")

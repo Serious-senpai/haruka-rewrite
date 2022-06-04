@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Type, Union, TYPE_CHECKING
+from typing import Optional, Type, Union, TYPE_CHECKING
 
 import aiohttp
 import bs4
@@ -18,10 +18,10 @@ class Manga(MALObject):
 
     __slots__ = ("published", "episodes", "chapters", "type")
     if TYPE_CHECKING:
-        published: str
-        episodes: int
-        chapters: int
-        type: str
+        published: Optional[str]
+        episodes: Optional[int]
+        chapters: Optional[int]
+        type: Optional[str]
 
     def __postinit__(self) -> None:
         self.published = self.extract_span("Published:")

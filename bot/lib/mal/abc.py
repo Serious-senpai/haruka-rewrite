@@ -13,7 +13,7 @@ __all__ = ("MALObject",)
 T = TypeVar("T")
 
 
-class MALObject(Generic[T]):
+class MALObject:
     """Represents an anime, manga,... from MyAnimeList."""
 
     __slots__ = ("soup", "id", "url", "title", "image_url", "score", "ranked", "popularity", "synopsis", "genres")
