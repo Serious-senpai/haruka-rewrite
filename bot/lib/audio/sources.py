@@ -13,7 +13,7 @@ import discord
 from discord.utils import escape_markdown as escape
 
 from lib.utils import format, slice_string
-from .constants import INVIDIOUS_URLS, TIMEOUT
+from .constants import set_priority, INVIDIOUS_URLS, TIMEOUT
 if TYPE_CHECKING:
     from .client import AudioClient
 
@@ -73,7 +73,7 @@ class PartialInvidiousSource:
     """
 
     __slots__ = (
-        "json",
+        "data",
         "api_url",
         "id",
         "title",
@@ -83,26 +83,30 @@ class PartialInvidiousSource:
         "thumbnail",
     )
     if TYPE_CHECKING:
-        json: Dict[str, Any]
+        data: Dict[str, Any]
         api_url: str
         id: str
         title: str
         channel: str
         length: int
         description: Optional[str]
-        thumbnail: str
+        thumbnail: Optional[str]
 
-    def __init__(self, json: Dict[str, Any], api_url: str) -> None:
-        self.json = json
+    def __init__(self, data: Dict[str, Any], api_url: str) -> None:
+        self.data = data
         self.api_url = api_url
-        self.id = json["videoId"]
-        self.title = json["title"]
-        self.channel = json["author"]
-        self.length = json["lengthSeconds"]
+        self.id = data["videoId"]
+        self.title = data["title"]
+        self.channel = data["author"]
+        self.length = data["lengthSeconds"]
 
-        self.description = json.get("description")
+        self.description = data.get("description")
 
-        for image in json["videoThumbnails"]:
+        self.thumbnail = None
+        for image in data["videoThumbnails"]:
+            if isinstance(image, list):
+                image = image[0]  # No idea why the server does this
+
             self.thumbnail = image["url"]
             if "maxres" in image["quality"]:
                 break
@@ -140,10 +144,11 @@ class PartialInvidiousSource:
             value=format(self.length),
         )
 
-        if not self.thumbnail.startswith("http"):
-            embed.set_thumbnail(url=self.api_url + self.thumbnail)
-        else:
-            embed.set_thumbnail(url=self.thumbnail)
+        if self.thumbnail:
+            if not self.thumbnail.startswith("http"):
+                embed.set_thumbnail(url=self.api_url + self.thumbnail)
+            else:
+                embed.set_thumbnail(url=self.thumbnail)
 
         return embed
 
@@ -174,8 +179,9 @@ class PartialInvidiousSource:
             with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
                 async with client.session.get(f"{url}/api/v1/search", params=params, timeout=TIMEOUT) as response:
                     if response.status == 200:
-                        json = await response.json(encoding="utf-8")
-                        items.extend(cls(data, url) for data in json[:max_results])
+                        data = await response.json(encoding="utf-8")
+                        items.extend(cls(d, url) for d in data[:max_results])
+                        set_priority(url)
                         return items
 
         return items
@@ -208,7 +214,7 @@ class PartialInvidiousSource:
 
         track = await InvidiousSource.build(id, client=client)
         if track:
-            js = track.json
+            js = track.data
             return cls(js, track.api_url)
 
 
@@ -233,7 +239,7 @@ class InvidiousSource(PartialInvidiousSource):
         self.source = None
         super().__init__(*args, **kwargs)
 
-        for adaptiveFormat in self.json["adaptiveFormats"]:
+        for adaptiveFormat in self.data["adaptiveFormats"]:
             if adaptiveFormat.get("encoding") == "opus":
                 self.source = adaptiveFormat["url"]
                 break
@@ -372,7 +378,7 @@ class InvidiousSource(PartialInvidiousSource):
             await client.bot.report(f"Cannot fetch source for track `{self.id}`", send_state=False)
             return
 
-        return stdout
+        return stdout or None
 
     def __repr__(self) -> str:
         return f"<InvidiousSource title={self.title} id={self.id} source={self.source}>"
@@ -402,4 +408,5 @@ class InvidiousSource(PartialInvidiousSource):
                         js = await response.json(encoding="utf-8")
                         js["api_url"] = url
                         await asyncio.to_thread(save_to_memory, js)
+                        set_priority(url)
                         return cls(js, url)

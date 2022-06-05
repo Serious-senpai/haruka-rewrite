@@ -8,7 +8,7 @@ from lib import playlist
 
 @bot.command(
     name="playlist",
-    description="Load a public playlist from YouTube into the voice channel.",
+    description="Load a public playlist/mix from YouTube into the voice channel.",
     usage="playlist <playlist ID>\nplaylist <youtube URL>",
 )
 @bot.audio.in_voice()
@@ -21,11 +21,11 @@ async def _playlist_cmd(ctx: Context, *, url: str):
     except BaseException:
         raise commands.UserInputError
     else:
-        result = await playlist.YouTubePlaylist.get(bot, playlist_id)
+        result = await playlist.get(playlist_id, session=bot.session)
         if not result:
             return await ctx.send("Cannot find this playlist. Make sure that this playlist isn't private.")
 
-        await result.load(bot.conn, channel.id)
+        await result.load(channel.id, conn=bot.conn)
         embed = result.create_embed()
         embed.set_author(
             name=f"{ctx.author.name} loaded a YouTube playlist into {channel.name}",

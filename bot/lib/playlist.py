@@ -2,19 +2,60 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from typing import Any, Dict, List, Optional, Type, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 
 import aiohttp
 import asyncpg
 import discord
 from discord.utils import escape_markdown as escape
 
-import haruka
 from lib.utils import slice_string
 from lib.audio import constants, sources
 
 
-class YouTubePlaylist:
+class YouTubeCollectionMixin:
+
+    if TYPE_CHECKING:
+        title: str
+        id: str
+        videos: List[sources.PartialInvidiousSource]
+
+    def create_embed(self) -> discord.Embed:
+        embed = discord.Embed(
+            title=slice_string(escape(self.title), 200),
+            url=self.url,
+        )
+
+        for index, video in enumerate(self.videos[:5]):
+            embed.add_field(
+                name=f"#{index + 1} {escape(video.title)}",
+                value=escape(video.channel),
+                inline=False,
+            )
+
+        return embed
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} title={self.title} id={self.id}>"
+
+    async def load(self, channel_id: int, *, conn: Union[asyncpg.Connection, asyncpg.Pool]) -> None:
+        """This function is a coroutine
+
+        Load this playlist to a voice channel's queue.
+
+        Parameters
+        -----
+        channel_id: ``int``
+            The voice channel ID.
+        conn: Union[``asyncpg.Connection`, ``asyncpg.Pool``]
+            The database connection or connection pool.
+        """
+        track_ids = [video.id for video in self.videos]
+        await conn.execute(f"DELETE FROM youtube WHERE id = '{channel_id}';")
+        await conn.execute(f"INSERT INTO youtube VALUES ('{channel_id}', $1);", track_ids)
+
+
+class YouTubePlaylist(YouTubeCollectionMixin):
     """Represents a playlist from YouTube."""
 
     __slots__ = ("title", "id", "author", "thumbnail", "description", "videos", "view", "url")
@@ -24,32 +65,22 @@ class YouTubePlaylist:
         author: str
         description: Optional[str]
         view: int
-        videos: List[Dict[str, Any]]
+        videos: List[sources.PartialInvidiousSource]
         thumbnail: str
         url: str
 
-    def __init__(self, data: Dict[str, Any]) -> None:
+    def __init__(self, data: Dict[str, Any], api_url: str) -> None:
         self.title = data["title"]
         self.id = data["playlistId"]
         self.author = data["author"]
         self.description = data.get("description")
         self.view = data["viewCount"]
-        self.videos = data["videos"]
+        self.videos = [sources.PartialInvidiousSource(d, api_url) for d in data["videos"]]
         self.thumbnail = data["authorThumbnails"].pop()["url"]
         self.url = f"https://www.youtube.com/playlist?list={self.id}"
 
     def create_embed(self) -> discord.Embed:
-        title = escape(self.title)
-        if self.description is not None:
-            description = escape(self.description)
-        else:
-            description = None
-
-        embed = discord.Embed(
-            title=slice_string(title, 200),
-            description=slice_string(description, 4000),
-            url=self.url,
-        )
+        embed = super().create_embed()
         embed.set_thumbnail(url=self.thumbnail)
         embed.add_field(
             name="Author",
@@ -63,58 +94,58 @@ class YouTubePlaylist:
             name="View count",
             value=self.view,
         )
-        for index, video in enumerate(self.videos[:5]):
-            embed.add_field(
-                name=f"#{index + 1} {escape(video['title'])}",
-                value=escape(video["author"]),
-                inline=False,
-            )
+
         return embed
 
-    async def load(self, conn: Union[asyncpg.Connection, asyncpg.Pool], channel_id: int) -> None:
-        """This function is a coroutine
 
-        Load this playlist to a voice channel's queue.
+class YouTubeMix(YouTubeCollectionMixin):
+    """Represents a playlist from YouTube."""
 
-        Parameters
-        -----
-        conn: Union[``asyncpg.Connection`, ``asyncpg.Pool``]
-            The database connection or connection pool.
-        channel_id: ``int``
-            The voice channel ID.
-        """
-        track_ids = [video["videoId"] for video in self.videos]
-        await conn.execute(f"DELETE FROM youtube WHERE id = '{channel_id}';")
-        await conn.execute(f"INSERT INTO youtube VALUES ('{channel_id}', $1);", track_ids)
+    __slots__ = ("title", "id", "videos", "url")
+    if TYPE_CHECKING:
+        title: str
+        id: str
+        videos: List[sources.PartialInvidiousSource]
+        url: str
 
-    @classmethod
-    async def get(cls: Type[YouTubePlaylist], bot: haruka.Haruka, id: str) -> Optional[YouTubePlaylist]:
-        """This function is a coroutine
+    def __init__(self, data: Dict[str, Any], api_url: str) -> None:
+        self.title = data["title"]
+        self.id = data["mixId"]
+        self.videos = [sources.PartialInvidiousSource(d, api_url) for d in data["videos"]]
+        self.url = f"https://www.youtube.com/playlist?list={self.id}"  # TODO: Find the appropriate URL format
 
-        Get a ``YouTubePlaylist`` with the given ID.
 
-        Parameters
-        -----
-        bot: ``haruka.Haruka``
-            The bot that initialized the request.
-        id: ``str``
-            The playlist ID.
+async def get(id: str, *, session: aiohttp.ClientSession) -> Optional[Union[YouTubePlaylist, YouTubeMix]]:
+    """This function is a coroutine
 
-        Returns
-        -----
-        Optional[``YouTubePlaylist``]
-            The playlist with the given ID, or ``None``
-            if not found.
-        """
-        for url in constants.INVIDIOUS_URLS:
-            with contextlib.suppress(aiohttp.ClientError):
-                async with bot.session.get(f"{url}/api/v1/playlists/{id}", timeout=constants.TIMEOUT) as response:
-                    if response.ok:
-                        data = await response.json(encoding="utf-8")
+    Get a ``YouTubePlaylist` or ``YouTubeMix`` with
+    the given ID.
 
-                        # Cache all tracks, though their descriptions are unavailable
-                        for video in data["videos"]:
-                            video["api_url"] = url
-                            await asyncio.to_thread(sources.save_to_memory, video)
+    Parameters
+    -----
+    id: ``str``
+        The playlist or mix ID.
+    session: ``aiohttp.ClientSession``
+        The session to perform the request
 
-                        return cls(data)
+    Returns
+    -----
+    Optional[Union[``YouTubePlaylist``, ``YouTubeMix``]]
+        The playlist or mix with the given ID, or
+        ``None`` if not found.
+    """
+    for url in constants.INVIDIOUS_URLS:
+        with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
+            # This endpoint can return either a playlist or a mix
+            async with session.get(f"{url}/api/v1/playlists/{id}", timeout=constants.TIMEOUT) as response:
+                if response.ok:
+                    data = await response.json(encoding="utf-8")
+
+                    # Cache all tracks, though their descriptions are unavailable
+                    for video in data["videos"]:
+                        video["api_url"] = url
+                        await asyncio.to_thread(sources.save_to_memory, video)
+
+                    cls = YouTubePlaylist if "playlistId" in data else YouTubeMix
+                    constants.set_priority(url)
+                    return cls(data, url)
