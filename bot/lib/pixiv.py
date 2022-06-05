@@ -1,6 +1,7 @@
 from __future__ import annotations
 import contextlib
 
+import asyncio
 import json
 import os
 import re
@@ -94,7 +95,7 @@ class PixivArtwork:
         if os.path.isfile(f"./server/images/{self.id}.png"):
             return
 
-        with contextlib.suppress(aiohttp.ClientError):
+        with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
             async with session.get(self.image_url, headers=PIXIV_HEADERS) as response:
                 if response.ok:
                     with open(f"./server/images/{self.id}.png", "wb") as f:
@@ -235,7 +236,7 @@ class PixivArtwork:
         Optional[``PixivArtwork``]
             The artwork with the given ID, or ``None`` if not found
         """
-        with contextlib.suppress(aiohttp.ClientError):
+        with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
             async with session.get(f"https://pixiv.net/en/artworks/{id}") as response:
                 if response.ok:
                     html = await response.text(encoding="utf-8")
@@ -274,7 +275,7 @@ async def parse(query: str, *, session: aiohttp.ClientSession) -> Union[PixivArt
             return artwork
 
     if query.startswith("http"):
-        with contextlib.suppress(aiohttp.ClientError):
+        with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
             async with session.get(query) as response:
                 if response.ok:
                     match = URL_PATTERN.fullmatch(str(response.url))

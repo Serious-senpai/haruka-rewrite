@@ -3,7 +3,7 @@ from discord.ext import commands
 
 from _types import Context
 from core import bot
-from lib import playlist
+from lib import emoji_ui, playlist
 
 
 @bot.command(
@@ -23,7 +23,18 @@ async def _playlist_cmd(ctx: Context, *, url: str):
     else:
         result = await playlist.get(playlist_id, session=bot.session)
         if not result:
-            return await ctx.send("Cannot find this playlist. Make sure that this playlist isn't private.")
+            return await ctx.send("Cannot find this playlist. Please make sure that this playlist isn't private.")
+
+        queue = await bot.audio.queue(channel.id)
+        if queue:
+            message = await ctx.send(f"{len(queue)} songs in <#!{channel.id}> will be replaces with {len(result.videos)} in the playlist. Are you sure?")
+            display = emoji_ui.YesNoSelection(bot, message)
+            choice = await display.listen(ctx.author.id)
+            if choice is None:
+                return
+
+            if choice is False:
+                return await ctx.send("Request cancelled.")
 
         await result.load(channel.id, conn=bot.conn)
         embed = result.create_embed()

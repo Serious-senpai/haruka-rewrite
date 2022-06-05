@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import json
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
@@ -149,7 +150,7 @@ class User(PartialUser):
 
                 return [cls(payload) for payload in data["result"]]
 
-        except aiohttp.ClientError:
+        except (aiohttp.ClientError, asyncio.TimeoutError):
             raise CodeforcesException("Unable to connect to codeforces.com")
 
         except json.JSONDecodeError:

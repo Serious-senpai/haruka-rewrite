@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 from typing import List
 
@@ -27,7 +28,7 @@ async def search(query: str, *, max_results: int = 200, session: aiohttp.ClientS
     url = "https://danbooru.donmai.us/posts"
     page = 0
 
-    with contextlib.suppress(aiohttp.ClientError):
+    with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
         while True:
             page += 1
             ext = []

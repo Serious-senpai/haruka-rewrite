@@ -131,7 +131,7 @@ class WaifuPics(ImageSource):
                     data = await response.json(encoding="utf-8")
                     sfw |= set(data["sfw"])
                     nsfw |= set(data["nsfw"])
-        except aiohttp.ClientError:
+        except (aiohttp.ClientError, asyncio.TimeoutError):
             pass
 
         return sfw, nsfw
@@ -165,7 +165,7 @@ class WaifuIm(ImageSource):
                     data = await response.json(encoding="utf-8")
                     sfw = set(data["versatile"])
                     nsfw = set(data["nsfw"]) | sfw
-        except aiohttp.ClientError:
+        except (aiohttp.ClientError, asyncio.TimeoutError):
             pass
 
         return sfw, nsfw
@@ -245,7 +245,7 @@ class NekosLife(ImageSource):
 
                     nsfw -= to_remove
 
-        except aiohttp.ClientError:
+        except (aiohttp.ClientError, asyncio.TimeoutError):
             return set(), set()
         else:
             return sfw, nsfw
@@ -291,7 +291,7 @@ class Asuna(ImageSource):
 
                     sfw -= to_remove
 
-        except aiohttp.ClientError:
+        except (aiohttp.ClientError, asyncio.TimeoutError):
             return set(), set()
         else:
             return sfw, nsfw
@@ -455,7 +455,7 @@ class ImageClient:
         random.shuffle(sources)
 
         for source in sources:
-            with contextlib.suppress(asyncio.TimeoutError, aiohttp.ClientError):
+            with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
                 image_url = await source.get(category, mode=mode)
 
             if image_url:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import contextlib
 from typing import Optional, Type, TYPE_CHECKING
 
@@ -79,5 +80,5 @@ class UrbanSearch:
                     else:
                         return
 
-            except aiohttp.ClientError:
+            except (aiohttp.ClientError, asyncio.TimeoutError):
                 pass

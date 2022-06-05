@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import json
 from typing import Any, Dict, List, Literal, Optional, Type, TYPE_CHECKING
@@ -143,7 +144,7 @@ class Contest:
 
                 return [cls(payload) for payload in data["result"]]
 
-        except aiohttp.ClientError:
+        except (aiohttp.ClientError, asyncio.TimeoutError):
             raise CodeforcesException("Unable to connect to codeforces.com")
 
         except json.JSONDecodeError:
