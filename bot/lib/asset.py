@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import io
 import os
 import random
 import traceback
 from typing import ClassVar, List, Optional, TYPE_CHECKING
 
 import aiohttp
+import discord
 from yarl import URL
 from bs4 import BeautifulSoup
 
@@ -14,6 +16,13 @@ from env import HOST
 from lib import utils
 if TYPE_CHECKING:
     import haruka
+
+
+CODE_SNIPPET = """
+```py
+bot.loop.create_task(bot.asset_client.fetch_anime_images())
+```
+"""
 
 
 class AssetClient:
@@ -37,7 +46,9 @@ class AssetClient:
         return self.bot.session
 
     def log(self, content: str) -> None:
-        self.bot.log("ASSET CLIENT: " + content)
+        prefix = "[ASSET CLIENT] "
+        content.replace("\n", f"\n{prefix}")
+        self.bot.log(f"{prefix}{content}")
 
     async def fetch_anime_images(self) -> None:
         """This function is a coroutine
@@ -56,6 +67,17 @@ class AssetClient:
                     html = await response.text(encoding="utf-8")
                     soup = BeautifulSoup(html, "html.parser")
                     download_button = soup.find("a", attrs={"class": "input popsok"})
+
+                    if download_button is None:
+                        self.log("Cannot find the download button, please try again via the exec command.")
+                        if self.bot.owner:
+                            await self.bot.owner.send(
+                                "Cannot find the download button for asset client, please try again using the following snippet:\n" + CODE_SNIPPET,
+                                file=discord.File(io.StringIO(html), filename="error.html"),
+                            )
+
+                        return
+
                     file_url = download_button.get("href")
 
                     if not file_url:

@@ -11,11 +11,10 @@ if TYPE_CHECKING:
 
 class ClientMixin:
     def log(self: ClientT, content: Any) -> None:
-        prefix = f"{self.__class__.__name__}: "
-        logfile = self.logfile
+        prefix = f"[{self.__class__.__name__}] "
         content = str(content).replace("\n", f"\n{prefix}")
-        logfile.write(f"{prefix}{content}\n")
-        logfile.flush()
+        self.logfile.write(f"{prefix}{content}\n")
+        self.logfile.flush()
 
     async def report(
         self: ClientT,

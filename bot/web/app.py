@@ -36,8 +36,9 @@ class WebApp(web.Application):
             self.index = f.read()
 
     def log(self, content: Any) -> None:
-        content = str(content).replace("\n", "\nSERVER: ")
-        self.logfile.write(f"SERVER: {content}\n")
+        prefix = "[SERVER] "
+        content = str(content).replace("\n", f"\n{prefix}")
+        self.logfile.write(f"{prefix}{content}\n")
         self.logfile.flush()
 
     async def report_error(self, error: BaseException) -> None:
