@@ -130,7 +130,7 @@ class User(PartialUser):
         last_online = discord.utils.utcnow() - self.last_online
         embed.add_field(name="Last online", value=f"{utils.format(last_online.total_seconds())} ago")
         embed.set_footer(text="Registered on")
-        embed.set_thumbnail(url=self.avatar_url)
+        embed.set_thumbnail(url=self.title_url)
         return embed
 
     @classmethod
