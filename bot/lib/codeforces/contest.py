@@ -134,7 +134,7 @@ class Contest:
         return embed
 
     @classmethod
-    async def list(cls: Type[Contest], *, gym: bool = False, session: aiohttp.ClientSession) -> List[Contest]:
+    async def list(cls: Type[Contest], *, gym: bool = False, session: aiohttp.ClientSession, limit: Optional[int] = None) -> List[Contest]:
         url = "https://codeforces.com/api/contest.list"
         try:
             async with session.get(url, params={"gym": str(gym).lower()}) as response:
@@ -142,7 +142,10 @@ class Contest:
                 if data["status"] == "FAILED":
                     raise CodeforcesException(data["comment"])
 
-                return [cls(payload) for payload in data["result"]]
+                if limit is None:
+                    return [cls(payload) for payload in data["result"]]
+                else:
+                    return [cls(payload) for payload in data["result"][:limit]]
 
         except (aiohttp.ClientError, asyncio.TimeoutError):
             raise CodeforcesException("Unable to connect to codeforces.com")

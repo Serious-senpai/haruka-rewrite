@@ -277,13 +277,16 @@ class StackedNavigatorPagination(EmojiUI):
 
     __slots__ = ("breakpoints", "pages",)
     if TYPE_CHECKING:
-        breakpoints: Set[int]
+        breakpoints: List[int]
         pages: List[discord.Embed]
 
-    def __init__(self, bot: haruka.Haruka, pages: List[discord.Embed], breakpoints: Set[int]) -> None:
+    def __init__(self, bot: haruka.Haruka, pages: List[discord.Embed], breakpoints: List[int]) -> None:
         super().__init__(bot, ("⏪", *NAVIGATOR, "⏩"))
         self.pages = pages
-        self.breakpoints = breakpoints
+        self.breakpoints = sorted(breakpoints)
+
+        if len(breakpoints) < 2:
+            raise ValueError("Number of breakpoints must not be less than 2")
 
     async def send(self, target: discord.abc.Messageable, *, user_id: Optional[int] = None) -> None:
         self.initialize_user_id(user_id)
@@ -307,22 +310,18 @@ class StackedNavigatorPagination(EmojiUI):
                 action = self.allowed_emojis.index(str(payload.emoji))
 
                 if action == 0:
-                    while True:
-                        page -= 1
-                        if page < 0:
-                            page += len(self.pages)
-
-                        if page in self.breakpoints:
+                    for index, p in enumerate(self.breakpoints):
+                        if p >= page:
+                            page = self.breakpoints[index-1]
                             break
 
                 elif action == 3:
-                    while True:
-                        page += 1
-                        if page > len(self.pages) - 1:
-                            page -= len(self.pages)
-
-                        if page in self.breakpoints:
+                    for index, p in enumerate(self.breakpoints):
+                        if p > page:
+                            page = p
                             break
+                    else:
+                        page = self.breakpoints[0]
 
                 elif action == 1:
                     page -= 1

@@ -46,12 +46,12 @@ async def _sauce_cmd(ctx: Context, image_url: Optional[str] = None):
     if image_total == 1:
         return await _send_single_sauce(ctx.channel, ctx.message.attachments[0].url)
 
-    breakpoints = set()
+    breakpoints = []
     for image_index, attachment in enumerate(ctx.message.attachments):
         results = await saucenao.SauceResult.get_sauce(attachment.url, session=bot.session)
         result_total = len(results)
         if result_total > 0:
-            breakpoints.add(len(embeds))
+            breakpoints.append(len(embeds))
 
         for result_index, result in enumerate(results):
             embed = result.create_embed()

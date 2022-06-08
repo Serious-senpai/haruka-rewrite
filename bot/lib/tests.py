@@ -63,6 +63,11 @@ class TestingStatus:
         self.success = 0
         self.total = 0
 
+    def update(self, success: bool) -> None:
+        self.total += 1
+        if success:
+            self.success += 1
+
 
 async def pixiv_test(status: TestingStatus) -> str:
     content = make_title("PIXIV TESTS")
@@ -70,9 +75,7 @@ async def pixiv_test(status: TestingStatus) -> str:
         artwork = await PixivArtwork.from_id(id, session=status.bot.session)
         content += f"Finished Pixiv test for ID {id}: {artwork}\n"
 
-        status.total += 1
-        if artwork is not None:
-            status.success += 1
+        status.update(artwork is not None)
 
     return content
 
@@ -83,9 +86,7 @@ async def urban_test(status: TestingStatus) -> str:
         result = await UrbanSearch.search(term, session=status.bot.session)
         content += f"Finished Urban test for term \"{term}\": {result}\n"
 
-        status.total += 1
-        if result is not None:
-            status.success += 1
+        status.update(result is not None)
 
     return content
 
@@ -97,9 +98,7 @@ async def ytdl_test(status: TestingStatus) -> str:
         ytdl_result = await InvidiousSource.get_source(track, client=status.bot.audio, ignore_error=True)  # type: ignore
         content += f"Finished youtube-dl test for ID {id}: {ytdl_result}\n"
 
-        status.total += 1
-        if ytdl_result is not None:
-            status.success += 1
+        status.update(ytdl_result is not None)
 
     return content
 
@@ -110,9 +109,7 @@ async def anime_test(status: TestingStatus) -> str:
         anime = await Anime.get(id, session=status.bot.session)
         content += f"Finished Anime test for ID {id}: {anime}\n"
 
-        status.total += 1
-        if anime is not None:
-            status.success += 1
+        status.update(anime is not None)
 
     return content
 
@@ -123,9 +120,7 @@ async def manga_test(status: TestingStatus) -> str:
         manga = await Manga.get(id, session=status.bot.session)
         content += f"Finished Manga test for ID {id}: {manga}\n"
 
-        status.total += 1
-        if manga is not None:
-            status.success += 1
+        status.update(manga is not None)
 
     return content
 
@@ -144,9 +139,8 @@ async def image_test(status: TestingStatus) -> str:
                     content += f"Test failed for {source.__class__.__name__}, category {category}\n"
                 else:
                     content += f"Finished image test for {source.__class__.__name__} (category {category}): {url}\n"
-                    status.success += 1
 
-                status.total += 1
+                status.update(url is not None)
 
     return content
 
@@ -157,9 +151,7 @@ async def ytcollection_test(status: TestingStatus) -> str:
         result = await get(id, session=status.bot.session)
         content += f"Finished ytcollection test for {id}: {result}\n"
 
-        status.total += 1
-        if result is not None:
-            status.success += 1
+        status.update(result is not None)
 
 
 async def run_all_tests(bot: haruka.Haruka) -> None:
