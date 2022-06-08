@@ -21,7 +21,7 @@ async def _contests_cmd(ctx: Context):
     breakpoint = None
     for index, contest in enumerate(contests):
         if contest.relative_time is not None:
-            if contest.relative_time.total_seconds() < 0:
+            if contest.relative_time.total_seconds() > 0:
                 break
 
             breakpoint = index
