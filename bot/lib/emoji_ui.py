@@ -312,7 +312,7 @@ class StackedNavigatorPagination(EmojiUI):
                 if action == 0:
                     for index, p in enumerate(self.breakpoints):
                         if p >= page:
-                            page = self.breakpoints[index-1]
+                            page = self.breakpoints[index - 1]
                             break
 
                 elif action == 3:
