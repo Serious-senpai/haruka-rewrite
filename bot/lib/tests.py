@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 PIXIV_TESTS = (92390471,)
 URBAN_TESTS = ("paimon", "hunter")
 YTDL_TESTS = (
+    "EM4Tr4GMEa0",
     "Hy9s13hWsoc",
     "n89SKAymNfA",
     "a9LDPn-MO4I",  # 256k DASH audio (format 141) via DASH manifest
