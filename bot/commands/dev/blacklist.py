@@ -30,6 +30,9 @@ async def _blacklist_cmd(ctx: Context, user: Optional[discord.User], *, reason: 
 
     else:
         rows = await bot.conn.fetch("SELECT * FROM blacklist;")
+        if not rows:
+            return await ctx.send("The blacklist is currently empty!")
+
         embeds = []
         for index, row in enumerate(rows):
             if index % 10 == 0:
@@ -39,7 +42,7 @@ async def _blacklist_cmd(ctx: Context, user: Optional[discord.User], *, reason: 
 
             user = await bot.fetch_user(row["id"])  # Union[str, int]
             embed = embeds[-1]
-            embed.description += f"\n{user}"
+            embed.description += f"\n**#{index + 1}** {user}"
 
         display = emoji_ui.NavigatorPagination(bot, embeds)
         await display.send(ctx.channel)
