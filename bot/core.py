@@ -38,7 +38,7 @@ class LoggingFilter(logging.Filter):
 
 
 handler = logging.FileHandler(filename="./bot/assets/server/log.txt", encoding="utf-8", mode="a")
-handler.setFormatter(logging.Formatter("%(name)s: %(levelname)s %(message)s"))
+handler.setFormatter(logging.Formatter("[%(name)s] %(levelname)s %(message)s"))
 handler.addFilter(LoggingFilter())
 
 logger = logging.getLogger("discord")

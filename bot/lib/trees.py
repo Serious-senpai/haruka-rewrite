@@ -37,7 +37,7 @@ class TreeMixin:
         await client.report(f"An error has just occured and was handled by `SlashCommandTree.on_error` (from `{client.__class__.__name__}`)", send_state=False)
 
 
-class SlashCommandTree(app_commands.CommandTree, TreeMixin):
+class SlashCommandTree(TreeMixin, app_commands.CommandTree):
 
     if TYPE_CHECKING:
         client: haruka.Haruka
@@ -66,7 +66,7 @@ class SlashCommandTree(app_commands.CommandTree, TreeMixin):
         return True
 
 
-class SideClientTree(app_commands.CommandTree, TreeMixin):
+class SideClientTree(TreeMixin, app_commands.CommandTree):
 
     if TYPE_CHECKING:
         client: side.SideClient

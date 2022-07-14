@@ -48,11 +48,14 @@ class Manga(MALObject):
     def create_embed(self) -> discord.Embed:
         embed = super().create_embed()
         embed.set_thumbnail(url=self.image_url)
-        embed.add_field(
-            name="Genres",
-            value=", ".join(self.genres),
-            inline=False,
-        )
+
+        if self.genres:
+            embed.add_field(
+                name="Genres",
+                value=", ".join(self.genres),
+                inline=False,
+            )
+
         embed.add_field(
             name="Score",
             value=self.score,
