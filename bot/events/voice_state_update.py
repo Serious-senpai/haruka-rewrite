@@ -33,4 +33,4 @@ async def on_voice_state_update(member: Member, before: VoiceState, after: Voice
         if count_nonbots(current.members) == 0:
             await vc.disconnect(force=True)
             with contextlib.suppress(discord.HTTPException):
-                await vc.target.send(f"All members have left <#!{current.id}>. Disconnected.")
+                await vc.target.send(f"All members have left <#{current.id}>. Disconnected.")
