@@ -27,7 +27,7 @@ async def _playlist_cmd(ctx: Context, *, url: str):
 
         queue = await bot.audio.queue(channel.id)
         if queue:
-            message = await ctx.send(f"{len(queue)} songs in <#{channel.id}> will be replaces with {len(result.videos)} in the playlist. Are you sure?")
+            message = await ctx.send(f"{len(queue)} songs in <#{channel.id}> will be replaced with {len(result.videos)} in the playlist. Are you sure?")
             display = emoji_ui.YesNoSelection(bot, message)
             choice = await display.listen(ctx.author.id)
             if choice is None:
