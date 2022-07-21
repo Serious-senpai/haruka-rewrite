@@ -48,3 +48,13 @@ class Interaction(discord.Interaction):
 class Member(discord.Member):
     if TYPE_CHECKING:
         guild: Guild
+
+
+class VoiceChannel(discord.VoiceChannel):
+    if TYPE_CHECKING:
+        guild: Guild
+
+
+class VoiceState(discord.VoiceState):
+    if TYPE_CHECKING:
+        channel: Optional[VoiceChannel]
