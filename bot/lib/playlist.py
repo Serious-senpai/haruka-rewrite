@@ -13,7 +13,7 @@ from lib.utils import slice_string
 from lib.audio import constants, sources
 
 
-class YouTubeCollectionMixin:
+class YouTubeCollectionBase:
 
     if TYPE_CHECKING:
         title: str
@@ -55,7 +55,7 @@ class YouTubeCollectionMixin:
         await conn.execute(f"INSERT INTO youtube VALUES ('{channel_id}', $1);", track_ids)
 
 
-class YouTubePlaylist(YouTubeCollectionMixin):
+class YouTubePlaylist(YouTubeCollectionBase):
     """Represents a playlist from YouTube."""
 
     __slots__ = ("title", "id", "author", "thumbnail", "description", "videos", "view", "url")
@@ -98,7 +98,7 @@ class YouTubePlaylist(YouTubeCollectionMixin):
         return embed
 
 
-class YouTubeMix(YouTubeCollectionMixin):
+class YouTubeMix(YouTubeCollectionBase):
     """Represents a playlist from YouTube."""
 
     __slots__ = ("title", "id", "videos", "url")
