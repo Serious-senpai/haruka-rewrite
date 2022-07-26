@@ -129,19 +129,35 @@ async def manga_test(status: TestingStatus) -> str:
 async def image_test(status: TestingStatus) -> str:
     bot = status.bot
     await bot.image.wait_until_ready()
-    checked = []
     content = make_title("IMAGE TESTS")
+
+    for category, sources in bot.image.sfw.items():
+        content += f"Image sources for SFW {category}: " + ", ".join(str(source) for source in sources) + "\n"
+
+    for category, sources in bot.image.nsfw.items():
+        content += f"Image sources for NSFW {category}: " + ", ".join(str(source) for source in sources) + "\n"
+
+    checked = set()
     for category, sources in bot.image.sfw.items():
         for source in sources:
             if source not in checked:
-                checked.append(source)
+                checked.add(source)
                 url = await source.get(category)
                 if url is None:
-                    content += f"Test failed for {source.__class__.__name__}, category {category}\n"
+                    content += f"Test failed for {source} when requesting SFW {category}\n"
                 else:
-                    content += f"Finished image test for {source.__class__.__name__} (category {category}): {url}\n"
+                    content += f"Finished test for {source} when requesting SFW {category}: {url}\n"
 
-                status.update(url is not None)
+    checked.clear()
+    for category, sources in bot.image.nsfw.items():
+        for source in sources:
+            if source not in checked:
+                checked.add(source)
+                url = await source.get(category, mode="nsfw")
+                if url is None:
+                    content += f"Test failed for {source} when requesting NSFW {category}\n"
+                else:
+                    content += f"Finished test for {source} when requesting NSFW {category}: {url}\n"
 
     return content
 

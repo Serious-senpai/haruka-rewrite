@@ -115,6 +115,9 @@ class ImageSource:
         """
         raise NotImplementedError
 
+    def __str__(self) -> str:
+        raise NotImplementedError
+
 
 class WaifuPics(ImageSource):
 
