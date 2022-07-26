@@ -9,7 +9,7 @@ with open("./bot/assets/misc/iv_instances.txt", "r", encoding="utf-8") as f:
 def set_priority(instance: str) -> None:
     try:
         INVIDIOUS_URLS.remove(instance)
-    except ValueError:
-        return
+    except ValueError as exc:
+        raise ValueError(f"No instance with name {instance}") from exc
     else:
         INVIDIOUS_URLS.insert(0, instance)
