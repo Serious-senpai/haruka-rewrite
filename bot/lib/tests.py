@@ -143,6 +143,7 @@ async def image_test(status: TestingStatus) -> str:
             if source not in checked:
                 checked.add(source)
                 url = await source.get(category)
+                status.update(url is not None)
                 if url is None:
                     content += f"Test failed for {source} when requesting SFW {category}\n"
                 else:
@@ -154,6 +155,7 @@ async def image_test(status: TestingStatus) -> str:
             if source not in checked:
                 checked.add(source)
                 url = await source.get(category, mode="nsfw")
+                status.update(url is not None)
                 if url is None:
                     content += f"Test failed for {source} when requesting NSFW {category}\n"
                 else:
