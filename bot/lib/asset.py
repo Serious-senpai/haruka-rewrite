@@ -49,7 +49,8 @@ class AssetClient:
         prefix = "[ASSET CLIENT] "
         logfile = self.bot.logfile
         content.replace("\n", f"\n{prefix}")
-        logfile.write(f"{prefix}{content}")
+        logfile.write(f"{prefix}{content}\n")
+        logfile.flush()
 
     async def fetch_anime_images(self) -> None:
         """This function is a coroutine
