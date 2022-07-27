@@ -73,7 +73,7 @@ class TestingStatus:
 async def pixiv_test(status: TestingStatus) -> str:
     content = make_title("PIXIV TESTS")
     for id in PIXIV_TESTS:
-        artwork = await PixivArtwork.from_id(id, session=status.bot.session)
+        artwork = await PixivArtwork.get(id, session=status.bot.session)
         content += f"Finished Pixiv test for ID {id}: {artwork}\n"
 
         status.update(artwork is not None)
