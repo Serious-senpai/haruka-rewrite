@@ -157,15 +157,22 @@ def from_unix_format(seconds: int) -> datetime.datetime:
 
 
 class AsyncSequence(Generic[T]):
+    """A lazy sequence of coroutines that returns a result of
+    a coroutine only when needed.
 
-    __slots__ = ("coros", "results")
+    All completed coroutines have their results cached within
+    the instance. As a result, each coroutine in an instance
+    is run at most once.
+    """
+
+    __slots__ = ("coros", "_results")
     if TYPE_CHECKING:
         coros: List[Coroutine[Any, Any, T]]
-        results: List[T]
+        _results: List[T]
 
     def __init__(self, coros: List[Coroutine[Any, Any, T]]) -> None:
         self.coros = coros
-        self.results = [MISSING] * len(self.coros)
+        self._results = [MISSING] * len(self.coros)
 
     def __bool__(self) -> bool:
         return len(self.coros) > 0
@@ -174,8 +181,14 @@ class AsyncSequence(Generic[T]):
         return len(self.coros)
 
     async def get(self, index: int) -> T:
-        if self.results[index] is not MISSING:
-            return self.results[index]
+        """This function is a coroutine
 
-        self.results[index] = await self.coros[index]
-        return self.results[index]
+        Runs a coroutine at the specified index and returns its
+        result. If this coroutine has been run before then the
+        result from the cache will be used instead.
+        """
+        if self._results[index] is not MISSING:
+            return self._results[index]
+
+        self._results[index] = await self.coros[index]
+        return self._results[index]
