@@ -28,7 +28,7 @@ async def _pixiv_middleware(request: WebRequest, handler: Handler) -> web.Respon
                 raise web.HTTPNotFound
 
             try:
-                await artwork.stream(session=request.app.session)
+                await artwork.save(session=request.app.session)
                 return await handler(request)
             except BaseException as exc:
                 await request.app.report_error(exc)

@@ -17,8 +17,8 @@ from lib import utils
 
 
 PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
-ID_PATTERN = re.compile(r"(?<!\d)\d{4,8}(?!\d)")
-URL_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?artworks/\d{4,8}/?")
+ID_PATTERN = re.compile(r"(?<!\d)\d{4,9}(?!\d)")
+URL_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?artworks/\d{4,9}/?")
 
 
 class NSFWArtworkDetected(Exception):
@@ -73,25 +73,25 @@ class PixivArtwork:
         thumbnail: str
         author: PixivUser
 
-    def __init__(self, js: Dict[str, Any]) -> None:
-        self.title = js["title"]
-        self.id = js["id"]
-        self.image_url = js["url"]
-        self.width = js["width"]
-        self.height = js["height"]
+    def __init__(self, data: Dict[str, Any]) -> None:
+        self.title = data["title"]
+        self.id = data["id"]
+        self.image_url = data["url"]
+        self.width = data["width"]
+        self.height = data["height"]
 
-        self.nsfw = bool(js.get("xRestrict", False))
-        self.description = js.get("description")
-        self.tags = js.get("tags")
+        self.nsfw = bool(data.get("xRestrict", False))
+        self.description = data.get("description")
+        self.tags = data.get("tags")
         self.url = f"https://www.pixiv.net/en/artworks/{self.id}"
         self.thumbnail = f"https://embed.pixiv.net/decorate.php?illust_id={self.id}"
 
-        author_id = js["userId"]
-        author_name = js["userName"]
-        author_avatar_url = js["profileImageUrl"]
+        author_id = data["userId"]
+        author_name = data["userName"]
+        author_avatar_url = data["profileImageUrl"]
         self.author = PixivUser(author_id, author_name, author_avatar_url)
 
-    async def stream(self, *, session: aiohttp.ClientSession) -> None:
+    async def save(self, *, session: aiohttp.ClientSession) -> None:
         if os.path.isfile(f"./server/images/{self.id}.png"):
             return
 
@@ -118,7 +118,7 @@ class PixivArtwork:
         )
 
         try:
-            await self.stream(session=session)
+            await self.save(session=session)
         except StreamError:
             embed.set_image(url=self.thumbnail)
         else:
@@ -171,9 +171,9 @@ class PixivArtwork:
         """
         async with session.get(f"https://www.pixiv.net/ajax/search/artworks/{query}") as response:
             if response.ok:
-                js = await response.json(encoding="utf-8")
+                data = await response.json(encoding="utf-8")
                 try:
-                    artworks = js["body"]["illustManga"]["data"]
+                    artworks = data["body"]["illustManga"]["data"]
                 except KeyError:
                     pass
                 else:
