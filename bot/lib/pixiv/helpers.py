@@ -17,7 +17,7 @@ __all__ = (
     "parse",
 )
 ID_PATTERN = re.compile(r"(?<!\d)\d{4,9}(?!\d)")
-URL_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?artworks/(\d{4,9})/?")
+URL_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?artworks/(\d+)/?")
 
 
 def raise_for_nsfw(artwork: PixivArtwork) -> None:

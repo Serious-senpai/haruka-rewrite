@@ -4,13 +4,14 @@ import asyncio
 import contextlib
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Type, Union, TYPE_CHECKING
+from typing import Any,  Dict, List, Optional, Type, Union, TYPE_CHECKING
 
 import aiohttp
 import discord
 from discord.utils import escape_markdown as escape
 
 from env import HOST
+from lib.utils import AsyncSequence
 from .tags import PixivArtworkTag
 from .user import PartialUser
 
@@ -125,6 +126,7 @@ class PixivArtwork:
     async def create_embed(self, *, session: aiohttp.ClientSession) -> discord.Embed:
         embed = discord.Embed(
             title=self.title,
+            url=self.url,
             timestamp=self.created_at,
         )
 
@@ -181,15 +183,47 @@ class PixivArtwork:
         Optional[``PixivArtwork``]
             The retrieved artwork, or ``None`` if not found
         """
-        async with session.get(f"https://www.pixiv.net/ajax/illust/{artwork_id}") as response:
-            if response.status != 200:
-                return
+        with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
+            async with session.get(f"https://www.pixiv.net/ajax/illust/{artwork_id}") as response:
+                if response.status != 200:
+                    return
 
-            data = await response.json(encoding="utf-8")
-            if data["error"]:
-                return
+                data = await response.json(encoding="utf-8")
+                if data["error"]:
+                    return
 
-            return cls(data["body"])
+                return cls(data["body"])
+
+    @classmethod
+    async def from_user(cls: Type[PixivArtwork], user_id: int, *, session: aiohttp.ClientSession) -> AsyncSequence[PixivArtwork]:
+        """This function is a coroutine
+
+        Retrieve a number of artworks of a Pixiv user
+
+        Parameters
+        -----
+        user_id: ``int``
+            The user ID to retrieve artworks from
+        session: ``aiohttp.ClientSession``
+            The session to perform the search
+
+        Returns
+        -----
+        AsyncSequence[``PixivArtwork``]
+            The collected list of artworks, this may be empty
+        """
+        with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
+            async with session.get(f"https://www.pixiv.net/ajax/user/{user_id}/profile/all?lang=en") as response:
+                if response.status != 200:
+                    return AsyncSequence([])
+
+                data = await response.json(encoding="utf-8")
+                if data["error"]:
+                    return []
+
+                return AsyncSequence([cls.get(artwork_id, session=session) for artwork_id in data["body"]["illusts"].keys()])
+
+        return AsyncSequence([])
 
     @classmethod
     async def search(cls: Type[PixivArtwork], query: str, *, session: aiohttp.ClientSession) -> List[PixivArtwork]:
@@ -209,14 +243,15 @@ class PixivArtwork:
         List[``PixivArtwork``]
             A list of search results, note that this may be empty
         """
-        async with session.get(f"https://www.pixiv.net/ajax/search/artworks/{query}") as response:
-            if response.ok:
-                data = await response.json(encoding="utf-8")
-                try:
-                    artworks = data["body"]["illustManga"]["data"]
-                except KeyError:
-                    pass
-                else:
-                    return [cls(artwork) for artwork in artworks[:6]]
+        with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
+            async with session.get(f"https://www.pixiv.net/ajax/search/artworks/{query}") as response:
+                if response.ok:
+                    data = await response.json(encoding="utf-8")
+                    try:
+                        artworks = data["body"]["illustManga"]["data"]
+                    except KeyError:
+                        pass
+                    else:
+                        return [cls(artwork) for artwork in artworks[:6]]
 
         return []

@@ -1,14 +1,13 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Optional, Type, TYPE_CHECKING
 
 import aiohttp
 
 
-__all__ = (
-    "PartialUser",
-    "PixivUser",
-)
+__all__ = ("USER_PATTERN", "PartialUser", "PixivUser")
+USER_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?users/(\d+)/?")
 
 
 class BaseUser:

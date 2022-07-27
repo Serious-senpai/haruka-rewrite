@@ -12,7 +12,7 @@ from lib import emoji_ui, pixiv
     usage="pixiv <query, URL or ID>",
 )
 @commands.cooldown(1, 2, commands.BucketType.user)
-async def _pixiv_cmd(ctx: Context, *, query: str = ""):
+async def _pixiv_cmd(ctx: Context, *, query: str):
     async with ctx.typing():
         try:
             parsed = await pixiv.parse(query, session=bot.session)
