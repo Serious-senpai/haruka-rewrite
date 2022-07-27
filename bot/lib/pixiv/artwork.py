@@ -57,7 +57,7 @@ class PixivArtwork:
         self.created_at = datetime.fromisoformat(data["createDate"])
 
         if "urls" in data:
-            self.image_url = data["urls"]["original"]
+            self.image_url = data["urls"]["regular"]
             self.completed = True
         else:
             self.image_url = data["url"]
