@@ -84,7 +84,7 @@ class PixivArtwork:
         self.description = data.get("description")
         self.tags = data.get("tags")
         self.url = f"https://www.pixiv.net/en/artworks/{self.id}"
-        self.thumbnail = f"https://embed.pixiv.net/decorate.php?illust_id={self.id}"
+        self.thumbnail = "https://s.pximg.net/www/images/pixiv_logo.png" if self.nsfw else f"https://embed.pixiv.net/decorate.php?illust_id={self.id}"
 
         author_id = data["userId"]
         author_name = data["userName"]
