@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import os
 from datetime import datetime
-from typing import Any,  Dict, List, Optional, Type, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Type, Union, TYPE_CHECKING
 
 import aiohttp
 import discord
