@@ -111,7 +111,7 @@ class PixivArtwork:
             return True
 
         if not self.completed:
-            await self.update()
+            await self.update(session=session)
 
         with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
             async with session.get(self.image_url, headers=PIXIV_HEADERS) as response:
