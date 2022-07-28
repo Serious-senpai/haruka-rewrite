@@ -6,7 +6,7 @@ import datetime
 import re
 import time
 from types import TracebackType
-from typing import Any, Coroutine, Generic, Iterator, List, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Any, AsyncIterator, Coroutine, Generic, Iterator, List, Optional, Type, TypeVar, TYPE_CHECKING
 
 import discord
 from discord.utils import MISSING
@@ -179,6 +179,10 @@ class AsyncSequence(Generic[T]):
 
     def __len__(self) -> int:
         return len(self.coros)
+
+    async def __aiter__(self) -> AsyncIterator[T]:
+        for index in range(len(self)):
+            yield await self.get(index)
 
     async def get(self, index: int) -> T:
         """This function is a coroutine

@@ -230,7 +230,7 @@ class PixivArtwork:
 
                 data = await response.json(encoding="utf-8")
                 if data["error"]:
-                    return []
+                    return AsyncSequence([])
 
                 return AsyncSequence([cls.get(artwork_id, session=session) for artwork_id in data["body"]["illusts"].keys()])
 
