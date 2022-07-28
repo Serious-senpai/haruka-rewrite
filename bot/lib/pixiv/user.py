@@ -18,7 +18,13 @@ class BaseUser:
 
     @property
     def url(self) -> str:
+        """Link to the user's Pixiv page"""
         return f"https://www.pixiv.net/en/users/{self.id}"
+
+    @property
+    def artworks_url(self) -> str:
+        """Link to the user's Pixiv artworks page"""
+        return f"https://www.pixiv.net/en/users/{self.id}/artworks"
 
     def __repr__(self) -> str:
         return f"<User id={self.id} name={self.name}>"

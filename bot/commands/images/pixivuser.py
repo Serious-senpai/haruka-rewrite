@@ -15,13 +15,15 @@ if TYPE_CHECKING:
 
 class _NavigatorPagination(emoji_ui.EmojiUI):
 
-    __slots__ = ("pages",)
+    __slots__ = ("pages", "author")
     if TYPE_CHECKING:
         pages: utils.AsyncSequence[Optional[pixiv.PixivArtwork]]
+        author: Optional[pixiv.PartialUser]
 
     def __init__(self, bot: haruka.Haruka, pages: utils.AsyncSequence[Optional[pixiv.PixivArtwork]]) -> None:
         super().__init__(bot, emoji_ui.NAVIGATOR[:])
         self.pages = pages
+        self.author = None
 
     async def get_embed(self, index: int) -> discord.Embed:
         artwork = await self.pages.get(index)
@@ -29,8 +31,16 @@ class _NavigatorPagination(emoji_ui.EmojiUI):
             embed = discord.Embed()
         else:
             embed = await artwork.create_embed(session=self.bot.session)
+            self.author = artwork.author
 
         embed.set_footer(text=f"Artwork {index + 1}/{len(self.pages)}")
+        if self.author:
+            embed.set_author(
+                name=f"{self.author.name}'s works",
+                url=self.author.artworks_url,
+                icon_url=self.bot.user.avatar.url,
+            )
+
         return embed
 
     async def send(self, target: discord.abc.Messageable, *, user_id: Optional[int] = None) -> None:
