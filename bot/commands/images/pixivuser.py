@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import List, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 import discord
 from discord.ext import commands
@@ -17,15 +17,19 @@ class _NavigatorPagination(emoji_ui.EmojiUI):
 
     __slots__ = ("pages",)
     if TYPE_CHECKING:
-        pages: utils.AsyncSequence[pixiv.PixivArtwork]
+        pages: utils.AsyncSequence[Optional[pixiv.PixivArtwork]]
 
-    def __init__(self, bot: haruka.Haruka, pages: utils.AsyncSequence[pixiv.PixivArtwork]) -> None:
+    def __init__(self, bot: haruka.Haruka, pages: utils.AsyncSequence[Optional[pixiv.PixivArtwork]]) -> None:
         super().__init__(bot, emoji_ui.NAVIGATOR[:])
         self.pages = pages
 
     async def get_embed(self, index: int) -> discord.Embed:
         artwork = await self.pages.get(index)
-        embed = await artwork.create_embed(session=self.bot.session)
+        if artwork is None:
+            embed = discord.Embed()
+        else:
+            embed = await artwork.create_embed(session=self.bot.session)
+
         embed.set_footer(text=f"Artwork {index + 1}/{len(self.pages)}")
         return embed
 

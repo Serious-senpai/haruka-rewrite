@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import enum
 import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Type, Union, TYPE_CHECKING
@@ -16,19 +17,16 @@ from .tags import PixivArtworkTag
 from .user import PartialUser
 
 
-__all__ = ("IMAGE_TYPE", "ImageType", "PixivArtwork",)
+__all__ = ("ImageType", "PixivArtwork",)
 PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
 
 
-class ImageType:
+class ImageType(enum.Enum):
     MINI = "mini"
     THUMB = "thumb"
     SMALL = "small"
     REGULAR = "regular"
     ORIGINAL = "original"
-
-
-IMAGE_TYPE = ImageType.REGULAR
 
 
 class PixivArtwork:
@@ -40,12 +38,12 @@ class PixivArtwork:
         "author",
         "nsfw",
         "created_at",
-        "image_url",
         "tags",
         "width",
         "height",
         "pages_count",
         "completed",
+        "_image_urls",
     )
     if TYPE_CHECKING:
         id: int
@@ -53,12 +51,12 @@ class PixivArtwork:
         author: PartialUser
         nsfw: bool
         created_at: datetime
-        image_url: str
         tags: Union[List[str], List[PixivArtworkTag]]
         width: int
         height: int
         pages_count: int
         completed: bool
+        _image_urls: Dict[ImageType, str]
 
     def __init__(self, data: Dict[str, Any]) -> None:
         self.id = int(data["id"])
@@ -67,11 +65,15 @@ class PixivArtwork:
         self.nsfw = bool(data["xRestrict"])
         self.created_at = datetime.fromisoformat(data["createDate"])
 
+        self._image_urls = {}
         if "urls" in data:
-            self.image_url = data["urls"][IMAGE_TYPE]
+            for image_type in ImageType:
+                if image_type.value in data["urls"]:
+                    self._image_urls[image_type] = data["urls"][image_type.value]
+
             self.completed = True
         else:
-            self.image_url = data["url"]
+            self._image_urls[ImageType.REGULAR] = data["url"]
             self.completed = False
 
         if isinstance(data["tags"], dict):
@@ -84,9 +86,16 @@ class PixivArtwork:
         self.height = data["height"]
         self.pages_count = data["pageCount"]
 
+    def image(self, image_type: ImageType) -> Optional[str]:
+        return self._image_urls.get(image_type)
+
     @property
     def url(self) -> str:
         return f"https://www.pixiv.net/en/artworks/{self.id}"
+
+    @property
+    def image_url(self) -> str:
+        return self._image_urls[ImageType.REGULAR]
 
     async def update(self, *, session: aiohttp.ClientSession) -> None:
         """This function is a coroutine
@@ -206,7 +215,7 @@ class PixivArtwork:
                 return cls(data["body"])
 
     @classmethod
-    async def from_user(cls: Type[PixivArtwork], user_id: int, *, session: aiohttp.ClientSession) -> AsyncSequence[PixivArtwork]:
+    async def from_user(cls: Type[PixivArtwork], user_id: int, *, session: aiohttp.ClientSession) -> AsyncSequence[Optional[PixivArtwork]]:
         """This function is a coroutine
 
         Retrieve a number of artworks of a Pixiv user
@@ -220,7 +229,7 @@ class PixivArtwork:
 
         Returns
         -----
-        AsyncSequence[``PixivArtwork``]
+        AsyncSequence[Optional[``PixivArtwork``]]
             The collected list of artworks, this may be empty
         """
         with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
