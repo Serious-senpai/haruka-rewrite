@@ -16,8 +16,19 @@ from .tags import PixivArtworkTag
 from .user import PartialUser
 
 
-__all__ = ("PixivArtwork",)
+__all__ = ("IMAGE_TYPE", "ImageType", "PixivArtwork",)
 PIXIV_HEADERS = {"referer": "https://www.pixiv.net/"}
+
+
+class ImageType:
+    MINI = "mini"
+    THUMB = "thumb"
+    SMALL = "small"
+    REGULAR = "regular"
+    ORIGINAL = "original"
+
+
+IMAGE_TYPE = ImageType.REGULAR
 
 
 class PixivArtwork:
@@ -57,7 +68,7 @@ class PixivArtwork:
         self.created_at = datetime.fromisoformat(data["createDate"])
 
         if "urls" in data:
-            self.image_url = data["urls"]["regular"]
+            self.image_url = data["urls"][IMAGE_TYPE]
             self.completed = True
         else:
             self.image_url = data["url"]
