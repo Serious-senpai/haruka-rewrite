@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from ..server import Handler, WebRequest
 
 
-PIXIV_PATH_PATTERN = re.compile(r"/images/(\d{4,8}).png/?")
+PIXIV_PATH_PATTERN = re.compile(r"/images/(\d+).png")
 
 
 @middleware_group.middleware

@@ -35,4 +35,4 @@ async def _collection_random_route(request: WebRequest) -> web.Response:
     if url is None:
         raise web.HTTPServiceUnavailable
 
-    raise web.HTTPFound(url)
+    raise web.HTTPTemporaryRedirect(url)

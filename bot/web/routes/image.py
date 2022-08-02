@@ -33,6 +33,7 @@ async def _image_route(request: WebRequest) -> web.Response:
 @routes.get("/image/endpoints")
 async def _image_endpoints_route(request: WebRequest) -> web.Response:
     client = request.app.bot.image
+    await client.wait_until_ready()
     data = {
         "sfw": list(client.sfw.keys()),
         "nsfw": list(client.nsfw.keys()),

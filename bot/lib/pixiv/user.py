@@ -7,7 +7,7 @@ import aiohttp
 
 
 __all__ = ("USER_PATTERN", "PartialUser", "PixivUser")
-USER_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?users/(\d+)/?")
+USER_PATTERN = re.compile(r"https://www\.pixiv\.net/(en/)?users/(\d+)/?.*")
 
 
 class BaseUser:

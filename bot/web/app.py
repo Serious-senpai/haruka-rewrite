@@ -9,6 +9,7 @@ import asyncpg
 from aiohttp import web
 
 from .core import middleware_group, routes
+from .loader import TextFileLoader
 if TYPE_CHECKING:
     import haruka
 
@@ -20,6 +21,7 @@ class WebApp(web.Application):
         pool: asyncpg.Pool
         logfile: io.TextIOWrapper
         session: aiohttp.ClientSession
+        loader: TextFileLoader
 
     def __init__(self, bot: haruka.Haruka) -> None:
         self.bot = bot
@@ -27,13 +29,10 @@ class WebApp(web.Application):
         self.logfile = self.bot.logfile
         self.session = self.bot.session
 
+        self.loader = TextFileLoader()
+
         super().__init__(middlewares=middleware_group.to_list())
         self.add_routes(routes)
-        self.reload()
-
-    def reload(self) -> None:
-        with open("./bot/web/index.html", "r", encoding="utf-8") as f:
-            self.index = f.read()
 
     def log(self, content: Any) -> None:
         prefix = "[SERVER] "

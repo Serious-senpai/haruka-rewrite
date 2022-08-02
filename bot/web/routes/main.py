@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 @routes.get("/")
 async def _main_route(request: WebRequest) -> web.Response:
     return web.Response(
-        text=request.app.index,
+        text=request.app.loader.open("./bot/web/index.html"),
         status=200,
         content_type="text/html",
     )
