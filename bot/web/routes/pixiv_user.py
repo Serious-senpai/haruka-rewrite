@@ -39,7 +39,7 @@ async def _pixiv_user_route(request: WebRequest) -> web.Response:
             if status:
                 return artwork.id
 
-    artwork_ids = await asyncio.gather(*[save(index) for index in len(artworks)])
+    artwork_ids = await asyncio.gather(*[save(index) for index in range(len(artworks))])
 
     args = ["zip", f"./server/images/{user_id}.zip"]
     args.extend(f"./server/images/{artwork_id}.png" for artwork_id in artwork_ids if artwork_id is not None)
