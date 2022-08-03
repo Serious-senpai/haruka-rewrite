@@ -12,6 +12,6 @@ from core import bot
 )
 @commands.is_owner()
 async def _status_cmd(ctx: Context):
-    await ctx.send(embed=bot.display_status, file=discord.File("./bot/assets/server/log.txt"))
+    await ctx.send(embed=bot.display_status, file=discord.File("./bot/web/assets/log.txt"))
     if bot.side_client:
         await bot.side_client.report(f"Sending report due to request from message ID {ctx.message.id} in channel {ctx.channel.id}")

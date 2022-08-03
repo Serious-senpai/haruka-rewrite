@@ -3,6 +3,7 @@ import gc
 import logging
 import sys
 import traceback
+import tracemalloc
 from typing import Any, List
 
 import discord
@@ -22,6 +23,12 @@ else:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 
+tracemalloc.start()  # noqa
+print(f"Running on {sys.platform}\nPython {sys.version}")
+with open("./bot/web/assets/log.txt", "w+") as f:
+    f.write(f"HARUKA BOT\nRunning on Python {sys.version}\n" + "-" * 50 + "\n")
+
+
 # Setup logging
 DEBUG_MODE = False
 
@@ -37,7 +44,7 @@ class LoggingFilter(logging.Filter):
         return True
 
 
-handler = logging.FileHandler(filename="./bot/assets/server/log.txt", encoding="utf-8", mode="a")
+handler = logging.FileHandler(filename="./bot/web/assets/log.txt", encoding="utf-8", mode="a")
 handler.setFormatter(logging.Formatter("[%(name)s] %(levelname)s %(message)s"))
 handler.addFilter(LoggingFilter())
 

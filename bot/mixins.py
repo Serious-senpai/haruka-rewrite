@@ -27,7 +27,7 @@ class ClientMixin:
             return await self.owner.send(
                 message,
                 embed=self.display_status if send_state else None,  # type: ignore
-                file=discord.File("./bot/assets/server/log.txt") if send_log else None,  # type: ignore
+                file=discord.File("./bot/web/assets/log.txt") if send_log else None,  # type: ignore
             )
 
     @property

@@ -18,7 +18,7 @@ from lib import utils
 @commands.is_owner()
 @commands.max_concurrency(1)
 async def _ssh_cmd(ctx: Context, *, cmd: str):
-    with open("./bot/assets/server/ssh.txt", "w", encoding="utf-8") as writer:
+    with open("./bot/web/assets/ssh.txt", "w", encoding="utf-8") as writer:
         with utils.TimingContextManager() as measure:
             try:
                 process = await asyncio.create_subprocess_shell(cmd, stdout=writer, stderr=writer)
@@ -28,5 +28,5 @@ async def _ssh_cmd(ctx: Context, *, cmd: str):
 
     await ctx.send(
         f"Process completed with return code {process.returncode} after {utils.format(measure.result)}",
-        file=discord.File("./bot/assets/server/ssh.txt") if path.getsize("./bot/assets/server/ssh.txt") > 0 else None,
+        file=discord.File("./bot/web/assets/ssh.txt") if path.getsize("./bot/web/assets/ssh.txt") > 0 else None,
     )

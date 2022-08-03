@@ -41,7 +41,7 @@ async def _eval_cmd(ctx: Context, *, code: str):
         await ctx.send("Cannot create coroutine\n```\n" + traceback.format_exc() + "\n```")
         return
 
-    with open("./bot/assets/server/eval.txt", "w", encoding="utf-8") as writer:
+    with open("./bot/web/assets/eval.txt", "w", encoding="utf-8") as writer:
         with contextlib.redirect_stdout(writer):
             with utils.TimingContextManager() as measure:
                 bot._eval_task = bot.loop.create_task(env["func"]())
@@ -53,5 +53,5 @@ async def _eval_cmd(ctx: Context, *, code: str):
 
     await ctx.send(
         f"Process completed after {utils.format(measure.result)}.",
-        file=discord.File("./bot/assets/server/eval.txt") if path.getsize("./bot/assets/server/eval.txt") > 0 else None,
+        file=discord.File("./bot/web/assets/eval.txt") if path.getsize("./bot/web/assets/eval.txt") > 0 else None,
     )

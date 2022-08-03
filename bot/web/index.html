@@ -1,23 +1,31 @@
-<html>
+<html lang="en">
 
 <head>
-    <title>Haruka Bot</title>
-    <link rel="stylesheet" href="/assets/split.css" type="text/css" />
+    <title>Haruka Discord Bot</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/style.css" type="text/css" />
+    <script type="text/javascript" src="script/script.js"></script>
 </head>
 
 <body>
     <div class="split sidebar">
-        <div class="inner">
-            <br />
-            <img style="width: 150px;" src="/favicon.ico" />
-            <p>
-                <a href="https://github.com/Serious-senpai/haruka-rewrite" target="_blank">
+        <div id="sidebar-inner">
+            <img id="avatar" src="favicon.ico" alt="Avatar" />
+            <p id="source-code-href-section">
+                <a id="source-code-href" href="https://github.com/Serious-senpai/haruka-rewrite" target="_blank">
                     Source code
                 </a>
             </p>
+
+            <div class="nav-item" onclick="toImageGenerator();">IMAGE GENERATOR </div>
+            <div class="nav-item" onclick="toPixivUserSearch();">PIXIV USER SEARCH</div>
         </div>
     </div>
+
     <div class="split main">
+        <div id="main-inner">
+        </div>
     </div>
 </body>
 

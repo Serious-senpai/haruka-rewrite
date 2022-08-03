@@ -31,7 +31,7 @@ class AssetClient:
     """
 
     __slots__ = ("_ready", "bot", "anime_images_fetch", "files")
-    DIRECTORY: ClassVar[str] = "./bot/assets/server/images"
+    DIRECTORY: ClassVar[str] = "./bot/web/assets/images"
     if TYPE_CHECKING:
         _ready: asyncio.Event
         bot: haruka.Haruka

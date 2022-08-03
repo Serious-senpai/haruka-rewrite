@@ -1,0 +1,73 @@
+:root {
+    --gray: #36393F;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+* a {
+    text-decoration: none;
+}
+
+.split {
+    height: 100%;
+    position: fixed;
+    top: 0;
+}
+
+.sidebar {
+    background-color: black;
+    width: 20%;
+    left: 0;
+}
+
+.sidebar #sidebar-inner {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+}
+
+.sidebar #avatar {
+    position: relative;
+    top: 20px;
+    width: 75%;
+    margin: 12.5%;
+}
+
+.sidebar #source-code-href-section {
+    text-align: center;
+}
+
+.sidebar #source-code-href {
+    color: green;
+}
+
+
+.sidebar div.nav-item {
+    cursor: default;
+    text-align: right;
+    color: yellow;
+    padding: 10px;
+}
+
+.sidebar div.nav-item:hover {
+    background-color: var(--gray);
+}
+
+.main {
+    background-color: var(--gray);
+    width: 80%;
+    right: 0;
+}
+
+.main #main-inner {
+    padding: 10px;
+}
+
+.main h1,
+.main h2,
+.main h3,
+.main h4 {
+    color: green;
+}

@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import sys
-import tracemalloc
 from typing import TYPE_CHECKING
 
 
@@ -13,12 +11,6 @@ from events import *
 from commands import *
 if TYPE_CHECKING:
     import haruka
-
-
-tracemalloc.start()  # noqa
-print(f"Running on {sys.platform}\nPython {sys.version}")
-with open("./bot/assets/server/log.txt", "w") as f:
-    f.write(f"HARUKA BOT\nRunning on Python {sys.version}\n" + "-" * 50 + "\n")
 
 
 # YouTube tracks information
@@ -36,8 +28,8 @@ if not os.path.exists("./server/audio"):
 
 
 # Assets at runtime
-if not os.path.isdir("./bot/assets/server/images"):
-    os.mkdir("./bot/assets/server/images")
+if not os.path.isdir("./bot/web/assets/images"):
+    os.mkdir("./bot/web/assets/images")
 
 
 async def runner(bot: haruka.Haruka) -> None:

@@ -17,3 +17,6 @@ class TextFileLoader:
                 self.data[path] = f.read()
 
             return self.data[path]
+
+    def clear(self) -> None:
+        self.data.clear()

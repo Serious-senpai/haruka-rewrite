@@ -68,7 +68,7 @@ class Haruka(commands.Bot, ClientMixin):
         signal.signal(signal.SIGTERM, self.kill)
 
         super().__init__(*args, **kwargs)
-        self.logfile = open("./bot/assets/server/log.txt", "a", encoding="utf-8")
+        self.logfile = open("./bot/web/assets/log.txt", "a", encoding="utf-8")
 
         self.owner_data = None
         self.owner_ready = asyncio.Event()
@@ -289,7 +289,7 @@ class Haruka(commands.Bot, ClientMixin):
         finally:
             await super().close()
             print("Writing log file to the console:\n")
-            with open("./bot/assets/server/log.txt", "r", encoding="utf-8") as f:
+            with open("./bot/web/assets/log.txt", "r", encoding="utf-8") as f:
                 print(f.read())
 
     @property

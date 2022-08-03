@@ -31,7 +31,7 @@ async def _collection_list_route(request: WebRequest) -> web.Response:
 @routes.get("/collection/random")
 async def _collection_random_route(request: WebRequest) -> web.Response:
     client = request.app.bot.asset_client
-    url = client.get_anime_image()
+    url = client.get_anime_image() or await request.app.bot.image.get("waifu", mode="sfw")
     if url is None:
         raise web.HTTPServiceUnavailable
 

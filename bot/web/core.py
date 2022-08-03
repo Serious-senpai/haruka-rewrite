@@ -4,18 +4,19 @@ from typing import List, TYPE_CHECKING
 
 from aiohttp import web
 if TYPE_CHECKING:
-    from .server import Middleware, WebRequest
+    from .server import Middleware
 
 
 routes = web.RouteTableDef()
-routes.static("/assets", "./bot/assets/server")
+
+# assets
+routes.static("/assets", "./bot/web/assets")
 routes.static("/images", "./server/images")
 routes.static("/audio", "./server/audio")
 
-
-@routes.get("/favicon.ico")
-async def _favicon(request: WebRequest) -> web.Response:
-    raise web.HTTPFound(request.app.bot.user.avatar.url)
+# source files
+routes.static("/css", "./bot/web/css")
+routes.static("/script", "./bot/web/script")
 
 
 class MiddlewareGroup:

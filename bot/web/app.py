@@ -8,6 +8,8 @@ import aiohttp
 import asyncpg
 from aiohttp import web
 
+from .middlewares import *
+from .routes import *
 from .core import middleware_group, routes
 from .loader import TextFileLoader
 if TYPE_CHECKING:
