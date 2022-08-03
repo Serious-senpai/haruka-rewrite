@@ -3,33 +3,47 @@ function clearChildren(element) {
 }
 
 function initializeMain() {
-    var d = document.getElementById("main-inner");
-    if (d) {
-        clearChildren(d);
-        return d;
+    var element = document.getElementById("main-inner");
+    if (element) {
+        clearChildren(element);
+        return element;
     }
 }
 
 function createHeading(tagName, heading) {
-    const h = document.createElement(tagName);
-    h.innerHTML = heading;
-    return h;
+    const element = document.createElement(tagName);
+    element.innerHTML = heading;
+    return element;
 }
 
-function createRandomImage() {
-    var img = document.createElement("img");
-    img.src = "/collection/random";
-    return img;
+function materialIcon(name) {
+    const element = document.createElement("span");
+    element.innerHTML = name;
+    element.className = "material-icons";
+    return element;
 }
 
 function toImageGenerator() {
     var d = initializeMain();
     if (d) {
         var heading = createHeading("h3", "IMAGE GENERATOR"),
-            image = createRandomImage();
+            container = document.createElement("div");
 
+        container.id = "random-image-container";
+
+        var image = document.createElement("img")
+        image.id = "random-image";
+        image.src = "/collection/random?time=" + Date.now();
         image.alt = "image";
-        d.append(heading, image);
+        container.appendChild(image);
+
+        var reloadButton = document.createElement("button")
+        reloadButton.id = "reload-button";
+        reloadButton.type = "button";
+        reloadButton.onclick = toImageGenerator;
+        reloadButton.appendChild(materialIcon("refresh"));
+
+        d.append(heading, container, reloadButton);
     }
 }
 

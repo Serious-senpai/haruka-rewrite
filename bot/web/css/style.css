@@ -16,6 +16,7 @@ body {
     top: 0;
 }
 
+
 .sidebar {
     background-color: black;
     width: 20%;
@@ -43,7 +44,6 @@ body {
     color: green;
 }
 
-
 .sidebar div.nav-item {
     cursor: default;
     text-align: right;
@@ -54,6 +54,7 @@ body {
 .sidebar div.nav-item:hover {
     background-color: var(--gray);
 }
+
 
 .main {
     background-color: var(--gray);
@@ -70,4 +71,34 @@ body {
 .main h3,
 .main h4 {
     color: green;
+}
+
+/* Image generator styles */
+
+.main #random-image-container {
+    position: relative;
+    width: 50%;
+    height: 50%;
+}
+
+.main #random-image {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.main #reload-button {
+    background-color: black;
+    color: white;
+    position: absolute;
+    right: 5%;
+    bottom: 5%;
+    width: 50px;
+    height: 50px;
+    z-index: 100000;
+    border-radius: 50%;
+}
+
+.main #reload-button:hover {
+    background-color: yellow;
+    color: black;
 }
