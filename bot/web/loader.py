@@ -3,20 +3,21 @@ from typing import Dict, TYPE_CHECKING
 
 class TextFileLoader:
 
+    __slots__ = ("_data",)
     if TYPE_CHECKING:
-        data: Dict[str, str]
+        _data: Dict[str, str]
 
     def __init__(self) -> None:
-        self.data = {}
+        self._data = {}
 
     def open(self, path: str) -> str:
         try:
-            return self.data[path]
+            return self._data[path]
         except KeyError:
             with open(path, "r", encoding="utf-8") as f:
-                self.data[path] = f.read()
+                self._data[path] = f.read()
 
-            return self.data[path]
+            return self._data[path]
 
     def clear(self) -> None:
-        self.data.clear()
+        self._data.clear()

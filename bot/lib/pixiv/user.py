@@ -98,3 +98,11 @@ class PixivUser(BaseUser):
                 return
 
             return cls(data["body"])
+
+    @classmethod
+    async def from_url(cls: Type[PixivUser], url: str, *, session: aiohttp.ClientSession) -> Optional[PixivUser]:
+        match = USER_PATTERN.fullmatch(url)
+        if not match:
+            return
+
+        return await cls.get(int(match.group(2)), session=session)

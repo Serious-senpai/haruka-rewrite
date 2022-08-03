@@ -70,7 +70,7 @@ body {
 .main h2,
 .main h3,
 .main h4 {
-    color: green;
+    color: lightgreen;
 }
 
 /* Image generator styles */
@@ -101,4 +101,13 @@ body {
 .main #reload-button:hover {
     background-color: yellow;
     color: black;
+}
+
+/* Pixiv user search styles */
+
+.main #user-url-input {
+    background-color: black;
+    color: lightgreen;
+    position: relative;
+    width: 50%;
 }

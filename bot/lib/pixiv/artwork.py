@@ -111,7 +111,7 @@ class PixivArtwork:
         for attr in self.__slots__:
             setattr(self, attr, getattr(artwork, attr))
 
-    async def save(self, *, session: aiohttp.ClientSession) -> bool:
+    async def save(self, image_type: ImageType = ImageType.REGULAR, *, session: aiohttp.ClientSession) -> bool:
         """This function is a coroutine
 
         Save this artwork to the local machine, which is exposed
@@ -119,6 +119,8 @@ class PixivArtwork:
 
         Parameters
         -----
+        image_type: ``ImageType``
+            The type of the image to download
         session: ``aiohttp.ClientSession``
             The session to perform the request
 
@@ -134,7 +136,7 @@ class PixivArtwork:
             await self.update(session=session)
 
         with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
-            async with session.get(self.image_url, headers=PIXIV_HEADERS) as response:
+            async with session.get(self.image(image_type), headers=PIXIV_HEADERS) as response:
                 if response.ok:
                     with open(f"./server/images/{self.id}.png", "wb") as f:
                         f.write(await response.read())

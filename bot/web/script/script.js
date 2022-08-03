@@ -3,7 +3,7 @@ function clearChildren(element) {
 }
 
 function initializeMain() {
-    var element = document.getElementById("main-inner");
+    const element = document.getElementById("main-inner");
     if (element) {
         clearChildren(element);
         return element;
@@ -24,20 +24,20 @@ function materialIcon(name) {
 }
 
 function toImageGenerator() {
-    var d = initializeMain();
+    const d = initializeMain();
     if (d) {
-        var heading = createHeading("h3", "IMAGE GENERATOR"),
+        const heading = createHeading("h3", "IMAGE GENERATOR"),
             container = document.createElement("div");
 
         container.id = "random-image-container";
 
-        var image = document.createElement("img")
+        const image = document.createElement("img")
         image.id = "random-image";
         image.src = "/collection/random?time=" + Date.now();
         image.alt = "image";
         container.appendChild(image);
 
-        var reloadButton = document.createElement("button")
+        const reloadButton = document.createElement("button")
         reloadButton.id = "reload-button";
         reloadButton.type = "button";
         reloadButton.onclick = toImageGenerator;
@@ -48,10 +48,28 @@ function toImageGenerator() {
 }
 
 function toPixivUserSearch() {
-    var d = initializeMain();
+    const d = initializeMain();
     if (d) {
-        const heading = createHeading("h3", "PIXIV USER SEARCH");
-        d.appendChild(heading);
-        // -- More here --
+        const heading = createHeading("h3", "PIXIV USER SEARCH"),
+            form = document.createElement("form");
+
+        form.id = "user-url-form";
+        form.action = "/pixiv-user";
+
+        const input = document.createElement("input");
+        input.id = "user-url-input";
+        input.type = "text";
+        input.name = "url";
+        input.autocomplete = false;
+        input.placeholder = "Pixiv artist URL";
+
+        const submit = document.createElement("input");
+        submit.id = "user-url-submit";
+        submit.type = "submit";
+        submit.value = "Download all artworks";
+
+        form.append(input, submit);
+
+        d.append(heading, form);
     }
 }
