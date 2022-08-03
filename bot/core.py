@@ -1,6 +1,7 @@
 import asyncio
 import gc
 import logging
+import os
 import sys
 import traceback
 import tracemalloc
@@ -25,7 +26,30 @@ else:
 
 tracemalloc.start()  # noqa
 print(f"Running on {sys.platform}\nPython {sys.version}")
-with open("./bot/web/assets/log.txt", "w+") as f:
+
+
+# YouTube tracks information
+if not os.path.isdir("./tracks"):
+    os.mkdir("./tracks")
+
+
+# Server resources at runtime
+if not os.path.isdir("./server"):
+    os.mkdir("./server")
+if not os.path.isdir("./server/images"):
+    os.mkdir("./server/images")
+if not os.path.isdir("./server/audio"):
+    os.mkdir("./server/audio")
+
+
+# Assets at runtime
+if not os.path.isdir("./bot/web/assets"):
+    os.mkdir("./bot/web/assets")
+if not os.path.isdir("./bot/web/assets/images"):
+    os.mkdir("./bot/web/assets/images")
+
+
+with open("./bot/web/assets/log.txt", "w") as f:
     f.write(f"HARUKA BOT\nRunning on Python {sys.version}\n" + "-" * 50 + "\n")
 
 
