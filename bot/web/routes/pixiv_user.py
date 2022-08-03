@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 from aiohttp import web
 
@@ -32,16 +32,17 @@ async def _pixiv_user_route(request: WebRequest) -> web.Response:
     if not artworks:
         return web.Response(status=204)
 
-    artwork_ids = []
-    for index in range(len(artworks)):
+    async def save(index: int) -> Optional[int]:
         artwork = await artworks.get(index)
         if artwork is not None:
             status = await artwork.save(pixiv.ImageType.ORIGINAL, session=request.app.session)
             if status:
-                artwork_ids.append(artwork.id)
+                return artwork.id
+
+    artwork_ids = await asyncio.gather(*[save(index) for index in len(artworks)])
 
     args = ["zip", f"./server/images/{user_id}.zip"]
-    args.extend(f"./server/images/{artwork_id}.png" for artwork_id in artwork_ids)
+    args.extend(f"./server/images/{artwork_id}.png" for artwork_id in artwork_ids if artwork_id is not None)
     process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
     _, _stderr = await process.communicate()
 
