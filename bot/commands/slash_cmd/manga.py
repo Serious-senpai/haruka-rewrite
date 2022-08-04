@@ -12,7 +12,7 @@ from lib import mal, ui
     name="manga",
     description="Display manga search results from MyAnimeList",
 )
-@app_commands.describe(query="The searching query",)
+@app_commands.describe(query="The searching query")
 async def _manga_slash(interaction: Interaction, query: str):
     await interaction.response.defer()
     if len(query) < 3:
