@@ -6,7 +6,7 @@ import datetime
 import re
 import time
 from types import TracebackType
-from typing import Any, AsyncIterator, Coroutine, Generic, Iterator, List, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Any, Coroutine, Generic, Iterable, Iterator, List, Optional, Tuple, Type, TypeVar, TYPE_CHECKING
 
 import discord
 from discord.utils import MISSING
@@ -156,6 +156,25 @@ def from_unix_format(seconds: int) -> datetime.datetime:
     return EPOCH + datetime.timedelta(seconds=seconds)
 
 
+class AsyncSequenceIterator(Generic[T]):
+
+    __slots__ = ("_index", "_sequence")
+    if TYPE_CHECKING:
+        _index: int
+        _sequence: AsyncSequence[T]
+
+    def __init__(self, sequence: AsyncSequence[T]) -> None:
+        self._index = -1
+        self._sequence = sequence
+
+    async def __anext__(self) -> T:
+        try:
+            self._index += 1
+            return await self._sequence.get(self._index)
+        except IndexError:
+            raise StopAsyncIteration
+
+
 class AsyncSequence(Generic[T]):
     """A lazy sequence of coroutines that returns a result of
     a coroutine only when needed.
@@ -165,24 +184,23 @@ class AsyncSequence(Generic[T]):
     is run at most once.
     """
 
-    __slots__ = ("coros", "_results")
+    __slots__ = ("_coros", "_results")
     if TYPE_CHECKING:
-        coros: List[Coroutine[Any, Any, T]]
+        _coros: Tuple[Coroutine[Any, Any, T]]
         _results: List[T]
 
-    def __init__(self, coros: List[Coroutine[Any, Any, T]]) -> None:
-        self.coros = coros
-        self._results = [MISSING] * len(self.coros)
+    def __init__(self, _coros: Iterable[Coroutine[Any, Any, T]]) -> None:
+        self._coros = tuple(_coros)
+        self._results = [MISSING] * len(self._coros)
 
     def __bool__(self) -> bool:
-        return len(self.coros) > 0
+        return len(self) > 0
 
     def __len__(self) -> int:
-        return len(self.coros)
+        return len(self._coros)
 
-    async def __aiter__(self) -> AsyncIterator[T]:
-        for index in range(len(self)):
-            yield await self.get(index)
+    def __aiter__(self) -> AsyncSequenceIterator[T]:
+        return AsyncSequenceIterator(self)
 
     async def get(self, index: int) -> T:
         """This function is a coroutine
@@ -194,5 +212,5 @@ class AsyncSequence(Generic[T]):
         if self._results[index] is not MISSING:
             return self._results[index]
 
-        self._results[index] = await self.coros[index]
+        self._results[index] = await self._coros[index]
         return self._results[index]

@@ -32,12 +32,15 @@ async def _pixiv_user_route(request: WebRequest) -> web.Response:
     if not artworks:
         return web.Response(status=204)
 
+    semaphore = asyncio.Semaphore(10)
+
     async def save(index: int) -> Optional[int]:
-        artwork = await artworks.get(index)
-        if artwork is not None:
-            status = await artwork.save(pixiv.ImageType.ORIGINAL, session=request.app.session)
-            if status:
-                return artwork.id
+        async with semaphore:
+            artwork = await artworks.get(index)
+            if artwork is not None:
+                status = await artwork.save(pixiv.ImageType.ORIGINAL, session=request.app.session)
+                if status:
+                    return artwork.id
 
     artwork_ids = await asyncio.gather(*[save(index) for index in range(len(artworks))])
 
