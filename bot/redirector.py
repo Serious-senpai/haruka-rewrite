@@ -6,13 +6,12 @@ from env import HOST
 routes = web.RouteTableDef()
 
 
-@routes.get("")
+@routes.get(r"/{path:.*}")
 async def _global_handler(request: web.Request):
-    url = request.url
     if HOST == "https://haruka39-clone.herokuapp.com":
-        url.host = "https://haruka39.herokuapp.com"
+        url = request.url.with_host("https://haruka39.herokuapp.com")
     else:
-        url.host = "https://haruka39_clone.herokuapp.com"
+        url = request.url.with_host("https://haruka39_clone.herokuapp.com")
 
     raise web.HTTPFound(url)
 
