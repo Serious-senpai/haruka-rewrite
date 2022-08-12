@@ -15,3 +15,7 @@ HOST = os.environ.get("HOST", "http://localhost").strip("/")
 PORT = int(os.environ.get("PORT", 8080))
 TOPGG_TOKEN = os.environ.get("TOPGG_TOKEN")
 SECONDARY_TOKEN = os.environ.get("SECONDARY_TOKEN")
+
+
+# For double-hosting purpose
+REDIRECT = bool(os.environ.get("REDIRECT"))

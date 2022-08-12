@@ -3,8 +3,10 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
+from aiohttp import web
 
 import env
+import redirector
 from core import bot
 from events import *
 from commands import *
@@ -21,5 +23,7 @@ async def runner(bot: haruka.Haruka) -> None:
 
 if env.BUILD_CHECK:
     print("Check success")
+elif env.REDIRECT:
+    web.run_app(redirector.app)
 else:
     asyncio.run(runner(bot))
