@@ -9,9 +9,9 @@ routes = web.RouteTableDef()
 @routes.get(r"/{path:.*}")
 async def _global_handler(request: web.Request):
     if HOST == "https://haruka39-clone.herokuapp.com":
-        url = request.url.with_host("https://haruka39.herokuapp.com")
+        url = request.url.with_host("haruka39.herokuapp.com")
     else:
-        url = request.url.with_host("https://haruka39_clone.herokuapp.com")
+        url = request.url.with_host("haruka39-clone.herokuapp.com")
 
     raise web.HTTPFound(url)
 
