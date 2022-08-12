@@ -6,7 +6,7 @@ from env import HOST
 routes = web.RouteTableDef()
 
 
-@routes.get(r"{path:.*}")
+@routes.get("")
 async def _global_handler(request: web.Request):
     url = request.url
     if HOST == "https://haruka39-clone.herokuapp.com":
