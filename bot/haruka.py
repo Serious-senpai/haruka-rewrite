@@ -51,7 +51,6 @@ class Haruka(commands.Bot, ClientMixin):
         app: server.WebApp
         asset_client: asset.AssetClient
         audio: AudioClient
-        auto_leave: bool
         conn: asyncpg.Pool
         image: ImageClient
         logfile: io.TextIOWrapper
@@ -67,8 +66,6 @@ class Haruka(commands.Bot, ClientMixin):
 
     def __init__(self, *args, **kwargs) -> None:
         signal.signal(signal.SIGTERM, self.kill)
-
-        self.auto_leave = kwargs.pop("auto_leave", False)
 
         super().__init__(*args, **kwargs)
         self.logfile = open("./bot/web/assets/log.txt", "a", encoding="utf-8")
@@ -154,26 +151,7 @@ class Haruka(commands.Bot, ClientMixin):
             CREATE TABLE IF NOT EXISTS remind (id text, time timestamptz, content text, url text, original timestamptz);
         """)
 
-        if self.auto_leave:
-            await self.conn.execute("CREATE TABLE IF NOT EXISTS inactivity (id text primary key, time timestamptz);")
-
         self.log("Successfully initialized database.")
-
-    async def reset_inactivity_counter(self, guild_id: Union[int, str]) -> None:
-        now = discord.utils.utcnow()
-        guild_id = str(guild_id)
-        await self.conn.execute(
-            """
-            INSERT INTO inactivity
-            VALUES ($1, $2)
-            ON CONFLICT (id) DO UPDATE
-                SET time = excluded.time;
-            """,
-            guild_id,
-            now,
-        )
-        self.log(f"Reset inactivity counter for guild ID {guild_id} to {now}")
-        self.guild_leaver.restart()
 
     async def startup(self) -> None:
         await self.wait_until_ready()
@@ -200,17 +178,6 @@ class Haruka(commands.Bot, ClientMixin):
             self.owner_id = app_info.owner.id
         self.owner_data = await self.http.get_user(self.owner_id)
         self.owner_ready.set()
-
-        if self.auto_leave:
-            # Initialize guild activity check
-            now = discord.utils.utcnow()
-            for guild in self.guilds:
-                row = await self.conn.fetchrow(f"SELECT * FROM inactivity WHERE id = '{guild.id}';")
-                if not row:
-                    await self.conn.execute(f"INSERT INTO inactivity VALUES ('{guild.id}', $1);", now)
-                    self.log(f"Inserted guild ID {guild.id} into the inactivity table: {now}")
-
-            self.log("Initialized all guild inactivity checks")
 
         # Start all future tasks
         for task in (self._keep_alive, self.reminder, self.guild_leaver):
@@ -350,22 +317,3 @@ class Haruka(commands.Bot, ClientMixin):
 
         with contextlib.suppress(discord.Forbidden):
             await user.send(embed=embed)
-
-    @tasks.loop()
-    async def guild_leaver(self) -> None:
-        if not self.auto_leave:
-            return await asyncio.sleep(3600)
-
-        row = await self.conn.fetchrow("SELECT * FROM inactivity ORDER BY time;")
-        if not row:
-            return await asyncio.sleep(3600)
-
-        await discord.utils.sleep_until(row["time"] + datetime.timedelta(days=30))
-        guild_id = row["id"]
-        await self.conn.execute("DELETE FROM inactivity WHERE id = $1", guild_id)
-
-        guild = self.get_guild(int(guild_id))
-        if guild:
-            with contextlib.suppress(discord.HTTPException):
-                await guild.leave()
-                await asyncio.sleep(3.0)
