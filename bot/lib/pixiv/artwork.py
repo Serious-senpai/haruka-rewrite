@@ -160,7 +160,7 @@ class PixivArtwork:
         if self.tags:
             embed.add_field(
                 name="Tags",
-                value=", ".join(str(tag) for tag in self.tags),
+                value=", ".join(f"[{str(tag)}]({tag.url})" for tag in self.tags),
                 inline=False,
             )
 

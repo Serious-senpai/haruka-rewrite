@@ -32,5 +32,12 @@ class PixivArtworkTag:
     def translate(self, language: str = "en") -> Optional[str]:
         return self._translations.get(language)
 
+    @property
+    def url(self) -> str:
+        return f"https://www.pixiv.net/en/tags/{self.name}/artworks"
+
     def __str__(self) -> str:
         return self.translate() or self.name
+
+    def __repr__(self) -> str:
+        return f"<PixivArtworkTag name={self.name} translations={list(self._translations.keys())}>"

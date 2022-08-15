@@ -95,7 +95,7 @@ class Haruka(commands.Bot, ClientMixin):
 
         # Create side session
         headers = {
-            "Accept-Language": "en-US,en",
+            "Accept-Language": "en-US,en;q=0.9",
             "User-Agent": youtube_dl.utils.random_user_agent(),
         }
         self.session = aiohttp.ClientSession(
