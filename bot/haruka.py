@@ -180,7 +180,7 @@ class Haruka(commands.Bot, ClientMixin):
         self.owner_ready.set()
 
         # Start all future tasks
-        for task in (self._keep_alive, self.reminder, self.guild_leaver):
+        for task in (self._keep_alive, self.reminder):
             try:
                 task.start()
             except BaseException:
