@@ -199,59 +199,17 @@ class NekosLife(ImageSource):
 
     __slots__ = ("session", "client")
     endpoints_url: ClassVar[str] = "https://nekos.life/api/v2/endpoints"
-    sfw_converter: ClassVar[Dict[str, str]] = {
+    converter: ClassVar[Dict[str, str]] = {
         "neko gif": "ngif",
         "kitsune": "fox_girl",
     }
-    nsfw_converter: ClassVar[Dict[str, str]] = {
-        "ero neko": "eron",
-        "neko gif": "nsfw_neko_gif",
-        "lewd kitsune": "lewdk",
-        "ero kitsune": "erok",
-        "lewd holo": "hololewd",
-        "ero holo": "holoero",
-        "ero feet": "erofeet",
-        "ero yuri": "eroyuri",
-        "cum": "cum_jpg",
-        "pussy": "pussy_jpg",
-        "cum gif": "cum",
-        "solo gif": "solog",
-        "pussy wank gif": "pwankg",
-        "pussy gif": "pussy",
-        "random": "Random_hentai_gif",
-        "feet gif": "feetg",
-        "pussy lick gif": "kuni",
-    }
 
     async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
-        sfw = set(["kitsune", "holo", "pat", "poke", "hug", "cuddle", "kiss", "feed", "tickle", "smug", "baka", "slap"])
-        nsfw = set(["lewd", "ero neko", "neko gif", "lewd kitsune", "ero kitsune", "lewd holo", "ero holo", "ero", "feet", "ero feet", "gasm", "solo", "tits", "yuri", "ero yuri", "hentai", "cum", "blowjob", "femdom", "trap", "pussy", "futanari", "cum gif", "solo gif", "spank", "les", "bj", "pussy wank gif", "pussy gif", "random", "feet gif", "pussy lick gif", "classic", "boobs", "anal"])
+        sfw = set(["neko", "smug", "woof", "avatar", "wallpaper", "cuddle", "slap", "hug", "meow", "kiss", "tickle", "waifu", "lewd"])
+        nsfw = set()
 
-        try:
-            async with self.session.get(self.endpoints_url) as response:
-                if response.ok:
-                    data = await response.text(encoding="utf-8")
-                    matches = re.finditer(r"'(.+?)'", data)
-                    categories = set(match.group(1) for match in matches)
-
-                    to_remove = set()
-                    for sfw_category in sfw:
-                        if self.sfw_converter.get(sfw_category, sfw_category) not in categories:
-                            to_remove.add(sfw_category)
-
-                    sfw -= to_remove
-
-                    to_remove = set()
-                    for nsfw_category in nsfw:
-                        if self.nsfw_converter.get(nsfw_category, nsfw_category) not in categories:
-                            to_remove.add(nsfw_category)
-
-                    nsfw -= to_remove
-
-        except (aiohttp.ClientError, asyncio.TimeoutError):
-            return set(), set()
-        else:
-            return sfw, nsfw
+        sfw.update(self.converter.keys())
+        return sfw, nsfw
 
     async def get(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Optional[str]:
         url = self.get_url(category, mode=mode)
@@ -261,7 +219,7 @@ class NekosLife(ImageSource):
                 return json["url"]
 
     def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> str:
-        category = getattr(self, f"{mode}_converter").get(category, category)
+        category = self.converter.get(category, category)
         return f"https://nekos.life/api/v2/img/{category}"
 
     def __str__(self) -> str:

@@ -131,12 +131,6 @@ async def image_test(status: TestingStatus) -> str:
     await bot.image.wait_until_ready()
     content = make_title("IMAGE TESTS")
 
-    for category, sources in bot.image.sfw.items():
-        content += f"Image sources for SFW {category}: " + ", ".join(str(source) for source in sources) + "\n"
-
-    for category, sources in bot.image.nsfw.items():
-        content += f"Image sources for NSFW {category}: " + ", ".join(str(source) for source in sources) + "\n"
-
     checked = set()
     for category, sources in bot.image.sfw.items():
         for source in sources:

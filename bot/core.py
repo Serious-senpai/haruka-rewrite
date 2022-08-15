@@ -143,9 +143,6 @@ async def _blacklist_check(ctx: Context) -> bool:
 @bot.before_invoke
 async def _before_invoke(ctx: Context) -> None:
     # Count text commands
-    if ctx.guild:
-        await bot.reset_inactivity_counter(ctx.guild.id)
-
     if ctx.command.root_parent:
         return
 
