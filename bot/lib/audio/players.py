@@ -297,47 +297,4 @@ class AudioReader(discord.VoiceClient):
             except OSError:
                 return
 
-            decrypt_payload = getattr(self, "_decrypt_" + self.mode)
-            decrypted = decrypt_payload(data)
-
-            return self._strip_header(decrypted)
-
-    @property
-    def secret_box(self) -> secret.SecretBox:
-        return secret.SecretBox(bytes(self.secret_key))
-
-    def _decrypt_xsalsa20_poly1305(self, data: bytes) -> Optional[bytes]:
-        payload = data[12:]
-
-        nonce = bytearray(24)
-        nonce[:12] = data[:12]
-
-        with contextlib.suppress(CryptoError):
-            return self.secret_box.decrypt(payload, bytes(nonce))
-
-    def _decrypt_xsalsa20_poly1305_suffix(self, data: bytes) -> Optional[bytes]:
-        payload = data[12:-24]
-
-        nonce_size = secret.SecretBox.NONCE_SIZE
-        nonce = data[-nonce_size:]
-
-        with contextlib.suppress(CryptoError):
-            return self.secret_box.decrypt(payload, nonce)
-
-    def _decrypt_xsalsa20_poly1305_lite(self, data: bytes) -> Optional[bytes]:
-        payload = data[12:-4]
-
-        nonce = bytearray(24)
-        nonce[:4] = data[-4:]
-
-        with contextlib.suppress(CryptoError):
-            return self.secret_box.decrypt(payload, bytes(nonce))
-
-    @staticmethod
-    def _strip_header(data: bytes) -> bytes:
-        if data[0] == 0xBE and data[1] == 0xDE and len(data) > 4:
-            _, length = struct.unpack_from(">HH", data)
-            offset = 4 + length * 4
-            data = data[offset:]
-
-        return data
+            return data

@@ -24,6 +24,7 @@ async def runner(bot: haruka.Haruka) -> None:
 if env.BUILD_CHECK:
     print("Check success")
 elif env.REDIRECT:
+    print("Starting redirect server...")
     web.run_app(redirector.app, port=env.PORT)
 else:
     asyncio.run(runner(bot))
