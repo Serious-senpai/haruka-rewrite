@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import contextlib
 from typing import Optional, Type, Union, TYPE_CHECKING
 
 import aiohttp
@@ -30,13 +32,14 @@ class Manga(MALObject):
         self.type = self.extract_span("Type:")
 
     @classmethod
-    async def get(cls: Type[Manga], id: Union[int, str], *, session: aiohttp.ClientSession) -> Manga:
+    async def get(cls: Type[Manga], id: Union[int, str], *, session: aiohttp.ClientSession) -> Optional[Manga]:
         url = f"https://myanimelist.net/manga/{id}"
-        async with session.get(url) as response:
-            response.raise_for_status()
-            html = await response.text(encoding="utf-8")
-            soup = bs4.BeautifulSoup(html, "html.parser")
-            return cls(id, soup)
+        with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
+            async with session.get(url) as response:
+                response.raise_for_status()
+                html = await response.text(encoding="utf-8")
+                soup = bs4.BeautifulSoup(html, "html.parser")
+                return cls(id, soup)
 
     def is_safe(self) -> bool:
         for genre in self.genres:
