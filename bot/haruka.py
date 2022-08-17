@@ -254,11 +254,15 @@ class Haruka(commands.Bot, ClientMixin):
         self.log("Closed database connection pool for bot.")
         await self.session.close()
         self.log("Closed side session.")
-        await self.side_client.close()
-        self.log("Closed side client.")
+
+        try:
+            await self.side_client.report("Terminating bot. This is the final report.")
+        finally:
+            await self.side_client.close()
+            self.log("Closed side client.")
+
         try:
             await self.report("Terminating bot. This is the final report.")
-            print("Final report has been sent.")
         finally:
             await super().close()
             print("Writing log file to the console:\n")
