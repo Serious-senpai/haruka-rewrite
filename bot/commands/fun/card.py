@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.utils import escape_markdown as escape
 
 from _types import Context
 from core import bot
@@ -16,24 +15,20 @@ CARD_LIMIT = 9
     usage="card <amount | default: 1>",
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
-async def _card_cmd(ctx: Context, n: int = 1):
-    if n < 1 or n > CARD_LIMIT:
+async def _card_cmd(ctx: Context, cards_count: int = 1):
+    if cards_count < 1 or cards_count > CARD_LIMIT:
         return await ctx.send(f"Invalid card number (must be from 1 to {CARD_LIMIT}).")
 
-    hand = cards.BaseHand()
-    for _ in range(n):
-        hand.draw()
+    hand = cards.CardHand()
+    hand.draw(cards.BaseCard, count=cards_count)
 
-    file = discord.File(hand.make_image(), filename="image.png")
+    file = discord.File(hand.to_image_data(), filename="image.png")
     embed = discord.Embed()
     embed.set_author(
-        name=f"{escape(ctx.author.name)} drew {n} card(s)!",
+        name=f"{ctx.author.name} drew {cards_count} card(s)!",
         icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
     )
     embed.set_image(url="attachment://image.png")
     embed.set_footer(text=f"Total points: {hand.value}")
 
-    await ctx.send(
-        file=file,
-        embed=embed,
-    )
+    await ctx.send(file=file, embed=embed)
