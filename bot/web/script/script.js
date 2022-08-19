@@ -166,39 +166,40 @@ function toPixivUserSearch() {
  * @return {void}
  */
 function toAudioControl(key) {
-    var data;
-    getAsync("/audio-control/playing?key=" + key, (response) => data = JSON.parse(response));
+    getAsync("/audio-control/playing?key=" + key, (response) => {
+        const data = JSON.parse(response);
 
-    const d = initializeMain();
-    {
-        const mainControl = document.createElement("div");
-        mainControl.id = "main-control";
+        const d = initializeMain();
         {
-            const playingTrack = document.createElement("div");
-            playingTrack.id = "playing-track";
+            const mainControl = document.createElement("div");
+            mainControl.id = "main-control";
             {
-                const trackThumbnail = document.createElement("div");
-                trackThumbnail.id = "track-thumbnail";
+                const playingTrack = document.createElement("div");
+                playingTrack.id = "playing-track";
                 {
-                    const thumbnailContent = document.createElement("img");
-                    thumbnailContent.alt = "Track thumbnail";
-                    thumbnailContent.src = data["thumbnail"];
+                    const trackThumbnail = document.createElement("div");
+                    trackThumbnail.id = "track-thumbnail";
+                    {
+                        const thumbnailContent = document.createElement("img");
+                        thumbnailContent.alt = "Track thumbnail";
+                        thumbnailContent.src = data["thumbnail"];
 
-                    trackThumbnail.append(thumbnailContent);
+                        trackThumbnail.append(thumbnailContent);
+                    }
+
+                    const trackTitle = createHeading("h3", data["title"]);
+
+                    const trackDescription = document.createElement("div");
+                    trackDescription.id = "track-description";
+                    trackDescription.innerHTML = data["description"];
+
+                    playingTrack.append(trackThumbnail, trackTitle, trackDescription);
                 }
 
-                const trackTitle = createHeading("h3", data["title"]);
-
-                const trackDescription = document.createElement("div");
-                trackDescription.id = "track-description";
-                trackDescription.innerHTML = data["description"];
-
-                playingTrack.append(trackThumbnail, trackTitle, trackDescription);
+                mainControl.append(playingTrack);
             }
 
-            mainControl.append(playingTrack);
+            d.append(mainControl);
         }
-
-        d.append(mainControl);
-    }
+    });
 }
