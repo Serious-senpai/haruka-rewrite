@@ -37,6 +37,13 @@ class _VoiceClientManager:
         else:
             self.mapping.inverse.pop(key)
 
+    def check_pop(self, client: MusicClient) -> None:
+        try:
+            if not client.is_connected():
+                self.pop(client)
+        except KeyError:
+            pass
+
     @overload
     def __getitem__(self, client: MusicClient) -> str:
         ...
@@ -47,8 +54,10 @@ class _VoiceClientManager:
 
     def __getitem__(self, client_or_key):
         if isinstance(client_or_key, str):
+            self.check_pop(self.mapping[client_or_key])
             return self.mapping[client_or_key]
-        else:
+        elif isinstance(client_or_key, MusicClient):
+            self.check_pop(client_or_key)
             return self.mapping.inverse[client_or_key]
 
     def __setitem__(self, key: str, value: MusicClient) -> None:
