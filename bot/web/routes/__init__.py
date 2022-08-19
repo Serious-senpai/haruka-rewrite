@@ -1,4 +1,5 @@
 #!/bot/web/routes
+from .audio import *
 from .collection import *
 from .favicon import *
 from .image import *

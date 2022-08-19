@@ -42,6 +42,7 @@ class MusicClient(discord.VoiceClient):
         _stopafter: bool
         _operable: asyncio.Event
         target: Optional[discord.abc.Messageable]
+        current_track: Optional[InvidiousSource]
 
     def __init__(self, *args, **kwargs) -> None:
         self._repeat = False
@@ -49,6 +50,7 @@ class MusicClient(discord.VoiceClient):
         self._stopafter = False
         self._operable = asyncio.Event()
         self.target = None
+        self.current_track = None
         super().__init__(*args, **kwargs)
 
     @property
@@ -211,6 +213,7 @@ class MusicClient(discord.VoiceClient):
 
             seq = 1
 
+            self.current_track = track
             while not audios.empty():
                 audio = await audios.get()
 
