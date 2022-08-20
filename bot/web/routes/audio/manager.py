@@ -18,7 +18,7 @@ class _VoiceClientManager:
         mapping: bidict.bidict[str, MusicClient]
 
     def __init__(self) -> None:
-        self.mapping = {}
+        self.mapping = bidict.bidict()
 
     def push(self, client: MusicClient) -> str:
         if client in self.mapping.values():
