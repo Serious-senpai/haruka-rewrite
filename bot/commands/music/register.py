@@ -15,7 +15,7 @@ from web.routes import audio
 async def _register_cmd(ctx: Context):
     client = ctx.voice_client
     if client and client.is_connected():
-        key = audio.voice_manager.push(client)
+        key = audio.voice_manager.push(ctx.guild.id)
         url = HOST + f"/audio-control?key={key}"
         await ctx.send(f"You can now control the music player via {url}")
 

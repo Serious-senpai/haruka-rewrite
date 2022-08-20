@@ -5,8 +5,6 @@ from typing import Union, overload, TYPE_CHECKING
 
 import bidict
 
-from lib.audio import MusicClient
-
 
 __all__ = ("voice_manager",)
 
@@ -15,53 +13,46 @@ class _VoiceClientManager:
 
     __slots__ = ("mapping",)
     if TYPE_CHECKING:
-        mapping: bidict.bidict[str, MusicClient]
+        mapping: bidict.bidict[str, int]
 
     def __init__(self) -> None:
         self.mapping = bidict.bidict()
 
-    def push(self, client: MusicClient) -> str:
-        if client in self.mapping.values():
-            return self.mapping.inverse[client]
+    def push(self, guild_id: int) -> str:
+        if guild_id in self.mapping.values():
+            return self.mapping.inverse[guild_id]
 
         key = secrets.token_urlsafe()
         while key in self.mapping.keys():
             key = secrets.token_urlsafe()
 
-        self.mapping[key] = client
+        self.mapping[key] = guild_id
         return key
 
-    def pop(self, key: Union[str, MusicClient]) -> None:
+    def pop(self, key: Union[str, int]) -> None:
         if isinstance(key, str):
             self.mapping.pop(key)
-        else:
+        elif isinstance(key, int):
             self.mapping.inverse.pop(key)
-
-    def check_pop(self, client: MusicClient) -> None:
-        try:
-            if not client.is_connected():
-                self.pop(client)
-        except KeyError:
-            pass
+        else:
+            raise TypeError(f"Unknown type {key.__class__.__name__}")
 
     @overload
-    def __getitem__(self, client: MusicClient) -> str:
+    def __getitem__(self, guild_id: int) -> str:
         ...
 
     @overload
-    def __getitem__(self, key: str) -> MusicClient:
+    def __getitem__(self, key: str) -> int:
         ...
 
-    def __getitem__(self, client_or_key):
-        if isinstance(client_or_key, str):
-            self.check_pop(self.mapping[client_or_key])
-            return self.mapping[client_or_key]
-        elif isinstance(client_or_key, MusicClient):
-            self.check_pop(client_or_key)
-            return self.mapping.inverse[client_or_key]
+    def __getitem__(self, key_or_id):
+        if isinstance(key_or_id, str):
+            return self.mapping[key_or_id]
+        elif isinstance(key_or_id, int):
+            return self.mapping.inverse[key_or_id]
 
-    def __setitem__(self, key: str, value: MusicClient) -> None:
-        self.mapping[key] = value
+    def __setitem__(self, key: str, guild_id: int) -> None:
+        self.mapping[key] = guild_id
 
 
 voice_manager = _VoiceClientManager()

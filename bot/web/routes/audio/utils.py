@@ -15,6 +15,10 @@ def get_key(request: WebRequest) -> Optional[str]:
 def get_client(request: WebRequest) -> Optional[MusicClient]:
     try:
         key = get_key(request)
-        return voice_manager[key]
+        if key:
+            guild_id = voice_manager[key]
+            guild = request.app.bot.get_guild(guild_id)
+            if guild:
+                return guild.voice_client
     except KeyError:
         return

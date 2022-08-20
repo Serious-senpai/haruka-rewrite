@@ -8,7 +8,6 @@ import discord
 from aiohttp import web
 
 from lib.audio import MusicClient
-from .manager import voice_manager
 from .utils import get_client
 from ...core import routes
 if TYPE_CHECKING:
@@ -22,8 +21,6 @@ async def _skip_route(request: WebRequest) -> web.Response:
         raise web.HTTPBadRequest
 
     if client.is_connected():
-        key = voice_manager[client]
-
         shuffle = client.shuffle
         target = client.target
         channel = client.channel
@@ -36,6 +33,5 @@ async def _skip_route(request: WebRequest) -> web.Response:
         new_client._shuffle = shuffle
 
         asyncio.create_task(new_client.play(target=target))
-        voice_manager[key] = new_client
 
     return web.Response(status=204)
