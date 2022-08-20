@@ -74,7 +74,6 @@ class PartialInvidiousSource:
 
     __slots__ = (
         "data",
-        "api_url",
         "id",
         "title",
         "channel",
@@ -84,7 +83,6 @@ class PartialInvidiousSource:
     )
     if TYPE_CHECKING:
         data: Dict[str, Any]
-        api_url: str
         id: str
         title: str
         channel: str
@@ -92,24 +90,15 @@ class PartialInvidiousSource:
         description: Optional[str]
         thumbnail: Optional[str]
 
-    def __init__(self, data: Dict[str, Any], api_url: str) -> None:
+    def __init__(self, data: Dict[str, Any]) -> None:
         self.data = data
-        self.api_url = api_url
         self.id = data["videoId"]
         self.title = data["title"]
         self.channel = data["author"]
         self.length = data["lengthSeconds"]
 
         self.description = data.get("description")
-
-        self.thumbnail = None
-        for image in data["videoThumbnails"]:
-            if isinstance(image, list):
-                image = image[0]  # No idea why the server does this
-
-            self.thumbnail = image["url"]
-            if "maxres" in image["quality"]:
-                break
+        self.thumbnail = f"https://img.youtube.com/vi/{self.id}/0.jpg"
 
     def create_embed(self) -> discord.Embed:
         """Make a ``discord.Embed`` that represents
@@ -144,11 +133,7 @@ class PartialInvidiousSource:
             value=format(self.length),
         )
 
-        if self.thumbnail:
-            if not self.thumbnail.startswith("http"):
-                embed.set_thumbnail(url=self.api_url + self.thumbnail)
-            else:
-                embed.set_thumbnail(url=self.thumbnail)
+        embed.set_thumbnail(url=self.thumbnail)
 
         return embed
 
@@ -210,12 +195,11 @@ class PartialInvidiousSource:
         """
         data = await asyncio.to_thread(get_from_memory, id)
         if data is not None:
-            return cls(data, data["api_url"])
+            return cls(data)
 
         track = await InvidiousSource.build(id, client=client)
         if track:
-            js = track.data
-            return cls(js, track.api_url)
+            return cls(track.data)
 
 
 class InvidiousSource(PartialInvidiousSource):
@@ -405,8 +389,7 @@ class InvidiousSource(PartialInvidiousSource):
             with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
                 async with client.session.get(f"{url}/api/v1/videos/{id}", timeout=TIMEOUT) as response:
                     if response.status == 200:
-                        js = await response.json(encoding="utf-8")
-                        js["api_url"] = url
-                        await asyncio.to_thread(save_to_memory, js)
+                        data = await response.json(encoding="utf-8")
+                        await asyncio.to_thread(save_to_memory, data)
                         set_priority(url)
-                        return cls(js, url)
+                        return cls(data)

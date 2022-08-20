@@ -1,3 +1,5 @@
+import asyncio
+
 from discord.ext import commands
 
 from _types import Context
@@ -15,8 +17,8 @@ async def _skip_cmd(ctx: Context):
     player = ctx.voice_client
 
     if player:
+        asyncio.create_task(player.skip())
         await ctx.message.add_reaction(CHECKER[1])
-        await player.skip()
 
     else:
         await ctx.send("No currently connected player.")

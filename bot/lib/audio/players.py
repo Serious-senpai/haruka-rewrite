@@ -107,6 +107,14 @@ class MusicClient(discord.VoiceClient):
         self.player.add_done_callback(lambda _: asyncio.create_task(coro))
 
     async def skip(self) -> None:
+        """This function is a coroutine
+
+        Skip the current track and start the new one.
+        The next track will be the one at the first index in the queue
+        if shuffle is off and a random one if shuffle is on.
+
+        This method will block until we finishes playing.        
+        """
         await self._operable.wait()
         self.stop()
         self.player.cancel()
@@ -115,7 +123,8 @@ class MusicClient(discord.VoiceClient):
     async def play(self, *, target: discord.abc.Messageable) -> None:
         """This function is a coroutine
 
-        Start playing music in the connected voice channel
+        Start playing music in the connected voice channel.
+        This method will block until we finishes playing.
 
         Parameters
         -----
