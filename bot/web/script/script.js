@@ -43,15 +43,16 @@ function getAsync(url, callback) {
  * incoming messages
  * 
  * @param {string} url The target URL
- * @param {function(MessageEvent)} handler The websocket message
+ * @param {function(MessageEvent)} onmessage The websocket message
  * handler
+ * @param {function(CloseEvent)} onclose The websocket closure handler
  * 
  * @return {void}
  */
-function wsConnect(url, handler) {
+function wsConnect(url, onmessage, onclose) {
     const websocket = new WebSocket(url);
-    websocket.onmessage = handler;
-    websocket.onclose = (closeEvent) => wsConnect(url, handler);
+    websocket.onmessage = onmessage;
+    websocket.onclose = onclose;
 }
 
 
@@ -228,12 +229,32 @@ function toAudioControl(key) {
         }
     );
 
-    wsConnect(
-        "wss://" + document.location.host + "/audio-control/status?key=" + key,
-        (messageEvent) => {
-            if (messageEvent.data == "END") {
-                toAudioControl(key);
-            }
-        }
-    );
+    const url = "wss://" + document.location.host + "/audio-control/status?key=" + key;
+
+    /**
+     * Handle messages from the websocket
+     * 
+     * @param {MessageEvent} messageEvent The incoming message
+     * 
+     * @return {void}
+     */
+    function onmessage(messageEvent) {
+        if (messageEvent.data == "END") toAudioControl(key);
+    };
+
+    /**
+     * Handle the CLOSE event from the websocket
+     * 
+     * @param {CloseEvent} closeEvent The CLOSE event
+     * 
+     * @return {void}
+     */
+    function onclose(closeEvent) {
+        console.log("Websocket closed with reason " + closeEvent.reason);
+        if (closeEvent.reason == "DISCONNECTED") return;
+
+        wsConnect(url, onmessage, onclose);
+    }
+
+    wsConnect(url, onmessage, onclose);
 }

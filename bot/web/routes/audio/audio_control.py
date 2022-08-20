@@ -59,5 +59,5 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
         await client.when_complete(notify(websocket, waiter))
         await waiter.wait()
 
-    await websocket.close()
+    await websocket.close(message="DISCONNECTED")
     return websocket
