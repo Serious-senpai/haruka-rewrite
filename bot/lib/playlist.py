@@ -69,13 +69,13 @@ class YouTubePlaylist(YouTubeCollectionBase):
         thumbnail: str
         url: str
 
-    def __init__(self, data: Dict[str, Any], api_url: str) -> None:
+    def __init__(self, data: Dict[str, Any]) -> None:
         self.title = data["title"]
         self.id = data["playlistId"]
         self.author = data["author"]
         self.description = data.get("description")
         self.view = data["viewCount"]
-        self.videos = [sources.PartialInvidiousSource(d, api_url) for d in data["videos"]]
+        self.videos = [sources.PartialInvidiousSource(d) for d in data["videos"]]
         self.thumbnail = data["authorThumbnails"].pop()["url"]
         self.url = f"https://www.youtube.com/playlist?list={self.id}"
 
@@ -108,10 +108,10 @@ class YouTubeMix(YouTubeCollectionBase):
         videos: List[sources.PartialInvidiousSource]
         url: str
 
-    def __init__(self, data: Dict[str, Any], api_url: str) -> None:
+    def __init__(self, data: Dict[str, Any]) -> None:
         self.title = data["title"]
         self.id = data["mixId"]
-        self.videos = [sources.PartialInvidiousSource(d, api_url) for d in data["videos"]]
+        self.videos = [sources.PartialInvidiousSource(d) for d in data["videos"]]
         self.url = f"https://www.youtube.com/playlist?list={self.id}"  # TODO: Find the appropriate URL format
 
 
@@ -142,9 +142,8 @@ async def get(id: str, *, session: aiohttp.ClientSession) -> Optional[Union[YouT
                     data = await response.json(encoding="utf-8")
 
                     # Cache all tracks, though their descriptions are unavailable
-                    for video in data["videos"]:
-                        video["api_url"] = url
-                        await asyncio.to_thread(sources.save_to_memory, video)
+                    for d in data["videos"]:
+                        await asyncio.to_thread(sources.save_to_memory, d)
 
                     cls = YouTubePlaylist if "playlistId" in data else YouTubeMix
                     constants.set_priority(url)

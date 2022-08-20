@@ -33,4 +33,4 @@ async def _play_cmd(ctx: Context):
         return await ctx.send("Cannot connect to voice channel.")
 
     await ctx.send(f"Connected to <#{channel.id}>")
-    bot.loop.create_task(voice_client.play(target=ctx))
+    await voice_client.play(target=ctx.channel)

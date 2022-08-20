@@ -4,14 +4,10 @@ import asyncio
 import contextlib
 import functools
 import select
-import struct
 import traceback
-from typing import AsyncIterator, Optional, TYPE_CHECKING
+from typing import Any, AsyncIterator, Coroutine, Optional, TYPE_CHECKING
 
-import aiohttp
 import discord
-from nacl import secret
-from nacl.exceptions import CryptoError
 
 from lib import emojis
 from .constants import TIMEOUT
@@ -41,14 +37,17 @@ class MusicClient(discord.VoiceClient):
         _shuffle: bool
         _stopafter: bool
         _operable: asyncio.Event
-        target: Optional[discord.abc.Messageable]
+        _event: asyncio.Event
+        target: discord.abc.Messageable
+        current_track: InvidiousSource
+        player: asyncio.Task[None]
 
     def __init__(self, *args, **kwargs) -> None:
         self._repeat = False
         self._shuffle = False
         self._stopafter = False
         self._operable = asyncio.Event()
-        self.target = None
+        self._event = asyncio.Event()
         super().__init__(*args, **kwargs)
 
     @property
@@ -82,172 +81,138 @@ class MusicClient(discord.VoiceClient):
 
     async def switch_repeat(self) -> bool:
         await self.operable.wait()
-        self._repeat = not self.repeat
+        self._repeat = not self._repeat
         return self.repeat
 
     async def switch_shuffle(self) -> bool:
         await self.operable.wait()
-        self._shuffle = not self.shuffle
+        self._shuffle = not self._shuffle
         return self.shuffle
 
     async def switch_stopafter(self) -> bool:
         await self.operable.wait()
-        self._stopafter = not self.stopafter
+        self._stopafter = not self._stopafter
         return self._stopafter
 
     @functools.cached_property
     def audio_client(self) -> AudioClient:
         return self.client.audio
 
-    # A good video for debugging: https://www.youtube.com/watch?v=U03lLvhBzOw
-    async def play(self, *, target: discord.abc.Messageable) -> None:  # type: ignore
+    async def notify(self, *args, **kwargs) -> Optional[discord.Message]:
+        with contextlib.suppress(discord.HTTPException):
+            return await self.target.send(*args, **kwargs)
+
+    async def when_complete(self, coro: Coroutine[Any, Any, Any]) -> None:
+        await self._operable.wait()
+        self.player.add_done_callback(lambda _: asyncio.create_task(coro))
+
+    async def skip(self) -> None:
         """This function is a coroutine
 
-        Start playing in the connected voice channel
+        Skip the current track and start the new one.
+        The next track will be the one at the first index in the queue
+        if shuffle is off and a random one if shuffle is on.
+
+        This method will block until we finishes playing.
+        """
+        await self._operable.wait()
+        self._operable.clear()
+        self.stop()
+        self.player.cancel()
+        await self.play(target=self.target)
+
+    async def play(self, *, target: discord.abc.Messageable) -> None:
+        """This function is a coroutine
+
+        Start playing music in the connected voice channel.
+        This method will block until we finishes playing.
 
         Parameters
         -----
         target ``discord.abc.Messageable``
             The channel to send audio playing info.
         """
-        repeat_id = None
-        playing_info = None
         self.target = target
+        track_id = None
 
-        while True:
-            if not self.is_connected():
-                return
-
-            if self.repeat and repeat_id is not None:
-                track_id = repeat_id  # Warning: not popping from the queue
-            elif self.shuffle:
-                track_id = await self.audio_client.remove(self.channel.id)
-            else:
-                track_id = await self.audio_client.remove(self.channel.id, pos=1)
-
-            if not track_id:
-                return await self.disconnect(force=True)
-
-            track = await self.audio_client.build(InvidiousSource, track_id)
-
-            if track is None:
-                embed = discord.Embed(description="Cannot fetch this track, most likely the original YouTube video was deleted.\nRemoving track and continue.")
-                embed.set_author(
-                    name="Warning",
-                    icon_url=self.client.user.avatar.url,
-                )
-                embed.add_field(
-                    name="YouTube URL",
-                    value=f"https://www.youtube.com/watch?v={track_id}",
-                )
-                with contextlib.suppress(discord.HTTPException):
-                    await self.target.send(embed=embed)
-                continue
-
-            with contextlib.suppress(discord.HTTPException):
-                async with self.target.typing():
-                    embed = track.create_embed()
-                    embed.set_author(
-                        name=f"Playing in {self.channel}",
-                        icon_url=self.client.user.avatar.url,
-                    )
-                    embed.set_footer(text=f"Shuffle: {self.shuffle} | Repeat one: {self.repeat}")
-
-                    if playing_info:
-                        with contextlib.suppress(discord.HTTPException):
-                            await playing_info.delete()
-
-                    playing_info = await self.target.send(embed=embed)
-
-            # Check if the URL that Invidious provided
-            # us is usable
-            url = await track.ensure_source(client=self.audio_client)
-
-            if not url:
-                with contextlib.suppress(discord.HTTPException):
-                    await self.target.send(f"{emojis.MIKUCRY} Cannot fetch the audio for track ID `{track.id}`, removing from queue.")
-                continue
-
-            try:
-                async with self.client.session.get(url, timeout=TIMEOUT) as response:
-                    response.raise_for_status()
-            except (aiohttp.ClientError, asyncio.TimeoutError):
-                with contextlib.suppress(discord.HTTPException):
-                    await self.target.send(f"{emojis.MIKUCRY} Cannot fetch the audio for track ID `{track.id}` ({response.status}), removing from queue.")
-                continue
-
-            repeat_id = track_id
-            if not self.repeat:
-                await self.audio_client.add(self.channel.id, track_id)
-
-            # The playing loop for a song: divide each track
-            # into 30 seconds of audio buffer, when a part
-            # starts playing, the next part must start
-            # loading.
-            #
-            # The maximum size of this asyncio.Queue must be
-            # only 1 to prevent race conditions as mentioned
-            # above (as well as to save memory for storing
-            # buffer)
-            audios: asyncio.Queue[Optional[discord.FFmpegOpusAudio]] = asyncio.Queue(maxsize=1)
-
-            # Load the first audio portion asynchronously
-            audio = await asyncio.to_thread(track.fetch)
-            audios.put_nowait(audio)
-
-            self._event = asyncio.Event()
-            self._event.set()
-
-            # Check that the player was not disconnected while
-            # the song is still fetching
-            if not self.is_connected():
-                return
-
-            # Play the audio while loading asynchronously
-            async def load() -> None:
-                if track is not None:
-                    audio = await asyncio.to_thread(track.fetch)
-                    await audios.put(audio)
-
-            seq = 1
-
-            while not audios.empty():
-                audio = await audios.get()
-
-                if not audio:
-                    break
-
-                if track.left > 0:
-                    task = asyncio.create_task(load())
-                else:
-                    task = None
-
-                self._event.clear()
-                self.operable.set()  # Enable pause/resume/toggle repeat
-
-                super().play(audio, after=self._set_event)
-                if self._player:
-                    self._player.name = f"Channel {self.channel_id}/{self.guild_id}/seq {seq}"
-
-                await self._event.wait()
-                self.operable.clear()  # Disable pause/resume/toggle repeat
-                seq += 1
-
-                if not self.is_connected():
+        while self.is_connected():
+            if not self._repeat or track_id is None:
+                add_back = True
+                track_id = await self.audio_client.remove(self.channel.id, pos=None if self._shuffle else 1)
+                if track_id is None:
+                    await self.notify("This voice channel's music queue is currently empty!")
+                    await self.disconnect(force=True)
                     return
 
-                if task is not None:
-                    await task
+            else:
+                add_back = False
 
-            if not self.is_connected():
+            track = await InvidiousSource.build(track_id, client=self.audio_client)
+            if track is None or not await track.ensure_source(client=self.audio_client):
+                await self.notify(f"{emojis.MIKUCRY} Cannot fetch audio for track ID `{track_id}` (https://www.youtube.com/watch?v={track_id}), removing from the queue.")
+                continue
+
+            if add_back:
+                await self.audio_client.add(self.channel.id, track_id)
+
+            self.player = asyncio.create_task(self._play(track))
+
+            try:
+                await self.player
+            except asyncio.CancelledError:
                 return
 
-            if self.stopafter:
+            if self._stopafter:
+                await self.notify("Done playing song, disconnected due to `stopafter` request.")
                 await self.disconnect(force=True)
-                with contextlib.suppress(discord.HTTPException):
-                    await self.target.send("Done playing song, disconnected due to `stopafter` request.")
-
                 return
+
+    # A good video for debugging: https://www.youtube.com/watch?v=U03lLvhBzOw
+    async def _play(self, track: InvidiousSource) -> None:
+        """This function is a coroutine
+
+        Play the given track in the connected voice channel
+
+        Parameters
+        -----
+        track: ``InvidiousSource``
+            The track to be played
+        """
+        self.current_track = track
+        buffer: asyncio.Queue[discord.FFmpegOpusAudio] = asyncio.Queue(maxsize=1)
+        buffer.put_nowait(await asyncio.to_thread(track.fetch))
+
+        with contextlib.suppress(discord.HTTPException):
+            async with self.target.typing():
+                embed = track.create_embed()
+                embed.set_author(
+                    name=f"Playing in {self.channel}",
+                    icon_url=self.client.user.avatar.url,
+                )
+                embed.set_footer(text=f"Shuffle: {self.shuffle} | Repeat one: {self.repeat}")
+
+                await self.notify(embed=embed)
+
+        async def load(
+            buffer: asyncio.Queue[discord.FFmpegOpusAudio],
+            track: InvidiousSource,
+        ) -> None:
+            audio = await asyncio.to_thread(track.fetch)
+            if audio is not None:
+                await buffer.put(audio)
+
+        while not buffer.empty() and self.is_connected():
+            task = asyncio.create_task(load(buffer, track))
+
+            self._event.clear()
+            self._operable.set()
+
+            super().play(buffer.get_nowait(), after=self._set_event)
+
+            await self._event.wait()
+            self._operable.clear()
+
+            await task
 
     def _set_event(self, exc: Optional[BaseException] = None) -> None:
         self._event.set()

@@ -95,8 +95,7 @@ class AssetClient:
                 if response.status == 200:
                     with open(tar_location, "wb", buffering=0) as f:
                         try:
-                            chunk_size = 4 * 2 ** 10  # 4 KB
-                            while data := await response.content.read(chunk_size):
+                            while data := await response.content.read(4096):
                                 f.write(data)
                         except aiohttp.ClientPayloadError:
                             self.log("Exception while downloading the TAR file:\n" + traceback.format_exc() + "\nIgnoring and continuing the extracting process.")

@@ -9,6 +9,7 @@ from types import TracebackType
 from typing import Any, Coroutine, Generic, Iterable, Iterator, List, Optional, Tuple, Type, TypeVar, TYPE_CHECKING
 
 import discord
+from bs4 import BeautifulSoup, Tag
 from discord.utils import MISSING
 
 
@@ -214,3 +215,11 @@ class AsyncSequence(Generic[T]):
 
         self._results[index] = await self._coros[index]
         return self._results[index]
+
+
+def create_html_icon(soup: BeautifulSoup, icon_name: str, **attrs: Any) -> Tag:
+    """Create a HTML icon from the Google Fonts Material"""
+    attrs["class"] = "material-icons"
+    span = soup.new_tag("span", attrs=attrs)
+    span.string = icon_name
+    return span

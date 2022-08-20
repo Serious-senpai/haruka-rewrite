@@ -1,0 +1,18 @@
+.main img#track-thumbnail {
+    position: relative;
+    width: 60%;
+    height: 40%;
+    object-fit: contain;
+}
+
+.main span#track-description {
+    color: white;
+}
+
+.main div#control-buttons a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    color: yellow;
+}

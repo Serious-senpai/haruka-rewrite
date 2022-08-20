@@ -1,0 +1,18 @@
+.main {
+    background-color: var(--gray);
+    width: 80%;
+    right: 0;
+}
+
+.main #main-inner {
+    padding: 10px;
+}
+
+.main h1,
+.main h2,
+.main h3,
+.main h4,
+.main h5,
+.main h6 {
+    color: lightgreen;
+}
