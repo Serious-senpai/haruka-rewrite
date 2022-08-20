@@ -28,9 +28,7 @@ async def _audio_control_playing_route(request: WebRequest) -> web.Response:
     if not client:
         raise web.HTTPBadRequest
 
-    if not client.current_track:
-        raise web.HTTPNotFound
-
+    await client.start.wait()
     data = {
         "thumbnail": client.current_track.thumbnail,
         "title": client.current_track.title,

@@ -44,6 +44,7 @@ class MusicClient(discord.VoiceClient):
         target: Optional[discord.abc.Messageable]
         current_track: Optional[InvidiousSource]
         _end: asyncio.Event
+        _start: asyncio.Event
 
     def __init__(self, *args, **kwargs) -> None:
         self._repeat = False
@@ -52,6 +53,7 @@ class MusicClient(discord.VoiceClient):
         self._operable = asyncio.Event()
         self.target = None
         self.current_track = None
+        self._start = asyncio.Event()
         super().__init__(*args, **kwargs)
 
     @property
@@ -89,6 +91,13 @@ class MusicClient(discord.VoiceClient):
         finishes playing
         """
         return self._end
+
+    @property
+    def start(self) -> asyncio.Event:
+        """The event that will be set when the client starts
+        playing
+        """
+        return self._start
 
     async def switch_repeat(self) -> bool:
         await self.operable.wait()
@@ -228,6 +237,7 @@ class MusicClient(discord.VoiceClient):
             seq = 1
 
             self.current_track = track
+            self._start.set()
             while not audios.empty():
                 audio = await audios.get()
 
