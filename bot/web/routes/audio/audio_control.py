@@ -58,4 +58,4 @@ async def _audio_control_thumbnail_route(request: WebRequest) -> web.Response:
         except aiohttp.ClientPayloadError:
             raise web.HTTPInternalServerError
 
-    return web.Response(body=buffer.read(), status=200)
+    return web.Response(body=buffer.read(), status=200, content_type="image/*")
