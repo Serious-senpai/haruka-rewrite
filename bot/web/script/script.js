@@ -230,6 +230,7 @@ function toAudioControl(key) {
     );
 
     const url = "wss://" + document.location.host + "/audio-control/status?key=" + key;
+    var reconnect = true;
 
     /**
      * Handle messages from the websocket
@@ -239,7 +240,11 @@ function toAudioControl(key) {
      * @return {void}
      */
     function onmessage(messageEvent) {
-        if (messageEvent.data == "END") toAudioControl(key);
+        if (messageEvent.data == "END") {
+            toAudioControl(key)
+        } else if (messageEvent.data == "DISCONNECTED") {
+            reconnect = false;
+        }
     };
 
     /**
@@ -250,10 +255,9 @@ function toAudioControl(key) {
      * @return {void}
      */
     function onclose(closeEvent) {
-        console.log("Websocket closed with reason " + closeEvent.reason);
-        if (closeEvent.reason == "DISCONNECTED") return;
-
-        wsConnect(url, onmessage, onclose);
+        console.log("Websocket closed");
+        console.log(closeEvent);
+        if (reconnect) wsConnect(url, onmessage, onclose);
     }
 
     wsConnect(url, onmessage, onclose);
