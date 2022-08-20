@@ -52,7 +52,7 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
     waiter = asyncio.Event()
     while client.is_connected():
         waiter.clear()
-        client.when_complete(notify(websocket, waiter))
+        await client.when_complete(notify(websocket, waiter))
         await waiter.wait()
 
     await websocket.close()
