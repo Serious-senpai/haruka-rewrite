@@ -18,5 +18,6 @@ async def _pause_route(request: WebRequest) -> web.Response:
 
     if client.is_playing():
         client.pause()
+        await client.notify("Paused due to web request")
 
     return web.Response(status=204)

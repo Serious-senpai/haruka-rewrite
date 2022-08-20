@@ -18,5 +18,6 @@ async def _resume_route(request: WebRequest) -> web.Response:
 
     if client.is_paused():
         client.resume()
+        await client.notify("Resumed due to web request")
 
     return web.Response(status=204)

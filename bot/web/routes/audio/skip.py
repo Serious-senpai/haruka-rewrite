@@ -19,5 +19,6 @@ async def _skip_route(request: WebRequest) -> web.Response:
 
     if client.is_connected():
         asyncio.create_task(client.skip())
+        await client.notify("Skipped due to web request")
 
     return web.Response(status=204)
