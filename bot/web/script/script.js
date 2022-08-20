@@ -231,7 +231,7 @@ function toAudioControl(key) {
         }
     });
 
-    const websocket = new WebSocket("/audio-control/status?key=" + key);
+    const websocket = new WebSocket("wss://" + document.location.host + "/audio-control/status?key=" + key);
     websocket.onmessage = (messageEvent) => {
         if (messageEvent.data == "END") {
             toAudioControl(key);

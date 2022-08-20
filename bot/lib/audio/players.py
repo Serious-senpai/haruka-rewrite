@@ -105,7 +105,7 @@ class MusicClient(discord.VoiceClient):
         self._stopafter = not self.stopafter
         return self._stopafter
 
-    async def disconnect(self, *, force: bool) -> None:
+    async def disconnect(self, *, force: bool = False) -> None:
         await super().disconnect(force=force)
         self.end.set()
 
