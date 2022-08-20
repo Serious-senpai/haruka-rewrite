@@ -108,6 +108,7 @@ class MusicClient(discord.VoiceClient):
 
     async def skip(self) -> None:
         await self._operable.wait()
+        self.stop()
         self.player.cancel()
         await self.play(target=self.target)
 
@@ -149,7 +150,6 @@ class MusicClient(discord.VoiceClient):
             try:
                 await self.player
             except asyncio.CancelledError:
-                await self.disconnect(force=True)
                 return
 
             if self._stopafter:
