@@ -113,7 +113,7 @@ class MusicClient(discord.VoiceClient):
         The next track will be the one at the first index in the queue
         if shuffle is off and a random one if shuffle is on.
 
-        This method will block until we finishes playing.        
+        This method will block until we finishes playing.
         """
         await self._operable.wait()
         self._operable.clear()

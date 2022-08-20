@@ -1,0 +1,37 @@
+.sidebar {
+    background-color: black;
+    width: 20%;
+    left: 0;
+}
+
+.sidebar #sidebar-inner {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+}
+
+.sidebar #avatar {
+    position: relative;
+    top: 20px;
+    width: 75%;
+    margin: 12.5%;
+}
+
+.sidebar #source-code-href-section {
+    text-align: center;
+}
+
+.sidebar #source-code-href {
+    color: green;
+}
+
+.sidebar div.nav-item {
+    cursor: default;
+    text-align: right;
+    color: yellow;
+    padding: 10px;
+}
+
+.sidebar div.nav-item:hover {
+    background-color: var(--gray);
+}

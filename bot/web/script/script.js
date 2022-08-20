@@ -172,62 +172,39 @@ function toAudioControl(key) {
 
         const d = initializeMain();
         {
-            const mainControl = document.createElement("div");
-            mainControl.id = "main-control";
+            const thumbnail = document.createElement("img");
+            thumbnail.alt = "Track thumbnail";
+            thumbnail.id = "track-thumbnail";
+            thumbnail.src = data["thumbnail"];
+
+            const title = createHeading("h3", data["title"]);
+
+            const controlButtons = document.createElement("div");
+            controlButtons.id = "control-buttons";
             {
-                const playingTrack = document.createElement("div");
-                playingTrack.id = "playing-track";
-                {
-                    const trackThumbnail = document.createElement("div");
-                    trackThumbnail.id = "track-thumbnail";
-                    {
-                        const thumbnailContent = document.createElement("img");
-                        thumbnailContent.alt = "Track thumbnail";
-                        thumbnailContent.src = data["thumbnail"];
+                const pauseButton = document.createElement("a")
+                pauseButton.className = "button";
+                pauseButton.href = "/pause?key=" + key;
+                pauseButton.appendChild(materialIcon("pause"));
 
-                        trackThumbnail.append(thumbnailContent);
-                    }
+                const resumeButton = document.createElement("a")
+                resumeButton.className = "button";
+                resumeButton.href = "/resume?key=" + key;
+                resumeButton.appendChild(materialIcon("play_arrow"));
 
-                    const trackInfo = document.createElement("div")
-                    trackInfo.id = "track-info";
-                    {
-                        const trackTitle = createHeading("h3", data["title"]);
+                const skipButton = document.createElement("a");
+                skipButton.className = "button";
+                skipButton.href = "/skip?key=" + key;
+                skipButton.appendChild(materialIcon("skip_next"));
 
-                        const trackDescription = document.createElement("div");
-                        trackDescription.id = "track-description";
-                        trackDescription.innerHTML = data["description"];
-
-                        trackInfo.append(trackTitle, trackDescription);
-                    }
-
-                    playingTrack.append(trackThumbnail, trackInfo);
-                }
-
-                const controlButtons = document.createElement("div");
-                controlButtons.id = "control-buttons";
-                {
-                    const pauseButton = document.createElement("a")
-                    pauseButton.className = "button";
-                    pauseButton.href = "/pause?key=" + key;
-                    pauseButton.appendChild(materialIcon("pause"));
-
-                    const resumeButton = document.createElement("a")
-                    resumeButton.className = "button";
-                    resumeButton.href = "/resume?key=" + key;
-                    resumeButton.appendChild(materialIcon("play_arrow"));
-
-                    const skipButton = document.createElement("a");
-                    skipButton.className = "button";
-                    skipButton.href = "/skip?key=" + key;
-                    skipButton.appendChild(materialIcon("skip_next"));
-
-                    controlButtons.append(pauseButton, resumeButton, skipButton);
-                }
-
-                mainControl.append(playingTrack, controlButtons);
+                controlButtons.append(pauseButton, resumeButton, skipButton);
             }
 
-            d.append(mainControl);
+            const description = document.createElement("span");
+            description.id = "track-description";
+            description.innerHTML = data["description"];
+
+            d.append(thumbnail, title, controlButtons, description);
         }
     });
 

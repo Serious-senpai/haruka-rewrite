@@ -1,0 +1,6 @@
+.main #user-url-input {
+    background-color: black;
+    color: lightgreen;
+    position: relative;
+    width: 50%;
+}
