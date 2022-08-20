@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import io
+import asyncio
 from typing import TYPE_CHECKING
 
-import aiohttp
 from aiohttp import web
 
 from .utils import get_client
@@ -28,7 +27,7 @@ async def _audio_control_playing_route(request: WebRequest) -> web.Response:
     if not client:
         raise web.HTTPBadRequest
 
-    await client.start.wait()
+    await client.operable.wait()
     data = {
         "thumbnail": client.current_track.thumbnail,
         "title": client.current_track.title,
@@ -46,8 +45,14 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
     websocket = web.WebSocketResponse()
     await websocket.prepare(request)
 
+    async def notify(websocket: web.WebSocketResponse, event: asyncio.Event) -> None:
+        websocket.send_str("END")
+        event.set()
+
+    waiter = asyncio.Event()
     while client.is_connected():
-        await client.end.wait()
-        await websocket.send_str("END")
+        waiter.clear()
+        client.when_complete(notify(websocket, waiter))
+        await waiter.wait()
 
     return websocket
