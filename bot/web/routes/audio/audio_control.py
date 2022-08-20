@@ -38,7 +38,7 @@ async def _audio_control_playing_route(request: WebRequest) -> web.Response:
     return web.json_response(data)
 
 
-@routes.get("/audio-control/thumbnail")
+@routes.get("/audio-control/thumbnail.png")
 async def _audio_control_thumbnail_route(request: WebRequest) -> web.Response:
     client = get_client(request)
     if not client:
@@ -58,4 +58,4 @@ async def _audio_control_thumbnail_route(request: WebRequest) -> web.Response:
         except aiohttp.ClientPayloadError:
             raise web.HTTPInternalServerError
 
-    return web.Response(body=buffer.read(), status=200, content_type="image/*")
+    return web.Response(body=buffer.read(), status=200)
