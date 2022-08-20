@@ -182,7 +182,7 @@ function toAudioControl(key) {
                     {
                         const thumbnailContent = document.createElement("img");
                         thumbnailContent.alt = "Track thumbnail";
-                        thumbnailContent.src = data["thumbnail"];
+                        thumbnailContent.src = "/audio-control/thumbnail?key=" + key;
 
                         trackThumbnail.append(thumbnailContent);
                     }
