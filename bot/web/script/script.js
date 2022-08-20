@@ -80,6 +80,7 @@ function createHeading(tagName, content) {
 
 /**
  * Create an icon from Google Fonts Material
+ * Reference: https://fonts.google.com/icons?icon.set=Material+Icons
  * 
  * @param {string} name The icon name
  * 
@@ -182,21 +183,48 @@ function toAudioControl(key) {
                     {
                         const thumbnailContent = document.createElement("img");
                         thumbnailContent.alt = "Track thumbnail";
-                        thumbnailContent.src = "/audio-control/thumbnail.png?key=" + key;
+                        thumbnailContent.src = data["thumbnail"];
 
                         trackThumbnail.append(thumbnailContent);
                     }
 
-                    const trackTitle = createHeading("h3", data["title"]);
+                    const trackInfo = document.createElement("div")
+                    trackInfo.id = "track-info";
+                    {
+                        const trackTitle = createHeading("h3", data["title"]);
 
-                    const trackDescription = document.createElement("div");
-                    trackDescription.id = "track-description";
-                    trackDescription.innerHTML = data["description"];
+                        const trackDescription = document.createElement("div");
+                        trackDescription.id = "track-description";
+                        trackDescription.innerHTML = data["description"];
 
-                    playingTrack.append(trackThumbnail, trackTitle, trackDescription);
+                        trackInfo.append(trackTitle, trackDescription);
+                    }
+
+                    playingTrack.append(trackThumbnail, trackInfo);
                 }
 
-                mainControl.append(playingTrack);
+                const controlButtons = document.createElement("div");
+                controlButtons.id = "control-buttons";
+                {
+                    const pauseButton = document.createElement("a")
+                    pauseButton.className = "button";
+                    pauseButton.href = "/pause?key=" + key;
+                    pauseButton.appendChild(materialIcon("pause"));
+
+                    const resumeButton = document.createElement("a")
+                    resumeButton.className = "button";
+                    resumeButton.href = "/resume?key=" + key;
+                    resumeButton.appendChild(materialIcon("play_arrow"));
+
+                    const skipButton = document.createElement("a");
+                    skipButton.className = "button";
+                    skipButton.href = "/skip?key=" + key;
+                    skipButton.appendChild(materialIcon("skip_next"));
+
+                    controlButtons.append(pauseButton, resumeButton, skipButton);
+                }
+
+                mainControl.append(playingTrack, controlButtons);
             }
 
             d.append(mainControl);

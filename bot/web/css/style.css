@@ -127,9 +127,11 @@ body {
 }
 
 .main #track-thumbnail {
-    margin: 10px;
+    position: relative;
+    padding: 5%;
     float: left;
     width: 30%;
+    height: 100%;
 }
 
 .main #track-thumbnail img {
@@ -137,10 +139,31 @@ body {
     width: 100%;
 }
 
+.main #track-info {
+    position: relative;
+    padding: 5%;
+    height: 100%;
+}
+
 .main #track-description {
+    color: white;
     position: relative;
     float: left;
     width: 50%;
-    height: 50%;
+    height: inherit;
     overflow: auto;
+}
+
+.main #control-buttons {
+    position: absolute;
+    left: 10%;
+    top: 60%;
+}
+
+.main #control-buttons a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    color: yellow;
 }
