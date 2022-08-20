@@ -230,4 +230,11 @@ function toAudioControl(key) {
             d.append(mainControl);
         }
     });
+
+    const websocket = new WebSocket("/audio-control/status?key=" + key);
+    websocket.onmessage = (messageEvent) => {
+        if (messageEvent.data == "END") {
+            toAudioControl(key);
+        }
+    };
 }

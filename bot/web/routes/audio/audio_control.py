@@ -37,3 +37,19 @@ async def _audio_control_playing_route(request: WebRequest) -> web.Response:
         "description": client.current_track.description,
     }
     return web.json_response(data)
+
+
+@routes.get("/audio_control/status")
+async def _audio_control_status_route(request: WebRequest) -> web.WebSocketResponse:
+    client = get_client(request)
+    if not client:
+        raise web.HTTPBadRequest
+
+    websocket = web.WebSocketResponse()
+    await websocket.prepare(request)
+
+    while client.is_connected():
+        await client.end.wait()
+        await websocket.send_str("END")
+
+    return websocket

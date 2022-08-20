@@ -43,6 +43,7 @@ class MusicClient(discord.VoiceClient):
         _operable: asyncio.Event
         target: Optional[discord.abc.Messageable]
         current_track: Optional[InvidiousSource]
+        _end: asyncio.Event
 
     def __init__(self, *args, **kwargs) -> None:
         self._repeat = False
@@ -82,6 +83,13 @@ class MusicClient(discord.VoiceClient):
         """Whether this player's STOPAFTER mode is turned on"""
         return self._stopafter
 
+    @property
+    def end(self) -> asyncio.Event:
+        """The event that will be set when the current track
+        finishes playing
+        """
+        return self._end
+
     async def switch_repeat(self) -> bool:
         await self.operable.wait()
         self._repeat = not self.repeat
@@ -96,6 +104,10 @@ class MusicClient(discord.VoiceClient):
         await self.operable.wait()
         self._stopafter = not self.stopafter
         return self._stopafter
+
+    async def disconnect(self, *, force: bool) -> None:
+        await super().disconnect(force=force)
+        self.end.set()
 
     @functools.cached_property
     def audio_client(self) -> AudioClient:
@@ -119,6 +131,8 @@ class MusicClient(discord.VoiceClient):
         while True:
             if not self.is_connected():
                 return
+
+            self._end = asyncio.Event()
 
             if self.repeat and repeat_id is not None:
                 track_id = repeat_id  # Warning: not popping from the queue
@@ -251,6 +265,8 @@ class MusicClient(discord.VoiceClient):
                     await self.target.send("Done playing song, disconnected due to `stopafter` request.")
 
                 return
+
+            self._end.set()
 
     def _set_event(self, exc: Optional[BaseException] = None) -> None:
         self._event.set()
