@@ -116,6 +116,7 @@ class MusicClient(discord.VoiceClient):
         This method will block until we finishes playing.        
         """
         await self._operable.wait()
+        self._operable.clear()
         self.stop()
         self.player.cancel()
         await self.play(target=self.target)

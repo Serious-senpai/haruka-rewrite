@@ -46,7 +46,7 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
     await websocket.prepare(request)
 
     async def notify(websocket: web.WebSocketResponse, event: asyncio.Event) -> None:
-        websocket.send_str("END")
+        await websocket.send_str("END")
         event.set()
 
     waiter = asyncio.Event()
@@ -55,4 +55,5 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
         client.when_complete(notify(websocket, waiter))
         await waiter.wait()
 
+    await websocket.close()
     return websocket
