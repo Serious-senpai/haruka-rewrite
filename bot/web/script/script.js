@@ -38,6 +38,23 @@ function getAsync(url, callback) {
 }
 
 
+/**
+ * Create a websocket that automatically reconnects and handles
+ * incoming messages
+ * 
+ * @param {string} url The target URL
+ * @param {function(MessageEvent)} handler The websocket message
+ * handler
+ * 
+ * @return {void}
+ */
+function wsConnect(url, handler) {
+    const websocket = new WebSocket(url);
+    websocket.onmessage = handler;
+    websocket.onclose = (closeEvent) => wsConnect(url, handler);
+}
+
+
 /** 
  * Clear all children of an element
  * @param {HTMLElement} element The element to clear all children
@@ -167,51 +184,56 @@ function toPixivUserSearch() {
  * @return {void}
  */
 function toAudioControl(key) {
-    getAsync("/audio-control/playing?key=" + key, (response) => {
-        const data = JSON.parse(response);
+    getAsync(
+        "/audio-control/playing?key=" + key,
+        (response) => {
+            const data = JSON.parse(response);
 
-        const d = initializeMain();
-        {
-            const thumbnail = document.createElement("img");
-            thumbnail.alt = "Track thumbnail";
-            thumbnail.id = "track-thumbnail";
-            thumbnail.src = data["thumbnail"];
-
-            const title = createHeading("h3", data["title"]);
-
-            const controlButtons = document.createElement("div");
-            controlButtons.id = "control-buttons";
+            const d = initializeMain();
             {
-                const pauseButton = document.createElement("a")
-                pauseButton.className = "button";
-                pauseButton.href = "/pause?key=" + key;
-                pauseButton.appendChild(materialIcon("pause"));
+                const thumbnail = document.createElement("img");
+                thumbnail.alt = "Track thumbnail";
+                thumbnail.id = "track-thumbnail";
+                thumbnail.src = data["thumbnail"];
 
-                const resumeButton = document.createElement("a")
-                resumeButton.className = "button";
-                resumeButton.href = "/resume?key=" + key;
-                resumeButton.appendChild(materialIcon("play_arrow"));
+                const title = createHeading("h3", data["title"]);
 
-                const skipButton = document.createElement("a");
-                skipButton.className = "button";
-                skipButton.href = "/skip?key=" + key;
-                skipButton.appendChild(materialIcon("skip_next"));
+                const controlButtons = document.createElement("div");
+                controlButtons.id = "control-buttons";
+                {
+                    const pauseButton = document.createElement("a")
+                    pauseButton.className = "button";
+                    pauseButton.href = "/pause?key=" + key;
+                    pauseButton.appendChild(materialIcon("pause"));
 
-                controlButtons.append(pauseButton, resumeButton, skipButton);
+                    const resumeButton = document.createElement("a")
+                    resumeButton.className = "button";
+                    resumeButton.href = "/resume?key=" + key;
+                    resumeButton.appendChild(materialIcon("play_arrow"));
+
+                    const skipButton = document.createElement("a");
+                    skipButton.className = "button";
+                    skipButton.href = "/skip?key=" + key;
+                    skipButton.appendChild(materialIcon("skip_next"));
+
+                    controlButtons.append(pauseButton, resumeButton, skipButton);
+                }
+
+                const description = document.createElement("span");
+                description.id = "track-description";
+                description.innerHTML = data["description"];
+
+                d.append(thumbnail, title, controlButtons, description);
             }
-
-            const description = document.createElement("span");
-            description.id = "track-description";
-            description.innerHTML = data["description"];
-
-            d.append(thumbnail, title, controlButtons, description);
         }
-    });
+    );
 
-    const websocket = new WebSocket("wss://" + document.location.host + "/audio-control/status?key=" + key);
-    websocket.onmessage = (messageEvent) => {
-        if (messageEvent.data == "END") {
-            toAudioControl(key);
+    wsConnect(
+        "wss://" + document.location.host + "/audio-control/status?key=" + key,
+        (messageEvent) => {
+            if (messageEvent.data == "END") {
+                toAudioControl(key);
+            }
         }
-    };
+    );
 }
