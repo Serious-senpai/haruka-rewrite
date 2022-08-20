@@ -42,7 +42,7 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
     if not client:
         raise web.HTTPBadRequest
 
-    websocket = web.WebSocketResponse(heartbeat=10)
+    websocket = web.WebSocketResponse()
     await websocket.prepare(request)
 
     async def notify(websocket: web.WebSocketResponse, event: asyncio.Event) -> None:
