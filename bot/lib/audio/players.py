@@ -94,8 +94,8 @@ class MusicClient(discord.VoiceClient):
 
     @property
     def start(self) -> asyncio.Event:
-        """The event that will be set when the client starts
-        playing
+        """The event that will be set when the current track
+        starts playing
         """
         return self._start
 
@@ -276,6 +276,7 @@ class MusicClient(discord.VoiceClient):
 
                 return
 
+            self._start.clear()
             self._end.set()
 
     def _set_event(self, exc: Optional[BaseException] = None) -> None:
