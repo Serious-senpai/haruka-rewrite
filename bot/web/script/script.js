@@ -24,7 +24,7 @@ function initialize_body() {
  * Make a HTTP request
  * 
  * @param {string} url The target URL
- * @param {function(string)} callback The callback function to
+ * @param {function(XMLHttpRequest):any} callback The callback function to
  * be called when the request is completed. The only argument
  * is the response body.
  * 
@@ -33,7 +33,7 @@ function initialize_body() {
 function getAsync(url, callback) {
     const xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
-    xhr.onload = (e) => callback(e.target.responseText);
+    xhr.onload = (e) => callback(e.target);
     xhr.send();
 }
 
@@ -43,9 +43,9 @@ function getAsync(url, callback) {
  * incoming messages
  * 
  * @param {string} url The target URL
- * @param {function(MessageEvent)} onmessage The websocket message
+ * @param {function(MessageEvent):any} onmessage The websocket message
  * handler
- * @param {function(CloseEvent)} onclose The websocket closure handler
+ * @param {function(CloseEvent):any} onclose The websocket closure handler
  * 
  * @return {void}
  */
@@ -185,10 +185,13 @@ function toPixivUserSearch() {
  * @return {void}
  */
 function toAudioControl(key) {
+    initializeMain();
     getAsync(
         "/audio-control/playing?key=" + key,
-        (response) => {
-            const data = JSON.parse(response);
+        (request) => {
+            if (request.status != 200) return;
+
+            const data = JSON.parse(request.responseText);
 
             const d = initializeMain();
             {
