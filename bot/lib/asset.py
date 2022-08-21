@@ -45,13 +45,6 @@ class AssetClient:
     def session(self) -> aiohttp.ClientSession:
         return self.bot.session
 
-    def log(self, content: str) -> None:
-        prefix = "[ASSET CLIENT] "
-        logfile = self.bot.logfile
-        content.replace("\n", f"\n{prefix}")
-        logfile.write(f"{prefix}{content}\n")
-        logfile.flush()
-
     async def fetch_anime_images(self) -> None:
         """This function is a coroutine
 
@@ -71,7 +64,7 @@ class AssetClient:
                     download_button = soup.find("a", attrs={"class": "input popsok"})
 
                     if download_button is None:
-                        self.log("Cannot find the download button, please try again via the exec command.")
+                        self.bot.log("Cannot find the download button, please try again via the exec command.")
                         if self.bot.owner:
                             await self.bot.owner.send(
                                 "Cannot find the download button for asset client, please try again using the following snippet:\n" + CODE_SNIPPET,
@@ -83,12 +76,12 @@ class AssetClient:
                     file_url = download_button.get("href")
 
                     if not file_url:
-                        return self.log(f"Cannot obtain a download URL from this element:\n{download_button}")
+                        return self.bot.log(f"Cannot obtain a download URL from this element:\n{download_button}")
 
                 else:
-                    return self.log(f"Cannot fetch download URL: HTTP status {response.status}")
+                    return self.bot.log(f"Cannot fetch download URL: HTTP status {response.status}")
 
-        self.log(f"Fetched TAR file URL in {utils.format(measure.result)}: {file_url}")
+        self.bot.log(f"Fetched TAR file URL in {utils.format(measure.result)}: {file_url}")
 
         with utils.TimingContextManager() as measure:
             async with self.session.get(file_url) as response:
@@ -98,12 +91,12 @@ class AssetClient:
                             while data := await response.content.read(4096):
                                 f.write(data)
                         except aiohttp.ClientPayloadError:
-                            self.log("Exception while downloading the TAR file:\n" + traceback.format_exc() + "\nIgnoring and continuing the extracting process.")
+                            self.bot.log("Exception while downloading the TAR file:\n" + traceback.format_exc() + "\nIgnoring and continuing the extracting process.")
                 else:
-                    return self.log(f"Cannot fetch the TAR file from {file_url}: HTTP status {response.status}")
+                    return self.bot.log(f"Cannot fetch the TAR file from {file_url}: HTTP status {response.status}")
 
         size = os.path.getsize(tar_location)
-        self.log(f"Downloaded TAR file in {utils.format(measure.result)}" + " (file size {:.2f} MB)".format(size / 2 ** 20))
+        self.bot.log(f"Downloaded TAR file in {utils.format(measure.result)}" + " (file size {:.2f} MB)".format(size / 2 ** 20))
         await self.extract_tar_file(tar_location, self.DIRECTORY)
         os.remove(tar_location)
         await self.__finalize()
@@ -132,9 +125,9 @@ class AssetClient:
 
         if _stderr:
             stderr = _stderr.decode("utf-8")
-            self.log(f"WARNING: stderr when extracting from \"{tar_location}\" to \"{destination}\":\n" + stderr)
+            self.bot.log(f"WARNING: stderr when extracting from \"{tar_location}\" to \"{destination}\":\n" + stderr)
 
-        self.log(f"Extracted \"{tar_location}\" to \"{destination}\" in {utils.format(measure.result)}")
+        self.bot.log(f"Extracted \"{tar_location}\" to \"{destination}\" in {utils.format(measure.result)}")
 
     async def wait_until_ready(self) -> None:
         await self._ready.wait()

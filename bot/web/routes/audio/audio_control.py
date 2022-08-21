@@ -54,11 +54,15 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
             event.set()
 
     waiter = asyncio.Event()
-    while client.is_connected():
+    while client.is_connected() and not websocket.closed:
         waiter.clear()
         await client.when_complete(notify(websocket, waiter))
         await waiter.wait()
 
-    await websocket.send_str("DISCONNECTED")
-    await websocket.close()
-    return websocket
+    try:
+        await websocket.send_str("DISCONNECTED")
+    except ConnectionResetError:
+        pass
+    finally:
+        await websocket.close()
+        return websocket
