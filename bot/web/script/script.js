@@ -259,7 +259,7 @@ function toAudioControl(key) {
      */
     function onclose(closeEvent) {
         var message = "Websocket closed.";
-        if (reconnect) message += "Attempting to reconnect...";
+        if (reconnect) message += " Attempting to reconnect...";
 
         console.log(message);
         console.log(closeEvent);

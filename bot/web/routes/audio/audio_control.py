@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from typing import TYPE_CHECKING
 
 from aiohttp import web
@@ -48,23 +49,25 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
         return websocket
 
     async def notify(websocket: web.WebSocketResponse, event: asyncio.Event) -> None:
-        try:
+        with contextlib.suppress(ConnectionResetError):
             await websocket.send_str("END")
-        except ConnectionResetError:
-            pass
-        finally:
-            event.set()
+
+        event.set()
+
+    async def keep_alive(websocket: web.WebSocketResponse) -> None:
+        while await asyncio.sleep(30, True) and not websocket.closed:
+            with contextlib.suppress(ConnectionResetError):
+                await websocket.send_bytes(b"")
 
     waiter = asyncio.Event()
+    asyncio.create_task(keep_alive(websocket))
     while client.is_connected() and not websocket.closed:
         waiter.clear()
         await client.when_complete(notify(websocket, waiter))
         await waiter.wait()
 
-    try:
+    with contextlib.suppress(ConnectionResetError):
         await websocket.send_str("DISCONNECTED")
-    except ConnectionResetError:
-        pass
-    finally:
-        await websocket.close()
-        return websocket
+
+    await websocket.close()
+    return websocket
