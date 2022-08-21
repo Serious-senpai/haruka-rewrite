@@ -38,12 +38,14 @@ async def _audio_control_playing_route(request: WebRequest) -> web.Response:
 
 @routes.get("/audio-control/status")
 async def _audio_control_status_route(request: WebRequest) -> web.WebSocketResponse:
-    client = get_client(request)
-    if not client:
-        raise web.HTTPBadRequest
-
     websocket = web.WebSocketResponse()
     await websocket.prepare(request)
+
+    client = get_client(request)
+    if not client:
+        await websocket.send_str("DISCONNECTED")
+        await websocket.close()
+        return websocket
 
     async def notify(websocket: web.WebSocketResponse, event: asyncio.Event) -> None:
         try:

@@ -255,8 +255,12 @@ function toAudioControl(key) {
      * @return {void}
      */
     function onclose(closeEvent) {
-        console.log("Websocket closed");
+        var message = "Websocket closed.";
+        if (reconnect) message += "Attempting to reconnect...";
+
+        console.log(message);
         console.log(closeEvent);
+
         if (reconnect) wsConnect(url, onmessage, onclose);
     }
 
