@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze
+    name: Code format analyze
     runs-on: ubuntu-latest
 
     steps:
