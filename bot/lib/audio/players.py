@@ -82,12 +82,12 @@ class MusicClient(discord.VoiceClient):
     async def switch_repeat(self) -> bool:
         await self.operable.wait()
         self._repeat = not self._repeat
-        return self.repeat
+        return self._repeat
 
     async def switch_shuffle(self) -> bool:
         await self.operable.wait()
         self._shuffle = not self._shuffle
-        return self.shuffle
+        return self._shuffle
 
     async def switch_stopafter(self) -> bool:
         await self.operable.wait()

@@ -225,7 +225,24 @@ function toAudioControl(key) {
                     stopButton.href = "/stop?key=" + key;
                     stopButton.appendChild(materialIcon("stop"));
 
-                    controlButtons.append(pauseButton, resumeButton, skipButton, stopButton);
+                    const repeatButton = document.createElement("a");
+                    repeatButton.className = "button";
+                    repeatButton.href = "/repeat?key=" + key;
+                    repeatButton.appendChild(materialIcon("loop"));
+
+                    const shuffleButton = document.createElement("a");
+                    shuffleButton.className = "button";
+                    shuffleButton.href = "/shuffle?key=" + key;
+                    shuffleButton.appendChild(materialIcon("shuffle"));
+
+                    controlButtons.append(
+                        pauseButton,
+                        resumeButton,
+                        skipButton,
+                        stopButton,
+                        repeatButton,
+                        shuffleButton,
+                    );
                 }
 
                 const description = document.createElement("span");
