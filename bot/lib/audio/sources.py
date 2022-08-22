@@ -165,7 +165,7 @@ class PartialInvidiousSource:
                 async with client.session.get(f"{url}/api/v1/search", params=params, timeout=TIMEOUT) as response:
                     if response.status == 200:
                         data = await response.json(encoding="utf-8")
-                        items.extend(cls(d, url) for d in data[:max_results])
+                        items.extend(cls(d) for d in data[:max_results])
                         set_priority(url)
                         return items
 
