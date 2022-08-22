@@ -272,9 +272,13 @@ class InvidiousSource(PartialInvidiousSource):
             "-reconnect_streamed", "1",
             "-reconnect_delay_max", "1",
         )
-
         before_options = shlex.join(before)
-        options = "-vn"
+
+        after = (
+            "-vn",
+            "-filter:a", "volume=0.5",
+        )
+        after_options = shlex.join(after)
 
         # This may result in race conditions
         # so there must be only one thread
@@ -288,7 +292,7 @@ class InvidiousSource(PartialInvidiousSource):
         return discord.FFmpegOpusAudio(
             self.source,
             before_options=before_options,
-            options=options,
+            options=after_options,
         )
 
     async def ensure_source(self, *, client: AudioClient) -> Optional[str]:
