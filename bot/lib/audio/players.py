@@ -99,10 +99,30 @@ class MusicClient(discord.VoiceClient):
         return self.client.audio
 
     async def notify(self, *args, **kwargs) -> Optional[discord.Message]:
+        """This function is a coroutine
+
+        Send a message to the notify channel. The arguments and keyword
+        arguments are similar to ``discord.abc.Messageable.send()``
+
+        Returns
+        -----
+        Optional[``discord.Message``]
+            The created message, or ``None`` if the process failed.
+        """
         with contextlib.suppress(discord.HTTPException):
             return await self.target.send(*args, **kwargs)
 
     async def when_complete(self, coro: Coroutine[Any, Any, Any]) -> None:
+        """This function is a coroutine
+
+        Assign a coroutine to be run when the current track completes
+        playing.
+
+        Parameters
+        -----
+        coro: ``Coroutine[Any, Any, Any]``
+            The coroutine to be run
+        """
         await self._operable.wait()
         self.player.add_done_callback(lambda _: asyncio.create_task(coro))
 

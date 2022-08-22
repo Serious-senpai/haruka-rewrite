@@ -225,7 +225,7 @@ function toAudioControl(key) {
 
                 const description = document.createElement("span");
                 description.id = "track-description";
-                description.innerHTML = data["description"];
+                description.innerText = data["description"];
 
                 d.append(thumbnail, title, controlButtons, description);
             }
