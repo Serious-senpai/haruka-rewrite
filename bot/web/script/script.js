@@ -220,7 +220,12 @@ function toAudioControl(key) {
                     skipButton.href = "/skip?key=" + key;
                     skipButton.appendChild(materialIcon("skip_next"));
 
-                    controlButtons.append(pauseButton, resumeButton, skipButton);
+                    const stopButton = document.createElement("a");
+                    stopButton.className = "button";
+                    stopButton.href = "/stop?key=" + key;
+                    stopButton.appendChild(materialIcon("stop"));
+
+                    controlButtons.append(pauseButton, resumeButton, skipButton, stopButton);
                 }
 
                 const description = document.createElement("span");
