@@ -219,36 +219,43 @@ function toAudioControl(key) {
                     const pauseButton = appendChild(controlButtons, "a")
                     pauseButton.className = "button";
                     pauseButton.href = "/pause?key=" + key;
+                    pauseButton.title = "Pause";
                     pauseButton.appendChild(materialIcon("pause"));
 
                     const resumeButton = appendChild(controlButtons, "a")
                     resumeButton.className = "button";
                     resumeButton.href = "/resume?key=" + key;
+                    resumeButton.title = "Resume";
                     resumeButton.appendChild(materialIcon("play_arrow"));
 
                     const skipButton = appendChild(controlButtons, "a");
                     skipButton.className = "button";
                     skipButton.href = "/skip?key=" + key;
+                    skipButton.title = "Skip";
                     skipButton.appendChild(materialIcon("skip_next"));
 
                     const stopButton = appendChild(controlButtons, "a");
                     stopButton.className = "button";
                     stopButton.href = "/stop?key=" + key;
+                    stopButton.title = "Stop";
                     stopButton.appendChild(materialIcon("stop"));
 
                     const repeatButton = appendChild(controlButtons, "a");
                     repeatButton.className = "button";
                     repeatButton.href = "/repeat?key=" + key;
+                    repeatButton.title = "Toggle repeat";
                     repeatButton.appendChild(materialIcon("loop"));
 
                     const shuffleButton = appendChild(controlButtons, "a");
                     shuffleButton.className = "button";
                     shuffleButton.href = "/shuffle?key=" + key;
+                    shuffleButton.title = "Toggle shuffle";
                     shuffleButton.appendChild(materialIcon("shuffle"));
 
                     const stopafterButton = appendChild(controlButtons, "a");
                     stopafterButton.className = "button";
                     stopafterButton.href = "/stopafter?key=" + key;
+                    stopafterButton.title = "Toggle stopafter";
                     stopafterButton.appendChild(materialIcon("last_page"));
                 }
 
