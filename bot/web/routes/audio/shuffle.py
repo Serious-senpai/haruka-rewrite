@@ -17,8 +17,8 @@ async def _shuffle_route(request: WebRequest) -> web.Response:
         raise web.HTTPBadRequest
 
     if await client.switch_shuffle():
-        await client.notify("Shuffle has been turned on. Songs will be played randomly.")
+        await client.notify("Shuffle has been turned on due to web request. Songs will be played randomly.")
     else:
-        await client.notify("Shuffle has been turned off. Songs will be played with the queue order.")
+        await client.notify("Shuffle has been turned off due to web request. Songs will be played with the queue order.")
 
     return web.Response(status=204)

@@ -17,8 +17,8 @@ async def _repeat_route(request: WebRequest) -> web.Response:
         raise web.HTTPBadRequest
 
     if await client.switch_repeat():
-        await client.notify("Switched to `REPEAT ONE` mode. The current song will be played repeatedly.")
+        await client.notify("Switched to `REPEAT ONE` mode due to web request. The current song will be played repeatedly.")
     else:
-        await client.notify("Switched to `REPEAT ALL` mode. All songs will be played as normal.")
+        await client.notify("Switched to `REPEAT ALL` mode due to web request. All songs will be played as normal.")
 
     return web.Response(status=204)

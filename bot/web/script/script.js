@@ -245,6 +245,11 @@ function toAudioControl(key) {
                     shuffleButton.className = "button";
                     shuffleButton.href = "/shuffle?key=" + key;
                     shuffleButton.appendChild(materialIcon("shuffle"));
+
+                    const stopafterButton = appendChild(controlButtons, "a");
+                    stopafterButton.className = "button";
+                    stopafterButton.href = "/stopafter?key=" + key;
+                    stopafterButton.appendChild(materialIcon("last_page"));
                 }
 
                 appendChild(d, "br");
