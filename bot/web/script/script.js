@@ -265,43 +265,21 @@ function toAudioControl(key) {
                 description.id = "track-description";
                 description.innerText = data["description"];
             }
+
+            wsConnect(
+                "wss://" + document.location.host + "/audio-control/status?key=" + key,
+                (messageEvent) => {
+                    if (messageEvent.data == "END") {
+                        console.log("Track ended at " + Date.now());
+                        toAudioControl(key);
+                    } else if (messageEvent.data == "DISCONNECTED") {
+                        console.log("Voice client disconnected at " + Date.now());
+                    }
+                },
+                (closeEvent) => {
+                    console.log("WebSocket closed at " + Date.now());
+                },
+            );
         }
     );
-
-    const url = "wss://" + document.location.host + "/audio-control/status?key=" + key;
-    var reconnect = true;
-
-    /**
-     * Handle messages from the websocket
-     * 
-     * @param {MessageEvent} messageEvent The incoming message
-     * 
-     * @return {void}
-     */
-    function onmessage(messageEvent) {
-        if (messageEvent.data == "END") {
-            toAudioControl(key)
-        } else if (messageEvent.data == "DISCONNECTED") {
-            reconnect = false;
-        }
-    };
-
-    /**
-     * Handle the CLOSE event from the websocket
-     * 
-     * @param {CloseEvent} closeEvent The CLOSE event
-     * 
-     * @return {void}
-     */
-    function onclose(closeEvent) {
-        var message = "Websocket closed.";
-        if (reconnect) message += " Attempting to reconnect...";
-
-        console.log(message);
-        console.log(closeEvent);
-
-        if (reconnect) wsConnect(url, onmessage, onclose);
-    }
-
-    wsConnect(url, onmessage, onclose);
 }
