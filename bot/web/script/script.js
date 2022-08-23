@@ -68,6 +68,21 @@ function clearChildren(element) {
 
 
 /**
+ * Append a child to an element
+ * 
+ * @param {HTMLElement} parent The parent element
+ * @param {string} tagName The child's tag name to append
+ * 
+ * @return {HTMLElement} The added child element
+ */
+function appendChild(parent, tagName) {
+    const child = document.createElement(tagName);
+    parent.appendChild(child);
+    return child;
+}
+
+
+/**
  * Initialize the main HTML section
  * 
  * @return {HTMLElement} The main section
@@ -91,7 +106,7 @@ function initializeMain() {
  */
 function createHeading(tagName, content) {
     const element = document.createElement(tagName);
-    element.innerHTML = content;
+    element.innerText = content;
     return element;
 }
 
@@ -120,9 +135,9 @@ function materialIcon(name) {
 function toImageGenerator() {
     const d = initializeMain();
     {
-        const heading = createHeading("h3", "IMAGE GENERATOR");
+        d.appendChild(createHeading("h3", "IMAGE GENERATOR"));
 
-        const container = document.createElement("div");
+        const container = appendChild(d, "div");
         container.id = "random-image-container";
         {
             const image = document.createElement("img")
@@ -132,13 +147,11 @@ function toImageGenerator() {
             container.appendChild(image);
         }
 
-        const reloadButton = document.createElement("button")
+        const reloadButton = appendChild(d, "button")
         reloadButton.id = "reload-button";
         reloadButton.type = "button";
         reloadButton.onclick = toImageGenerator;
         reloadButton.appendChild(materialIcon("refresh"));
-
-        d.append(heading, container, reloadButton);
     }
 }
 
@@ -151,9 +164,9 @@ function toImageGenerator() {
 function toPixivUserSearch() {
     const d = initializeMain();
     {
-        const heading = createHeading("h3", "PIXIV USER SEARCH");
+        d.appendChild(createHeading("h3", "PIXIV USER SEARCH"));
 
-        const form = document.createElement("form");
+        const form = appendChild(d, "form");
         form.action = "/pixiv-user";
         form.id = "user-url-form";
         {
@@ -171,8 +184,6 @@ function toPixivUserSearch() {
 
             form.append(input, submit);
         }
-
-        d.append(heading, form);
     }
 }
 
@@ -195,63 +206,52 @@ function toAudioControl(key) {
 
             const d = initializeMain();
             {
-                const thumbnail = document.createElement("img");
+                const thumbnail = appendChild(d, "img");
                 thumbnail.alt = "Track thumbnail";
                 thumbnail.id = "track-thumbnail";
                 thumbnail.src = data["thumbnail"];
 
-                const title = createHeading("h3", data["title"]);
+                d.appendChild(createHeading("h3", data["title"]));
 
-                const controlButtons = document.createElement("div");
+                const controlButtons = appendChild(d, "div");
                 controlButtons.id = "control-buttons";
                 {
-                    const pauseButton = document.createElement("a")
+                    const pauseButton = appendChild(controlButtons, "a")
                     pauseButton.className = "button";
                     pauseButton.href = "/pause?key=" + key;
                     pauseButton.appendChild(materialIcon("pause"));
 
-                    const resumeButton = document.createElement("a")
+                    const resumeButton = appendChild(controlButtons, "a")
                     resumeButton.className = "button";
                     resumeButton.href = "/resume?key=" + key;
                     resumeButton.appendChild(materialIcon("play_arrow"));
 
-                    const skipButton = document.createElement("a");
+                    const skipButton = appendChild(controlButtons, "a");
                     skipButton.className = "button";
                     skipButton.href = "/skip?key=" + key;
                     skipButton.appendChild(materialIcon("skip_next"));
 
-                    const stopButton = document.createElement("a");
+                    const stopButton = appendChild(controlButtons, "a");
                     stopButton.className = "button";
                     stopButton.href = "/stop?key=" + key;
                     stopButton.appendChild(materialIcon("stop"));
 
-                    const repeatButton = document.createElement("a");
+                    const repeatButton = appendChild(controlButtons, "a");
                     repeatButton.className = "button";
                     repeatButton.href = "/repeat?key=" + key;
                     repeatButton.appendChild(materialIcon("loop"));
 
-                    const shuffleButton = document.createElement("a");
+                    const shuffleButton = appendChild(controlButtons, "a");
                     shuffleButton.className = "button";
                     shuffleButton.href = "/shuffle?key=" + key;
                     shuffleButton.appendChild(materialIcon("shuffle"));
-
-                    controlButtons.append(
-                        pauseButton,
-                        resumeButton,
-                        skipButton,
-                        stopButton,
-                        repeatButton,
-                        shuffleButton,
-                    );
                 }
 
-                const newline = document.createElement("br");
+                appendChild(d, "br");
 
-                const description = document.createElement("span");
+                const description = appendChild(d, "span");
                 description.id = "track-description";
                 description.innerText = data["description"];
-
-                d.append(thumbnail, title, controlButtons, description);
             }
         }
     );
