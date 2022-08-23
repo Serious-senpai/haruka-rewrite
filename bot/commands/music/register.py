@@ -8,7 +8,7 @@ from web.routes import audio
 
 @bot.command(
     name="register",
-    description="Register the current voice client to be able to control via the web browser",
+    description="Register the current voice client to be able to control via the web browser.\nSee also: `{prefix}unregister`",
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)

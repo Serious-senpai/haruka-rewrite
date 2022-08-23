@@ -7,7 +7,7 @@ from web.routes import audio
 
 @bot.command(
     name="unregister",
-    description="Unregister the current voice client from the web, see {prefix}register",
+    description="Unregister the current voice client from the web.\nSee also: `{prefix}register`",
 )
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
