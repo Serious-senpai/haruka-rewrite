@@ -245,6 +245,8 @@ function toAudioControl(key) {
                     );
                 }
 
+                const newline = document.createElement("br");
+
                 const description = document.createElement("span");
                 description.id = "track-description";
                 description.innerText = data["description"];
