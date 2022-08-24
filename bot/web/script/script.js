@@ -196,7 +196,26 @@ function toPixivUserSearch() {
  * @return {void}
  */
 function toAudioControl(key) {
-    initializeMain();
+    wsConnect(
+        "wss://" + document.location.host + "/audio-control/status?key=" + key,
+        (messageEvent) => {
+            if (messageEvent.data == "END") {
+                console.log("Track ended at " + Date.now());
+                buildAudioControlPage(key);
+            } else if (messageEvent.data == "DISCONNECTED") {
+                console.log("Voice client disconnected at " + Date.now());
+            }
+        },
+        (closeEvent) => {
+            console.log("WebSocket closed at " + Date.now());
+        },
+    );
+
+    buildAudioControlPage(key);
+}
+
+
+function buildAudioControlPage(key) {
     getAsync(
         "/audio-control/playing?key=" + key,
         (request) => {
@@ -265,21 +284,6 @@ function toAudioControl(key) {
                 description.id = "track-description";
                 description.innerText = data["description"];
             }
-
-            wsConnect(
-                "wss://" + document.location.host + "/audio-control/status?key=" + key,
-                (messageEvent) => {
-                    if (messageEvent.data == "END") {
-                        console.log("Track ended at " + Date.now());
-                        toAudioControl(key);
-                    } else if (messageEvent.data == "DISCONNECTED") {
-                        console.log("Voice client disconnected at " + Date.now());
-                    }
-                },
-                (closeEvent) => {
-                    console.log("WebSocket closed at " + Date.now());
-                },
-            );
         }
     );
 }
