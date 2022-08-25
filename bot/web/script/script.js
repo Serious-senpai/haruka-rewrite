@@ -39,8 +39,7 @@ function getAsync(url, callback) {
 
 
 /**
- * Create a websocket that automatically reconnects and handles
- * incoming messages
+ * Create a websocket connection
  * 
  * @param {string} url The target URL
  * @param {function(MessageEvent):any} onmessage The websocket message
@@ -196,21 +195,38 @@ function toPixivUserSearch() {
  * @return {void}
  */
 function toAudioControl(key) {
-    wsConnect(
-        "wss://" + document.location.host + "/audio-control/status?key=" + key,
-        (messageEvent) => {
-            if (messageEvent.data == "END") {
-                console.log("Track ended at " + Date.now());
-                buildAudioControlPage(key);
-            } else if (messageEvent.data == "DISCONNECTED") {
-                console.log("Voice client disconnected at " + Date.now());
-            }
-        },
-        (closeEvent) => {
-            console.log("WebSocket closed at " + Date.now());
-        },
-    );
+    var reconnect = true;
 
+    /**
+     * @param {MessageEvent} messageEvent
+     */
+    function onMessage(messageEvent) {
+        if (messageEvent.data == "END") {
+            console.log("Track ended at " + Date.now());
+            buildAudioControlPage(key);
+        } else if (messageEvent.data == "DISCONNECTED") {
+            reconnect = false;
+            console.log("Voice client disconnected at " + Date.now());
+        }
+    }
+
+    /**
+     * @param {CloseEvent} closeEvent
+     */
+    function onClose(closeEvent) {
+        var message = "WebSocket closed at " + Date.now();
+        if (reconnect) {
+            message += "\nAttempting to reconnect.";
+            connect();
+        }
+        console.log(message);
+    }
+
+    function connect() {
+        wsConnect("wss://" + document.location.host + "/audio-control/status?key=" + key, onMessage, onClose);
+    }
+
+    connect();
     buildAudioControlPage(key);
 }
 
