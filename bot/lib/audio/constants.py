@@ -2,8 +2,21 @@ import aiohttp
 
 
 TIMEOUT = aiohttp.ClientTimeout(total=15)
-with open("./bot/assets/misc/iv_instances.txt", "r", encoding="utf-8") as f:
-    INVIDIOUS_URLS = ["https://" + instance.strip("\n") for instance in f.readlines()]
+INVIDIOUS_URLS = [
+    "https://invidious.snopyta.org",
+    "https://invidio.xamh.de",
+    "https://yewtu.be",
+    "https://vid.puffyan.us",
+    "https://invidious-us.kavin.rocks",
+    "https://inv.riverside.rocks",
+    "https://vid.mint.lgbt",
+    "https://invidious-jp.kavin.rocks",
+    "https://invidious.osi.kr",
+    "https://yt.artemislena.eu",
+    "https://youtube.076.ne.jp",
+    "https://invidious.namazso.eu",
+    "https://invidious.kavin.rocks",
+]
 
 
 def set_priority(instance: str) -> None:
