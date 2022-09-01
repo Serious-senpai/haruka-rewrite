@@ -122,13 +122,14 @@ class CardHand(Generic[T]):
 
     @property
     def streak(self) -> int:
-        existed = [False] * 15
+        existed = [False] * 16
         for card in self.hand:
             existed[card.value] = True
             if card.value == 1:
                 # Treat A as both 1 and 14
                 existed[14] = True
 
+        assert not existed[0] and not existed[-1]
         longest = current = 0
         for state in existed:
             if state:
