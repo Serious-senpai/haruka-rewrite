@@ -11,6 +11,7 @@ CARD_LIMIT = 9
 
 @bot.command(
     name="card",
+    aliases=["cards"],
     description="Draw a number of cards from the 52-card standard deck",
     usage="card <amount | default: 1>",
 )
@@ -21,6 +22,7 @@ async def _card_cmd(ctx: Context, cards_count: int = 1):
 
     hand = cards.CardHand()
     hand.draw(cards.BaseCard, count=cards_count)
+    hand.sort()
 
     file = discord.File(hand.to_image_data(), filename="image.png")
     embed = discord.Embed()
@@ -29,6 +31,6 @@ async def _card_cmd(ctx: Context, cards_count: int = 1):
         icon_url=ctx.author.avatar.url if ctx.author.avatar else None,
     )
     embed.set_image(url="attachment://image.png")
-    embed.set_footer(text=f"Total points: {hand.value}")
+    embed.set_footer(text=f"Total points: {hand.value}. Streak: {hand.streak}")
 
     await ctx.send(file=file, embed=embed)

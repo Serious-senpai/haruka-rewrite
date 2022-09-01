@@ -21,6 +21,7 @@ async def _card_slash(interaction: Interaction, count: int = 1):
     await interaction.response.defer()
     hand = cards.CardHand()
     hand.draw(cards.BaseCard, count=count)
+    hand.sort()
 
     file = discord.File(hand.to_image_data(), filename="image.png")
     embed = discord.Embed()
@@ -29,6 +30,6 @@ async def _card_slash(interaction: Interaction, count: int = 1):
         icon_url=interaction.user.avatar.url if interaction.user.avatar else None,
     )
     embed.set_image(url="attachment://image.png")
-    embed.set_footer(text=f"Total points: {hand.value}")
+    embed.set_footer(text=f"Total points: {hand.value}. Streak: {hand.streak}")
 
     await interaction.followup.send(file=file, embed=embed)

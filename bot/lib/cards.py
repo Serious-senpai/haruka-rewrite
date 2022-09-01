@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import functools
 import io
 import os
 import random
 import re
-from typing import Generic, Optional, List, Literal, Tuple, Type, TypeVar, TYPE_CHECKING
+from typing import Any, Generic, Optional, List, Literal, Tuple, Type, TypeVar, TYPE_CHECKING
 
 from PIL import Image
 
@@ -26,6 +27,7 @@ def extract_card_info(filename: str) -> Tuple[CardValue, CardSuit]:
     return int(match.group(1)), ord(match.group(2)) - ord("a")
 
 
+@functools.total_ordering
 class BaseCard:
 
     __slots__ = ("filename", "value", "suit")
@@ -40,6 +42,18 @@ class BaseCard:
 
     def to_image(self) -> Image.Image:
         return Image.open(f"./bot/assets/cards/{self.filename}")
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, BaseCard):
+            return NotImplemented
+
+        return (self.value, self.suit) == (other.value, other.suit)
+
+    def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, BaseCard):
+            return NotImplemented
+
+        return (self.value, self.suit) < (other.value, other.suit)
 
     @classmethod
     def copy(cls: Type[T], card: T) -> T:
@@ -86,6 +100,9 @@ class CardHand(Generic[T]):
     def cards_count(self) -> int:
         return len(self.hand)
 
+    def sort(self) -> None:
+        self.hand.sort()
+
     def to_image(self) -> Image.Image:
         image = Image.new("RGBA", (80 * self.cards_count, 100))
         for index, card in enumerate(self.hand):
@@ -102,6 +119,25 @@ class CardHand(Generic[T]):
     @property
     def value(self) -> int:
         return sum(card.value for card in self.hand)
+
+    @property
+    def streak(self) -> int:
+        existed = [False] * 15
+        for card in self.hand:
+            existed[card.value] = True
+            if card.value == 1:
+                # Treat A as both 1 and 14
+                existed[14] = True
+
+        longest = current = 0
+        for state in existed:
+            if state:
+                current += 1
+            else:
+                longest = max(longest, current)
+                current = 0
+
+        return longest
 
     def draw(self, cls: Type[T], *, count: int = 1) -> None:
         if self.cards_count >= 52:
