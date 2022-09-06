@@ -155,7 +155,7 @@ class PixivArtwork:
         if await self.save(session=session):
             embed.set_image(url=f"{HOST}/images/{self.id}.png")
         else:
-            embed.set_image("https://s.pximg.net/www/images/pixiv_logo.png")
+            embed.set_image(url="https://s.pximg.net/www/images/pixiv_logo.png")
 
         if self.tags:
             embed.add_field(
