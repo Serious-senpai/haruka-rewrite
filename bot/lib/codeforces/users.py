@@ -15,8 +15,14 @@ from lib import utils
 
 
 __all__ = (
+    "PartialUser",
     "User",
 )
+
+
+def _ensure_valid_url(url: str) -> str:
+    if url.startswith("//"):
+        return "https:" + url
 
 
 class PartialUser:
@@ -82,8 +88,8 @@ class User(PartialUser):
         self.last_online = utils.from_unix_format(data["lastOnlineTimeSeconds"])
         self.registration_time = utils.from_unix_format(data["registrationTimeSeconds"])
         self.friends_count = data["friendOfCount"]
-        self.avatar_url = data["avatar"]
-        self.title_url = data["titlePhoto"]
+        self.avatar_url = _ensure_valid_url(data["avatar"])
+        self.title_url = _ensure_valid_url(data["titlePhoto"])
 
     def create_embed(self) -> discord.Embed:
         descriptions = []
