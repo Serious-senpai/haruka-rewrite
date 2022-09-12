@@ -19,6 +19,7 @@ QUEUE_MAX_SIZE = 100
 @commands.guild_only()
 @commands.cooldown(1, 2, commands.BucketType.user)
 async def _add_cmd(ctx: Context, *, query: str):
+    channel = ctx.author.voice.channel
     if len(query) < 3:
         return await ctx.send("Search query must have at least 3 characters")
 
@@ -42,7 +43,6 @@ async def _add_cmd(ctx: Context, *, query: str):
         return
 
     track = results[index]
-    channel = ctx.author.voice.channel
     await bot.audio.add(channel.id, track.id)
 
     embed = track.create_embed()
