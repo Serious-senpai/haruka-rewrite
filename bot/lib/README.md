@@ -1,0 +1,25 @@
+## Developers note
+This directory contains Python modules for core functions of the bot.
+- `audio` - Fetch video snippet and audio data from [YouTube](https://youtube.com). This works via the Invidious API and [youtube_dl](https://pypi.org/project/youtube_dl).
+- `codeforces` - Interact with [CodeForces](https://codeforces.com) API via HTTPS.
+- `mal` - Scrap [MyAnimeList](https://myanimelist.net) and fetch data about animes and mangas.
+- `pixiv` - Fetch illustrations and users from [Pixiv](https://www.pixiv.net) via Pixiv AJAX.
+- `asset` - Download and extract illustrations from my collection on [MediaFire](https://www.mediafire.com).
+- `cards` - Basic operations on a standard 52-card deck.
+- `danbooru` - Scrap [Danbooru](https://danbooru.donmai.us)
+- `emoji_ui` - Supports embeds pagination with Discord reactions
+- `emojis` - String constants for displaying custom emojis
+- `fuzzy` - Python script for fuzzy string search. This script is run via an asyncio subprocess.
+- `image` - Fetch anime images via several APIs
+- `info` - Format user and guild information in an Discord embed
+- `playlist` - Fetch [YouTube](https://youtube.com) public playlists and mixes
+- `quotes` - Generate quotes from characters in animes
+- `resources` - Miscellaneous functions
+- `saucenao` - Scrap [SauceNAO](https://saucenao.com)
+- `tenor` - Scrap [Tenor](https://tenor.com)
+- `tests` - Run tests on bot startup
+- `trees` - Custom Slash commands tree classes
+- `ui` - Default implementation for responding to Discord UI components
+- `urban` - Scrap [Urban Dictionary](https://www.urbandictionary.com)
+- `utils` - Utility functions
+- `zerochan` - Scrap [zerochan](https://www.zerochan.net)
