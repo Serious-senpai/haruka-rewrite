@@ -25,7 +25,10 @@ def _ensure_valid_url(url: str) -> str:
         return "https:" + url
 
 
-def _get_rating_color(rank: str) -> int:
+def _get_rating_color(rank: Optional[str]) -> Optional[int]:
+    if rank is None:
+        return
+
     rank = rank.removeprefix("international ")
     colors = {
         "newbie": 0x808080,
@@ -38,7 +41,7 @@ def _get_rating_color(rank: str) -> int:
         "legendary grandmaster": 0x000000,
     }
 
-    return colors.get(rank, 0xffffff)
+    return colors.get(rank)
 
 
 class PartialUser:
