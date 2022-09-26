@@ -25,6 +25,22 @@ def _ensure_valid_url(url: str) -> str:
         return "https:" + url
 
 
+def _get_rating_color(rank: str) -> int:
+    rank = rank.removeprefix("international ")
+    colors = {
+        "newbie": 0x808080,
+        "pupil": 0x008000,
+        "specialist": 0x03a89e,
+        "expert": 0x0000ff,
+        "candidate master": 0xaa00aa,
+        "master": 0xff8c00,
+        "grandmaster": 0xff0000,
+        "legendary grandmaster": 0x000000,
+    }
+
+    return colors.get(rank, 0xffffff)
+
+
 class PartialUser:
     """Represents a CodeForces user when just a handle is available"""
 
@@ -125,6 +141,7 @@ class User(PartialUser):
         embed = discord.Embed(
             title=escape(self.handle),
             description="\n".join(descriptions) if descriptions else None,
+            color=_get_rating_color(self.rank),
             url=self.url,
             timestamp=self.registration_time,
         )
