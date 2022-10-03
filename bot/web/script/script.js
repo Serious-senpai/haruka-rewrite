@@ -246,7 +246,9 @@ function buildAudioControlPage(key) {
                 thumbnail.id = "track-thumbnail";
                 thumbnail.src = data["thumbnail"];
 
-                d.appendChild(createHeading("h3", data["title"]));
+                const title = appendChild(d, "a");
+                title.href = "https://www.youtube.com/watch?v=" + data["id"];
+                title.appendChild(createHeading("h3", data["title"]));
 
                 const controlButtons = appendChild(d, "div");
                 controlButtons.id = "control-buttons";

@@ -30,6 +30,7 @@ async def _audio_control_playing_route(request: WebRequest) -> web.Response:
 
     await client.operable.wait()
     data = {
+        "id": client.current_track.id,
         "thumbnail": client.current_track.thumbnail,
         "title": client.current_track.title,
         "description": client.current_track.description,
