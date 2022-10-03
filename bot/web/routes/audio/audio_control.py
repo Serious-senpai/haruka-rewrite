@@ -55,7 +55,7 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
         event.set()
 
     async def keep_alive(websocket: web.WebSocketResponse) -> None:
-        while await asyncio.sleep(30, True) and not websocket.closed:
+        while await asyncio.sleep(23, True) and not websocket.closed:
             with contextlib.suppress(ConnectionResetError):
                 await websocket.send_bytes(b"")
 
@@ -63,7 +63,7 @@ async def _audio_control_status_route(request: WebRequest) -> web.WebSocketRespo
     asyncio.create_task(keep_alive(websocket))
     while client.is_connected() and not websocket.closed:
         waiter.clear()
-        await client.when_complete(notify(websocket, waiter))
+        await client.when_complete(notify(websocket, waiter))  # May throw RuntimeWarning, maybe just ignore it?
         await waiter.wait()
 
     with contextlib.suppress(ConnectionResetError):
