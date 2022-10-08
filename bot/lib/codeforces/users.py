@@ -22,7 +22,9 @@ __all__ = (
 
 def _ensure_valid_url(url: str) -> str:
     if url.startswith("//"):
-        return "https:" + url
+        url = "https:" + url
+
+    return url
 
 
 def _get_rating_color(rank: Optional[str]) -> Optional[int]:
