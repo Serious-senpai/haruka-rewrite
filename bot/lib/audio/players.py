@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import functools
 import select
+import time
 import traceback
 from typing import Any, AsyncIterator, Coroutine, Optional, TYPE_CHECKING
 
@@ -41,6 +42,7 @@ class MusicClient(discord.VoiceClient):
         target: discord.abc.Messageable
         current_track: InvidiousSource
         player: asyncio.Task[None]
+        _debug_audio_length: bool
 
     def __init__(self, *args, **kwargs) -> None:
         self._repeat = False
@@ -48,6 +50,7 @@ class MusicClient(discord.VoiceClient):
         self._stopafter = False
         self._operable = asyncio.Event()
         self._event = asyncio.Event()
+        self._debug_audio_length = False
         super().__init__(*args, **kwargs)
 
     @property
@@ -221,6 +224,10 @@ class MusicClient(discord.VoiceClient):
             if audio is not None:
                 await buffer.put(audio)
 
+        if self._debug_audio_length:
+            await self.notify("Debugging audio length")
+            _start_timestamp = time.perf_counter()
+
         while not buffer.empty() and self.is_connected():
             task = asyncio.create_task(load(buffer, track))
 
@@ -233,6 +240,10 @@ class MusicClient(discord.VoiceClient):
             self._operable.clear()
 
             await task
+
+        if self._debug_audio_length:
+            _duration = time.perf_counter() - _start_timestamp
+            await self.notify(f"Track ID {track.id} played for {_duration}s.")
 
     def _set_event(self, exc: Optional[BaseException] = None) -> None:
         self._event.set()
