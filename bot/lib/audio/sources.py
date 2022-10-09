@@ -270,7 +270,7 @@ class InvidiousSource(PartialInvidiousSource):
             "-t", "30",
             "-reconnect", "1",
             "-reconnect_streamed", "1",
-            "-reconnect_delay_max", "5",
+            "-reconnect_delay_max", "1",
         )
         before_options = shlex.join(before)
 

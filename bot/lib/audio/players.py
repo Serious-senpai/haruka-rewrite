@@ -11,7 +11,6 @@ from typing import Any, AsyncIterator, Coroutine, Optional, TYPE_CHECKING
 import discord
 
 from lib import emojis
-from .constants import TIMEOUT
 from .sources import InvidiousSource
 if TYPE_CHECKING:
     import haruka
@@ -243,7 +242,7 @@ class MusicClient(discord.VoiceClient):
 
         if self._debug_audio_length:
             _duration = time.perf_counter() - _start_timestamp
-            await self.notify(f"Track ID {track.id} played for {_duration}s.")
+            await self.notify(f"Track ID {track.id} played for {_duration:.2f}s/{track.length}s.")
 
     def _set_event(self, exc: Optional[BaseException] = None) -> None:
         self._event.set()

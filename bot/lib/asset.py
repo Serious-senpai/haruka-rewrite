@@ -96,7 +96,7 @@ class AssetClient:
                     return self.bot.log(f"Cannot fetch the TAR file from {file_url}: HTTP status {response.status}")
 
         size = os.path.getsize(tar_location)
-        self.bot.log(f"Downloaded TAR file in {utils.format(measure.result)}" + " (file size {:.2f} MB)".format(size / 2 ** 20))
+        self.bot.log(f"Downloaded TAR file in {utils.format(measure.result)} (file size {size / 2 ** 20:.2f} MB)")
         await self.extract_tar_file(tar_location, self.DIRECTORY)
         os.remove(tar_location)
         await self.__finalize()
