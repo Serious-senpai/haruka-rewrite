@@ -242,7 +242,7 @@ class MusicClient(discord.VoiceClient):
 
         if self._debug_audio_length:
             _duration = time.perf_counter() - _start_timestamp
-            await self.notify(f"Track ID {track.id} played for {_duration:.2f}s/{track.length}s.")
+            await self.notify(f"Track ID {track.id} played for {_duration:.2f}s/{track.length}s.\nSource: `{track.source_api}`")
 
     def _set_event(self, exc: Optional[BaseException] = None) -> None:
         self._event.set()

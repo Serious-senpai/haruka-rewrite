@@ -54,5 +54,5 @@ async def initialize_hosts(session: aiohttp.ClientSession) -> List[str]:
                     ping = time.perf_counter() - _start_timestamp
                     hosts[url] = ping
 
-    INVIDIOUS_URLS = sorted(hosts.keys(), key=hosts.__getitem__)
+    INVIDIOUS_URLS: List[str] = sorted(hosts.keys(), key=hosts.__getitem__)
     return INVIDIOUS_URLS

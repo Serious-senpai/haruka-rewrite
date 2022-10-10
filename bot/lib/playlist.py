@@ -18,6 +18,7 @@ class YouTubeCollectionBase:
     if TYPE_CHECKING:
         title: str
         id: str
+        url: str
         videos: List[sources.PartialInvidiousSource]
 
     def create_embed(self) -> discord.Embed:
@@ -69,13 +70,13 @@ class YouTubePlaylist(YouTubeCollectionBase):
         thumbnail: str
         url: str
 
-    def __init__(self, data: Dict[str, Any]) -> None:
+    def __init__(self, data: Dict[str, Any], source_api: str) -> None:
         self.title = data["title"]
         self.id = data["playlistId"]
         self.author = data["author"]
         self.description = data.get("description")
         self.view = data["viewCount"]
-        self.videos = [sources.PartialInvidiousSource(d) for d in data["videos"]]
+        self.videos = [sources.PartialInvidiousSource(d, source_api) for d in data["videos"]]
         self.thumbnail = data["authorThumbnails"].pop()["url"]
         self.url = f"https://www.youtube.com/playlist?list={self.id}"
 
@@ -108,10 +109,10 @@ class YouTubeMix(YouTubeCollectionBase):
         videos: List[sources.PartialInvidiousSource]
         url: str
 
-    def __init__(self, data: Dict[str, Any]) -> None:
+    def __init__(self, data: Dict[str, Any], source_api: str) -> None:
         self.title = data["title"]
         self.id = data["mixId"]
-        self.videos = [sources.PartialInvidiousSource(d) for d in data["videos"]]
+        self.videos = [sources.PartialInvidiousSource(d, source_api) for d in data["videos"]]
         self.url = f"https://www.youtube.com/playlist?list={self.id}"  # TODO: Find the appropriate URL format
 
 

@@ -80,6 +80,7 @@ class PartialInvidiousSource:
         "length",
         "description",
         "thumbnail",
+        "source_api",
     )
     if TYPE_CHECKING:
         data: Dict[str, Any]
@@ -90,7 +91,9 @@ class PartialInvidiousSource:
         description: Optional[str]
         thumbnail: Optional[str]
 
-    def __init__(self, data: Dict[str, Any]) -> None:
+        source_api: str
+
+    def __init__(self, data: Dict[str, Any], source_api: str) -> None:
         self.data = data
         self.id = data["videoId"]
         self.title = data["title"]
@@ -99,6 +102,8 @@ class PartialInvidiousSource:
 
         self.description = data.get("description")
         self.thumbnail = f"https://img.youtube.com/vi/{self.id}/0.jpg"
+
+        self.source_api = source_api
 
     def create_embed(self) -> discord.Embed:
         """Make a ``discord.Embed`` that represents
@@ -165,7 +170,7 @@ class PartialInvidiousSource:
                 async with client.session.get(f"{url}/api/v1/search", params=params, timeout=TIMEOUT) as response:
                     if response.status == 200:
                         data = await response.json(encoding="utf-8")
-                        items.extend(cls(d) for d in data[:max_results])
+                        items.extend(cls(d, url) for d in data[:max_results])
                         return items
 
         return items
@@ -194,11 +199,11 @@ class PartialInvidiousSource:
         """
         data = await asyncio.to_thread(get_from_memory, id)
         if data is not None:
-            return cls(data)
+            return cls(data, "DISK")
 
         track = await InvidiousSource.build(id, client=client)
         if track:
-            return cls(track.data)
+            return cls(track.data, track.source_api)
 
 
 class InvidiousSource(PartialInvidiousSource):
@@ -212,15 +217,18 @@ class InvidiousSource(PartialInvidiousSource):
     they should also use this class.
     """
 
-    __slots__ = ("part", "left", "playable", "source")
+    __slots__ = ("left", "part", "playable", "source")
     if TYPE_CHECKING:
+        left: int
+        part: int
         playable: bool
         source: Optional[str]
+        source_api: str
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, data: Dict[str, Any], source_api: str) -> None:
         self.playable = False
         self.source = None
-        super().__init__(*args, **kwargs)
+        super().__init__(data, source_api)
 
         for adaptiveFormat in self.data["adaptiveFormats"]:
             if adaptiveFormat.get("encoding") == "opus":
@@ -269,7 +277,7 @@ class InvidiousSource(PartialInvidiousSource):
             "-t", "30",
             "-reconnect", "1",
             "-reconnect_streamed", "1",
-            "-reconnect_delay_max", "1",
+            "-reconnect_delay_max", "5",
         )
         before_options = shlex.join(before)
 
@@ -365,6 +373,7 @@ class InvidiousSource(PartialInvidiousSource):
             await client.bot.report(f"Cannot fetch source for track `{self.id}`", send_state=False)
             return
 
+        self.source_api = "YOUTUBE-DL"
         return stdout or None
 
     def __repr__(self) -> str:
@@ -394,4 +403,4 @@ class InvidiousSource(PartialInvidiousSource):
                     if response.status == 200:
                         data = await response.json(encoding="utf-8")
                         await asyncio.to_thread(save_to_memory, data)
-                        return cls(data)
+                        return cls(data, url)
