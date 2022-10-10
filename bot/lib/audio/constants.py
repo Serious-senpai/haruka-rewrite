@@ -44,6 +44,8 @@ async def initialize_hosts(session: aiohttp.ClientSession) -> List[str]:
         The list object containing the sorted hosts
     """
     hosts = {}
+
+    global INVIDIOUS_URLS
     for url in INVIDIOUS_URLS:
         with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
             _start_timestamp = time.perf_counter()
@@ -52,5 +54,5 @@ async def initialize_hosts(session: aiohttp.ClientSession) -> List[str]:
                     ping = time.perf_counter() - _start_timestamp
                     hosts[url] = ping
 
-    INVIDIOUS_URLS.sort(key=hosts.__getitem__)
+    INVIDIOUS_URLS = sorted(hosts.keys(), key=hosts.__getitem__)
     return INVIDIOUS_URLS
