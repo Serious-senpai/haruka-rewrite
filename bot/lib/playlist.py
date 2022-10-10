@@ -146,5 +146,4 @@ async def get(id: str, *, session: aiohttp.ClientSession) -> Optional[Union[YouT
                         await asyncio.to_thread(sources.save_to_memory, d)
 
                     cls = YouTubePlaylist if "playlistId" in data else YouTubeMix
-                    constants.set_priority(url)
                     return cls(data, url)

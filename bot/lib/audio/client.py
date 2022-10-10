@@ -12,6 +12,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from env import HOST
+from .constants import initialize_hosts
 from .exceptions import AudioNotFound
 from .sources import PartialInvidiousSource, InvidiousSource
 if TYPE_CHECKING:
@@ -44,6 +45,10 @@ class AudioClient:
     @property
     def session(self) -> aiohttp.ClientSession:
         return self.bot.session
+
+    async def initialize_hosts(self) -> None:
+        hosts = initialize_hosts(self.bot.session)
+        self.bot.log("Sorted Invidious instances to:\n" + "\n".join(hosts))
 
     @staticmethod
     def in_voice(*, slash_command: bool = False) -> Callable[[T], T]:

@@ -208,6 +208,9 @@ class Haruka(commands.Bot, ClientMixin):
                 self.log(f"WARNING: Unable to fetch repository's commits (status {response.status})")
                 self.latest_commits = "*No data*"
 
+        # Sort Invidious hosts
+        await self.audio.initialize_hosts()
+
         # Complete tasks
         await test_running_task
         await image_fetching_task

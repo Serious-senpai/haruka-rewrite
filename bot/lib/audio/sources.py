@@ -13,7 +13,7 @@ import discord
 from discord.utils import escape_markdown as escape
 
 from lib.utils import format, slice_string
-from .constants import set_priority, INVIDIOUS_URLS, TIMEOUT
+from .constants import INVIDIOUS_URLS, TIMEOUT
 if TYPE_CHECKING:
     from .client import AudioClient
 
@@ -166,7 +166,6 @@ class PartialInvidiousSource:
                     if response.status == 200:
                         data = await response.json(encoding="utf-8")
                         items.extend(cls(d) for d in data[:max_results])
-                        set_priority(url)
                         return items
 
         return items
@@ -395,5 +394,4 @@ class InvidiousSource(PartialInvidiousSource):
                     if response.status == 200:
                         data = await response.json(encoding="utf-8")
                         await asyncio.to_thread(save_to_memory, data)
-                        set_priority(url)
                         return cls(data)
