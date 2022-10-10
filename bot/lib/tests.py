@@ -42,9 +42,10 @@ def make_title(title: str) -> str:
 class MiniInvidiousObject:
     """Class which only contains a video ID for testing"""
 
-    __slots__ = ("id",)
+    __slots__ = ("id", "source_api")
     if TYPE_CHECKING:
         id: str
+        source_api: str
 
     def __init__(self, id: str) -> None:
         self.id = id
