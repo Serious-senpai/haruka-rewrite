@@ -177,6 +177,10 @@ class PixivArtwork:
             value=f"{self.width} x {self.height}",
         )
         embed.add_field(
+            name="Pages count",
+            value=self.pages_count,
+        )
+        embed.add_field(
             name="Artwork link",
             value=self.url,
             inline=False,
