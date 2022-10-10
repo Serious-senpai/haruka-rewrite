@@ -273,6 +273,7 @@ class InvidiousSource(PartialInvidiousSource):
         before = (
             "-start_at_zero",
             "-copyts",
+            "-accurate_seek",
             "-ss", str(30 * self.part),
             "-t", "30",
             "-reconnect", "1",
