@@ -47,7 +47,7 @@ class AudioClient:
         return self.bot.session
 
     async def initialize_hosts(self) -> None:
-        hosts = initialize_hosts(self.bot.session)
+        hosts = await initialize_hosts(self.bot.session)
         self.bot.log("Sorted Invidious instances to:\n" + "\n".join(hosts))
 
     @staticmethod
