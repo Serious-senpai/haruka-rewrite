@@ -283,7 +283,7 @@ class InvidiousSource(PartialInvidiousSource):
 
         after = (
             "-vn",
-            # "-filter:a", "volume=0.2",
+            "-filter:a", "volume=0.2",
         )
         after_options = shlex.join(after)
 
