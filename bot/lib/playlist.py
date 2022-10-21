@@ -27,12 +27,21 @@ class YouTubeCollectionBase:
             url=self.url,
         )
 
-        for index, video in enumerate(self.videos[:5]):
+        added_count = 0
+        for index, video in enumerate(self.videos):
+            if not video.title or not video.channel:
+                continue
+
+            if added_count == 5:
+                break
+
             embed.add_field(
                 name=f"#{index + 1} {escape(video.title)}",
                 value=escape(video.channel),
                 inline=False,
             )
+
+            added_count += 1
 
         return embed
 
