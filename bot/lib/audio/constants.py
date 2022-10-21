@@ -45,14 +45,17 @@ async def initialize_hosts(session: aiohttp.ClientSession) -> List[str]:
     """
     hosts = {}
 
-    global INVIDIOUS_URLS
     for url in INVIDIOUS_URLS:
         with contextlib.suppress(aiohttp.ClientError, asyncio.TimeoutError):
             _start_timestamp = time.perf_counter()
-            async with session.get(url, timeout=TIMEOUT) as response:
+            async with session.get(f"{url}/api/v1/videos/hnHWleQp1GE", timeout=TIMEOUT) as response:
                 if response.status == 200:
                     ping = time.perf_counter() - _start_timestamp
                     hosts[url] = ping
 
-    INVIDIOUS_URLS = sorted(hosts.keys(), key=hosts.__getitem__)
+    INVIDIOUS_URLS.clear()
+    for url in hosts.keys():
+        INVIDIOUS_URLS.append(url)
+
+    INVIDIOUS_URLS.sort(key=hosts.__getitem__)
     return INVIDIOUS_URLS
