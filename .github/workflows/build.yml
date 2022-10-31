@@ -38,6 +38,9 @@ jobs:
     - name: Install dependencies
       run: pip3.9 install -r requirements.txt
 
+    - name: Check packages compatibility
+      run: pip3.9 check
+
     - name: Test single client
       run: python3.9 bot/main.py
 
