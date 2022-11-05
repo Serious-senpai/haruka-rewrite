@@ -36,7 +36,7 @@ async def _blacklist_cmd(ctx: Context, user: Optional[discord.User], *, reason: 
         embeds = []
         for index, row in enumerate(rows):
             if index % 10 == 0:
-                embed = discord.Embed()
+                embed = discord.Embed(description="")
                 embed.set_author(name="These are blacklisted users", icon_url=bot.user.avatar.url)
                 embed.set_footer(text=f"{len(rows)} user(s) in total")
                 embeds.append(embed)
