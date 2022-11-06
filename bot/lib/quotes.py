@@ -41,7 +41,7 @@ class Quote:
     @classmethod
     async def get(cls: Type[Quote], anime: Optional[str] = None) -> Quote:
         if anime is not None:
-            casefolded = await fuzzy_match(anime.casefold(), animes.keys())
+            casefolded = await fuzzy_match(anime.casefold(), animes.keys(), pattern=r"[\w ]+")
             original = animes[casefolded]
         else:
             original = random.choice(list(quotes.keys()))
