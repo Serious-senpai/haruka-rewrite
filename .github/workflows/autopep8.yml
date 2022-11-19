@@ -20,4 +20,4 @@ jobs:
       run: pip install autopep8
 
     - name: Check code format
-      run: autopep8 --exit-code -a -a -a -i -r .
+      run: autopep8 --exit-code --diff -a -a -a -r .
