@@ -243,3 +243,15 @@ async def _source_cmd(ctx: Context, *, cmd: str):
         file = discord.File("./source.py")
 
     await ctx.send("This is the source code", file=file)
+
+
+@bot.command(
+    name="rerun",
+    description="Rerun a command by reply to its message.",
+)
+async def _rerun_cmd(ctx: Context):
+    message = await utils.get_reply(ctx.message)
+    if message is None:
+        return await ctx.send("Please reply to a command message!")
+
+    await bot.process_commands(message)

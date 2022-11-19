@@ -111,8 +111,10 @@ class TimingContextManager(contextlib.AbstractContextManager):
         return self._result
 
 
-def get_reply(message: discord.Message) -> Optional[discord.Message]:
-    """Get the message that ``message`` is replying (to be precise,
+async def get_reply(message: discord.Message) -> Optional[discord.Message]:
+    """This function is a coroutine
+
+    Get the message that ``message`` is replying (to be precise,
     refering) to
 
     Parameters
@@ -128,7 +130,11 @@ def get_reply(message: discord.Message) -> Optional[discord.Message]:
     if not message.reference:
         return
 
-    return message.reference.cached_message
+    if message.reference.cached_message:
+        return message.reference.cached_message
+
+    with contextlib.suppress(discord.HTTPException):
+        return await message.channel.fetch_message(message.reference.message_id)
 
 
 async def fuzzy_match(string: str, against: Iterator[str], *, pattern: str = r"\w+") -> str:
