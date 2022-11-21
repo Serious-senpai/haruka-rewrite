@@ -64,7 +64,8 @@ class PartialUser:
         if self.__fetched:
             return self.__fetched
 
-        self.__fetched = await User.get(self.handle, session=session)
+        results = await User.get(self.handle, session=session)
+        self.__fetched = results[0]
         return self.__fetched
 
 
@@ -162,7 +163,7 @@ class User(PartialUser):
         return embed
 
     @classmethod
-    async def get(cls, *handles: str, session: aiohttp.ClientSession) -> Optional[List[User]]:
+    async def get(cls, *handles: str, session: aiohttp.ClientSession) -> List[User]:
         query = ";".join(handles)
         url = URL.build(
             scheme="https",
