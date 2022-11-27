@@ -156,7 +156,7 @@ class WaifuPics(ImageSource):
 class WaifuIm(ImageSource):
 
     __slots__ = ("session", "client")
-    endpoints_url: ClassVar[str] = "https://api.waifu.im/endpoints"
+    endpoints_url: ClassVar[str] = "https://api.waifu.im/tags/?full=true"
 
     async def _get_all_endpoints(self) -> Tuple[Set[str], Set[str]]:
         sfw = set()
@@ -166,8 +166,14 @@ class WaifuIm(ImageSource):
             async with self.session.get(self.endpoints_url) as response:
                 if response.status == 200:
                     data = await response.json(encoding="utf-8")
-                    sfw = set(data["versatile"])
-                    nsfw = set(data["nsfw"]) | sfw
+
+                    for tag in data["versatile"]:
+                        sfw.add(tag["name"])
+                        nsfw.add(tag["name"])
+
+                    for tag in data["nsfw"]:
+                        nsfw.add(tag["name"])
+
         except (aiohttp.ClientError, asyncio.TimeoutError):
             pass
 
@@ -184,9 +190,9 @@ class WaifuIm(ImageSource):
         return yarl.URL.build(
             scheme="https",
             host="api.waifu.im",
-            path="/random",
+            path="/search",
             query={
-                "selected_tags": category,
+                "included_tags": category,
                 "is_nsfw": str(mode == "nsfw"),
             },
         )
