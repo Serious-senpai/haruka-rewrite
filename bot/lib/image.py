@@ -366,7 +366,7 @@ class ImageClient:
 
             self.nsfw[endpoint].append(source)
 
-        self.log(f"Loaded {len(sfw)} SFW endpoints and {len(nsfw)} NSFW endpoints from {source.__class__.__name__}")
+        self.log(f"Loaded {len(sfw)} SFW endpoints and {len(nsfw)} NSFW endpoints from {source}:" + "\nSFW: " + ", ".join(sfw) + "\nNSFW: " + ", ".join(nsfw))
 
     async def wait_until_ready(self) -> None:
         """This function is a coroutine
@@ -391,7 +391,7 @@ class ImageClient:
         ``CategoryNotFound``.
 
         Note that although the category was registered, the
-        fetching operation may still fall somehow and ``None``
+        fetching operation may still fail somehow and ``None``
         is returned instead.
 
         Parameters
@@ -418,7 +418,7 @@ class ImageClient:
         self._check_category(category, mode=mode)
         image_url = None
 
-        sources = getattr(self, mode)[category]
+        sources: List[ImageSource] = getattr(self, mode)[category]
         random.shuffle(sources)
 
         for source in sources:
@@ -431,6 +431,6 @@ class ImageClient:
     async def get_url(self, category: str, *, mode: Literal["sfw", "nsfw"] = "sfw") -> Tuple[str, str]:
         await self.wait_until_ready()
         self._check_category(category, mode=mode)
-        source = random.choice(getattr(self, mode)[category])
+        source: ImageSource = random.choice(getattr(self, mode)[category])
 
         return str(source), str(source.get_url(category, mode=mode))
